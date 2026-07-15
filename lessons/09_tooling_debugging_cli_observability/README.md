@@ -1,6 +1,6 @@
-# 9. Tooling, Debugging, CLI, and Observability
+# 🛠️ 9. Tooling, Debugging, CLI, and Observability
 
-## Learning goals
+## 🎯 Learning goals
 
 - separate execution, formatting, linting, and type checking;
 - parse command-line arguments without terminating deep inside application code;
@@ -9,7 +9,7 @@
 - emit structured diagnostics to the error stream; and
 - avoid logging secrets or success-shaped error messages.
 
-## Run the lessons
+## ▶️ Run the lessons
 
 ```bash
 npm run lesson -- lessons/09_tooling_debugging_cli_observability/01_cli_boundaries.ts add "Write tests"
@@ -20,7 +20,7 @@ Keep a `run(args)` function separate from `process.argv` and `process.exitCode`.
 This makes CLI behavior testable without starting a child process. Program
 output belongs on stdout; diagnostics belong on stderr.
 
-## Common mistakes
+## ⚠️ Common mistakes
 
 - assuming `tsx` execution also performed a complete type check;
 - calling `process.exit()` before buffered output or cleanup finishes;
@@ -28,7 +28,7 @@ output belongs on stdout; diagnostics belong on stderr.
 - logging credentials, tokens, or complete environment objects; and
 - catching an error only to print it and return success.
 
-## Review questions
+## ❓ Review questions
 
 1. Which command is authoritative for static type errors?
 2. Why return an exit code from `run`?

@@ -1,6 +1,6 @@
-# 12. Node.js, Deno, and Bun Portability
+# 🌐 12. Node.js, Deno, and Bun Portability
 
-## Learning goals
+## 🎯 Learning goals
 
 - separate ECMAScript, TypeScript, Web APIs, and runtime-specific APIs;
 - identify a runtime without coupling domain logic to it;
@@ -8,7 +8,7 @@
 - use explicit adapters for files, processes, tests, and databases; and
 - prove portability with smoke tests instead of assuming compatibility.
 
-## Run the portable lessons
+## ▶️ Run the portable lessons
 
 ```bash
 # Node.js
@@ -24,7 +24,7 @@ bun run lessons/12_runtime_portability/01_runtime_identity.ts
 bun run lessons/12_runtime_portability/02_portable_web_apis.ts
 ```
 
-## Command map
+## ⌨️ Command map
 
 | Task                     | Node.js/npm                                             | Deno                 | Bun               |
 | ------------------------ | ------------------------------------------------------- | -------------------- | ----------------- |
@@ -39,7 +39,7 @@ provide substantial Node compatibility, but neither is a byte-for-byte Node
 implementation. As of July 2026, Bun does not implement `node:sqlite`, so the
 capstone's SQLite adapter remains intentionally Node-specific.
 
-## Portability checklist
+## ✅ Portability checklist
 
 1. Keep the domain model free of runtime imports.
 2. Prefer ES modules and explicit extensions.
@@ -48,7 +48,7 @@ capstone's SQLite adapter remains intentionally Node-specific.
 5. Test each claimed runtime in CI.
 6. Document intentionally non-portable adapters.
 
-## Common mistakes
+## ⚠️ Common mistakes
 
 - treating TypeScript support as identical type-checking behavior;
 - assuming npm compatibility means complete Node API compatibility;
@@ -56,7 +56,7 @@ capstone's SQLite adapter remains intentionally Node-specific.
 - using a runtime-specific global deep inside domain code; and
 - claiming the full capstone is portable after testing only one small script.
 
-## Review questions
+## ❓ Review questions
 
 1. Which features belong to JavaScript rather than a runtime?
 2. Why is `fetch` often more portable than a runtime-specific HTTP client?

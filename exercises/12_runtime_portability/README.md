@@ -1,4 +1,4 @@
-# Exercise: Describe Runtime Capabilities
+# 🧠 Exercise: Describe Runtime Capabilities
 
 Implement `describeCapabilities` using supplied capability flags. Keep the
 function free of direct Node, Deno, or Bun globals so it can be tested anywhere.

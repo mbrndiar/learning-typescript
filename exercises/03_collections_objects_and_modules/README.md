@@ -1,8 +1,8 @@
-# Exercise 3: Build a Catalog
+# 🧠 Exercise 3: Build a Catalog
 
 Turn an array of item objects into useful collection views.
 
-## Contract
+## 📋 Contract
 
 `buildCatalog(items)` returns an object with:
 
@@ -16,7 +16,7 @@ unique tags.
 `getCatalogItem(catalog, id)` returns the mapped item. If the ID is missing, it
 throws an `Error` with the message `Unknown item: <id>`.
 
-## Run the reference tests
+## ▶️ Run the reference tests
 
 ```bash
 node --test exercises/03_collections_objects_and_modules/solution.test.js

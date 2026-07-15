@@ -1,4 +1,4 @@
-# Exercise: Parse CLI Options
+# 🧠 Exercise: Parse CLI Options
 
 Implement a pure `parseArguments` function for:
 

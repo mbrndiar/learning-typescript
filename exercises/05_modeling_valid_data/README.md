@@ -1,9 +1,9 @@
-# Exercise 5: Model Delivery States
+# 🧠 Exercise 5: Model Delivery States
 
 Model an order so that each delivery state carries only the data valid for that
 state.
 
-## Contract
+## 📋 Contract
 
 Define and use:
 
@@ -21,7 +21,7 @@ Expected delivery text:
 - `Shipped with tracking TRACK-1`
 - `Delivered to Ada` or `Delivered`
 
-## Run the reference tests
+## ▶️ Run the reference tests
 
 ```bash
 node --import=tsx --test exercises/05_modeling_valid_data/solution.test.ts

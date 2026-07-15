@@ -3,7 +3,7 @@
 Each lesson module has a matching practice folder with starter code, tests, and
 one reference solution.
 
-## Workflow
+## 🔁 Workflow
 
 1. Read the contract and tests.
 2. Implement one behavior at a time.
@@ -15,7 +15,7 @@ Starter implementations may contain placeholders and failing tests. CI checks
 that starter files parse and type-check where practical, while solution tests
 must pass.
 
-## Modules
+## 🗺️ Modules
 
 1. `01_javascript_programs_and_values`
 2. `02_control_flow_and_functions`

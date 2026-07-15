@@ -1,4 +1,4 @@
-# Exercise: Validate a JSON Task List
+# 🧠 Exercise: Validate a JSON Task List
 
 Implement `parseTasks` in `exercise.ts`.
 

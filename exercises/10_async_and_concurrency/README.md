@@ -1,4 +1,4 @@
-# Exercise: Bounded Async Mapping
+# 🧠 Exercise: Bounded Async Mapping
 
 Implement `mapWithLimit` while preserving input order and never running more
 than `limit` transformations simultaneously.

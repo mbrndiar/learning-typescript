@@ -1,4 +1,4 @@
-# Task Manager CLI
+# ⌨️ Task Manager CLI
 
 The CLI parses terminal arguments, creates a `TaskManager`, and selects either
 atomic JSON storage or the REST adapter.

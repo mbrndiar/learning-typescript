@@ -1,4 +1,4 @@
-# Exercise: Validate an HTTP Task Body
+# 🧠 Exercise: Validate an HTTP Task Body
 
 Implement `parseCreateTask` for an untrusted decoded JSON value. Accept exactly
 a non-empty `title` and reject malformed data with `TypeError`.

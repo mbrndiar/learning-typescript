@@ -1,4 +1,4 @@
-# Task HTTP API
+# 🌐 Task HTTP API
 
 The API uses Node's HTTP server and built-in SQLite module without a framework.
 

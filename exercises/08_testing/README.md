@@ -1,4 +1,4 @@
-# Exercise: Test a Retry Policy
+# 🧠 Exercise: Test a Retry Policy
 
 The reference implementation retries only the failures approved by the supplied
 predicate. Study the solution tests, then implement the same contract in

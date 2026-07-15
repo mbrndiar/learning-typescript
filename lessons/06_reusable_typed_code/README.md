@@ -1,6 +1,6 @@
-# 6. Reusable Typed Code
+# ♻️ 6. Reusable Typed Code
 
-## Goals
+## 🎯 Goals
 
 - Write generic functions that preserve information about their inputs.
 - Add constraints when generic code needs specific properties.
@@ -9,7 +9,7 @@
 - Explain composition, structural typing, dependency injection, and module
   boundaries.
 
-## Generics and utility types
+## 🧬 Generics and utility types
 
 A generic type parameter represents a type chosen by the caller. `T` is a common
 name when there is one parameter. A constraint such as `T extends HasId` says the
@@ -20,7 +20,7 @@ excludes properties, `Partial` makes selected properties optional, and `Readonly
 prevents assignments through the resulting properties. Derive related types when
 that keeps one source of truth clear.
 
-## Classes, composition, and boundaries
+## 🛡️ Classes, composition, and boundaries
 
 A class can bundle state and behavior, but it should not automatically create
 every dependency it uses. Composition builds behavior from smaller collaborators.
@@ -35,14 +35,14 @@ Interfaces at module boundaries let domain behavior depend on capabilities such
 as `save` or `write`, not on files, databases, or network clients. Keep boundaries
 small and pass dependencies explicitly.
 
-## Run the examples
+## ▶️ Run the examples
 
 ```bash
 npm run lesson -- lessons/06_reusable_typed_code/01_generics_and_utility_types.ts
 npm run lesson -- lessons/06_reusable_typed_code/02_classes_composition_and_injection.ts
 ```
 
-## Common mistakes
+## ⚠️ Common mistakes
 
 - Adding a generic parameter that does not connect inputs to outputs.
 - Using an unsafe assertion instead of expressing a generic constraint.
@@ -50,7 +50,7 @@ npm run lesson -- lessons/06_reusable_typed_code/02_classes_composition_and_inje
 - Constructing concrete dependencies inside domain classes.
 - Choosing inheritance when composition of small capabilities is clearer.
 
-## Review questions
+## ❓ Review questions
 
 1. What information does a generic function preserve?
 2. Why might a generic need an `extends` constraint?
@@ -58,6 +58,6 @@ npm run lesson -- lessons/06_reusable_typed_code/02_classes_composition_and_inje
 4. What makes TypeScript structurally typed?
 5. How does dependency injection improve testing and replacement of adapters?
 
-## Exercise
+## 🧠 Exercise
 
 Complete [the matching note service exercise](../../exercises/06_reusable_typed_code/README.md).

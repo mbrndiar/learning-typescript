@@ -3,7 +3,7 @@
 The course uses Node.js as the reference runtime. The final module revisits a
 selected subset under Deno and Bun.
 
-## Portable first choices
+## 🌐 Portable first choices
 
 - JavaScript language features and strict TypeScript types
 - ES modules with explicit file extensions
@@ -11,7 +11,7 @@ selected subset under Deno and Bun.
 - explicit `node:` imports when a Node compatibility API is required
 - small adapters around files, processes, tests, and databases
 
-## Important differences
+## ⚠️ Important differences
 
 | Concern          | Node.js                      | Deno                           | Bun                                 |
 | ---------------- | ---------------------------- | ------------------------------ | ----------------------------------- |

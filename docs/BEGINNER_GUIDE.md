@@ -1,6 +1,6 @@
 # 🌱 Beginner's Guide
 
-## Language, type checker, and runtime
+## 🧬 Language, type checker, and runtime
 
 Three related tools appear throughout this course:
 
@@ -13,7 +13,7 @@ Three related tools appear throughout this course:
 Deno and Bun are alternative runtimes. They execute the same core language but
 do not implement every Node API identically.
 
-## How to read code
+## 👀 How to read code
 
 Work from the outside inward:
 
@@ -23,7 +23,7 @@ Work from the outside inward:
 - follow braces to see where blocks, functions, and objects begin and end;
 - read a type after `:` as a constraint checked before execution.
 
-## First 30 minutes
+## ▶️ First 30 minutes
 
 1. Run the first JavaScript lesson.
 2. Change the displayed name and run it again.
@@ -31,7 +31,7 @@ Work from the outside inward:
 4. Restore the file and predict the second lesson's output.
 5. Do not memorize every symbol. Explain one line at a time in plain language.
 
-## Productive mistakes
+## ⚠️ Productive mistakes
 
 Syntax errors, failed tests, and type errors are feedback. Read the first
 actionable message, locate the named file and line, state what rule was broken,

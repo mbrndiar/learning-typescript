@@ -1,9 +1,9 @@
-# Exercise 1: Purchase Summary
+# 🧠 Exercise 1: Purchase Summary
 
 Practice primitive values, explicit conversion, arithmetic, strings, and strict
 equality by completing `buildPurchaseSummary` in `exercise.js`.
 
-## Contract
+## 📋 Contract
 
 The function receives:
 
@@ -21,7 +21,7 @@ shape:
 Use `toFixed(2)` for both prices. Do not read the reference solution until you
 have made an attempt.
 
-## Run the reference tests
+## ▶️ Run the reference tests
 
 The repository test suite imports `solution.js`:
 

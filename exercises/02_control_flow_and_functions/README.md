@@ -1,8 +1,8 @@
-# Exercise 2: Scores, Loops, and a Counter
+# 🧠 Exercise 2: Scores, Loops, and a Counter
 
 Complete three small functions in `exercise.js`.
 
-## Contract
+## 📋 Contract
 
 - `classifyScore(score)` returns `"excellent"` for 90 or more, `"passed"` for
   70 through 89, and `"practice"` otherwise.
@@ -13,7 +13,7 @@ Complete three small functions in `exercise.js`.
 
 Keep mutation local to the counter closure.
 
-## Run the reference tests
+## ▶️ Run the reference tests
 
 ```bash
 node --test exercises/02_control_flow_and_functions/solution.test.js

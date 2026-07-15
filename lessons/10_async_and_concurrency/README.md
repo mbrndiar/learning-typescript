@@ -1,6 +1,6 @@
-# 10. Asynchronous JavaScript and Concurrency
+# ⚡ 10. Asynchronous JavaScript and Concurrency
 
-## Learning goals
+## 🎯 Learning goals
 
 - distinguish the call stack, microtasks, and later event-loop phases;
 - compose asynchronous work with promises and `async`/`await`;
@@ -9,7 +9,7 @@
 - understand when streams reduce memory use; and
 - reserve worker threads for CPU-bound work.
 
-## Run the lessons
+## ▶️ Run the lessons
 
 ```bash
 npm run lesson -- lessons/10_async_and_concurrency/01_event_loop_and_promises.ts
@@ -24,7 +24,7 @@ Cancellation is cooperative. A signal communicates that work should stop, but
 the operation must listen to it and release timers, streams, sockets, or other
 resources.
 
-## Common mistakes
+## ⚠️ Common mistakes
 
 - forgetting to `await` a promise;
 - using `forEach(async () => ...)` and assuming it waits;
@@ -33,7 +33,7 @@ resources.
 - moving I/O work to a worker thread when asynchronous APIs already avoid
   blocking the event loop.
 
-## Review questions
+## ❓ Review questions
 
 1. What is the difference between concurrency and parallelism?
 2. When do promise callbacks run relative to synchronous code?

@@ -1,6 +1,6 @@
-# 8. Testing
+# 🧪 8. Testing
 
-## Learning goals
+## 🎯 Learning goals
 
 - write synchronous and asynchronous tests with `node:test`;
 - choose focused assertions from `node:assert/strict`;
@@ -9,7 +9,7 @@
 - verify failure behavior, not only happy paths; and
 - interpret coverage as evidence, not a substitute for useful cases.
 
-## Run the lessons
+## ▶️ Run the lessons
 
 ```bash
 node --import=tsx --test lessons/08_testing/01_table_driven.test.ts
@@ -20,7 +20,7 @@ A deterministic test controls its inputs, does not depend on execution order,
 and cleans up resources it creates. Prefer small seams—such as an injected
 clock or request function—over broad module replacement.
 
-## Common mistakes
+## ⚠️ Common mistakes
 
 - comparing objects with `equal` instead of `deepEqual`;
 - forgetting to `await` a promise or subtest;
@@ -28,7 +28,7 @@ clock or request function—over broad module replacement.
 - sharing mutable state between tests; and
 - chasing 100% coverage with low-value assertions.
 
-## Review questions
+## ❓ Review questions
 
 1. What makes a test deterministic?
 2. When is `assert.rejects` more appropriate than `assert.throws`?

@@ -1,4 +1,4 @@
-# Typed Task Client
+# 🤝 Typed Task Client
 
 `TaskClient` owns HTTP request construction, timeouts, status handling, and
 response validation. `RestTaskStorage` adapts it to the capstone's storage

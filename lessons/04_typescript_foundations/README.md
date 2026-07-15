@@ -1,6 +1,6 @@
-# 4. TypeScript Foundations
+# 🧬 4. TypeScript Foundations
 
-## Goals
+## 🎯 Goals
 
 - Explain what TypeScript checks before a program runs.
 - Use inference and annotations with strict compiler settings.
@@ -8,7 +8,7 @@
 - Narrow `unknown` safely and explain why `any` removes protection.
 - Migrate a small JavaScript calculation to TypeScript.
 
-## From JavaScript to TypeScript
+## 🔄 From JavaScript to TypeScript
 
 JavaScript accepts this function but does not describe which arguments are valid:
 
@@ -31,7 +31,7 @@ TypeScript still runs as JavaScript. The type checker analyzes the program first
 and reports inconsistent uses. This repository enables `strict` mode and several
 additional checks in `tsconfig.json`.
 
-## Inference, annotations, and safe boundaries
+## 🛡️ Inference, annotations, and safe boundaries
 
 TypeScript infers obvious local types, so `const course = "TypeScript"` needs no
 annotation. Add annotations at boundaries such as function parameters, exported
@@ -45,14 +45,14 @@ Use `unknown` for a value whose type has not been established. Check it with
 `typeof`, `instanceof`, or other runtime tests before using it. Avoid `any`
 because it turns off useful checking and lets errors travel through the program.
 
-## Run the examples
+## ▶️ Run the examples
 
 ```bash
 npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 npm run lesson -- lessons/04_typescript_foundations/02_unknown_and_function_types.ts
 ```
 
-## Common mistakes
+## ⚠️ Common mistakes
 
 - Annotating every local value instead of allowing clear inference.
 - Believing a type annotation validates JSON or other runtime input.
@@ -60,7 +60,7 @@ npm run lesson -- lessons/04_typescript_foundations/02_unknown_and_function_type
 - Treating a tuple like an unlimited array.
 - Forgetting that TypeScript errors and runtime errors are different feedback.
 
-## Review questions
+## ❓ Review questions
 
 1. When can TypeScript infer a type without an annotation?
 2. Why annotate function parameters?
@@ -68,6 +68,6 @@ npm run lesson -- lessons/04_typescript_foundations/02_unknown_and_function_type
 4. What must happen before using an `unknown` value?
 5. Why is `any` unsafe?
 
-## Exercise
+## 🧠 Exercise
 
 Complete [the matching temperature exercise](../../exercises/04_typescript_foundations/README.md).

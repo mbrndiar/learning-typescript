@@ -17,7 +17,7 @@ cancellation, persistence, and graceful shutdown remain visible.
 The JSON adapter uses `proper-lockfile` for cross-process coordination; the
 remaining application code relies on runtime APIs.
 
-## Run the connected application
+## ▶️ Run the connected application
 
 ```bash
 # Local JSON storage
@@ -32,7 +32,7 @@ npm run lesson -- project/task-manager/main.ts \
   --backend rest --url http://127.0.0.1:8080 add "Remote task"
 ```
 
-## Staged extensions
+## 🧩 Staged extensions
 
 1. Add a `show <id>` command.
 2. Add title search and completed/pending filters.

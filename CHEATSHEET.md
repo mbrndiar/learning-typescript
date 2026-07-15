@@ -1,9 +1,9 @@
-# TypeScript and Runtime Cheat Sheet
+# 🗒️ TypeScript and Runtime Cheat Sheet
 
 Use this after learning a concept. It is a reminder, not a replacement for the
 lesson, experiment, and exercise.
 
-## Commands
+## ⌨️ Commands
 
 ```bash
 node file.js                       # run JavaScript
@@ -18,7 +18,7 @@ npm run coverage                   # enforce capstone coverage
 npm run check                      # local CI sequence
 ```
 
-## Bindings, values, and operators
+## 🧱 Bindings, values, and operators
 
 ```typescript
 const language = "TypeScript";
@@ -41,7 +41,7 @@ const enabled = Boolean(count);
 `null` is an intentional empty value; `undefined` usually means missing or not
 assigned. `typeof null` is the historical value `"object"`.
 
-## Control flow and functions
+## 🧩 Control flow and functions
 
 ```typescript
 if (score >= 90) {
@@ -66,7 +66,7 @@ const double = (value: number): number => value * 2;
 Use `for...of` for values. Use `for...in` only when object property names are
 the intended data.
 
-## Arrays, objects, maps, and sets
+## 🧺 Arrays, objects, maps, and sets
 
 ```typescript
 const numbers: number[] = [1, 2, 3];
@@ -84,7 +84,7 @@ const tags = new Set(["typescript", "node"]);
 Object and array spread is shallow. Nested objects remain shared unless copied
 separately.
 
-## Modules
+## 🗂️ Modules
 
 ```typescript
 // task.ts
@@ -104,7 +104,7 @@ import { formatTask, type Task } from "./task.ts";
 This course uses ES modules, explicit extensions, `"type": "module"`, and
 `import type` for type-only dependencies.
 
-## TypeScript foundations
+## 🧬 TypeScript foundations
 
 ```typescript
 const inferred = "string";
@@ -129,7 +129,7 @@ function stringify(value: unknown): string {
 
 Use `unknown` for untrusted values. Avoid `any`, which disables useful checks.
 
-## Type aliases, interfaces, and unions
+## 🧬 Type aliases, interfaces, and unions
 
 ```typescript
 type Identifier = number;
@@ -157,7 +157,7 @@ function unwrap<T>(result: Result<T>): T {
 Literal discriminants make invalid states harder to represent and allow
 exhaustive narrowing.
 
-## Generics and utility types
+## 🧬 Generics and utility types
 
 ```typescript
 function first<T>(items: readonly T[]): T | undefined {
@@ -179,7 +179,7 @@ type StoredTask = Readonly<Task>;
 Useful built-ins include `Pick`, `Omit`, `Partial`, `Required`, `Readonly`,
 `Record`, `Awaited`, `Parameters`, and `ReturnType`.
 
-## Classes, composition, and dependency injection
+## 🧩 Classes, composition, and dependency injection
 
 ```typescript
 interface Writer {
@@ -198,7 +198,7 @@ class Reporter {
 TypeScript is structurally typed: a value satisfies `Writer` when it has the
 required shape. Depend on the smallest capability the consumer needs.
 
-## Errors and runtime validation
+## 🚨 Errors and runtime validation
 
 ```typescript
 try {
@@ -221,7 +221,7 @@ if (typeof value !== "object" || value === null) {
 Validate command arguments, environment variables, files, JSON, database rows,
 and HTTP bodies at the boundary.
 
-## Files and paths
+## 📁 Files and paths
 
 ```typescript
 import { readFile, writeFile } from "node:fs/promises";
@@ -235,7 +235,7 @@ const text = await readFile(file, "utf8");
 Use `try`/`finally` for cleanup and write to a temporary file before renaming
 when a partially written file would be dangerous.
 
-## Promises, cancellation, and concurrency
+## ⚡ Promises, cancellation, and concurrency
 
 ```typescript
 const value = await Promise.resolve(42);
@@ -250,7 +250,7 @@ const results = await Promise.all(items.map((item) => processItem(item)));
 of simultaneous operations must be bounded. Pass `AbortSignal` through every
 layer that can stop work.
 
-## HTTP
+## 🌐 HTTP
 
 ```typescript
 const response = await fetch("http://127.0.0.1:8080/tasks", {
@@ -269,7 +269,7 @@ Validate method, path, content type, body size, JSON syntax, and decoded shape.
 Use status `201` for creation, `204` for successful empty responses, `400` for
 invalid input, `404` for missing resources, and `500` for unexpected failures.
 
-## SQLite
+## 🗄️ SQLite
 
 ```typescript
 import { DatabaseSync } from "node:sqlite";
@@ -283,7 +283,7 @@ database.close();
 Bind parameters instead of interpolating SQL. Use transactions when related
 writes must commit or roll back together.
 
-## Testing
+## 🧪 Testing
 
 ```typescript
 import assert from "node:assert/strict";
@@ -301,7 +301,7 @@ test("rejects invalid input", async () => {
 Use `assert.throws` for synchronous failures and `assert.rejects` for rejected
 promises. Control time, files, randomness, and network boundaries.
 
-## Runtime portability
+## 🌐 Runtime portability
 
 | Concern        | Node.js                         | Deno                       | Bun               |
 | -------------- | ------------------------------- | -------------------------- | ----------------- |
