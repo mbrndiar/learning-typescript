@@ -29,7 +29,8 @@ function lineTotal(price: number, quantity: number): number {
 
 TypeScript still runs as JavaScript. The type checker analyzes the program first
 and reports inconsistent uses. This repository enables `strict` mode and several
-additional checks in `tsconfig.json`.
+additional checks in `tsconfig.base.json`, inherited by the runtime-specific
+configurations and the root `tsconfig.json`.
 
 ## 🛡️ Inference, annotations, and safe boundaries
 

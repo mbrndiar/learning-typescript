@@ -32,11 +32,11 @@ const profiles: readonly RuntimeProfile[] = [
   },
 ];
 
-export function verifyPortableExercise(): void {
+export function runPortableCheck(): void {
   assertEqual(findCompatibleRuntimes(profiles, { nativeBundler: true }), [
     "Deno",
     "Bun",
   ]);
 }
 
-verifyPortableExercise();
+runPortableCheck();

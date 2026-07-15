@@ -6,9 +6,11 @@ do not filter results.
 
 ```bash
 node --import=tsx --test exercises/15_runtime_portability/solution.test.ts
-deno test exercises/15_runtime_portability/portable.test.ts
-bun test exercises/15_runtime_portability/portable.test.ts
+node --import=tsx exercises/15_runtime_portability/portable-check.ts
+deno run exercises/15_runtime_portability/portable-check.ts
+bun run exercises/15_runtime_portability/portable-check.ts
 ```
 
 The Node test imports `solution.ts`. Temporarily point it at `exercise.ts` while
-working. The portable test proves the same solution under Deno and Bun.
+working. The framework-free portable check proves the same solution under
+Node.js, Deno, and Bun without reporting an empty test suite.

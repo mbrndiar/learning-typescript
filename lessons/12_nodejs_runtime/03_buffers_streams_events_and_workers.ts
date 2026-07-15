@@ -9,6 +9,7 @@ class SlowCollector extends Writable {
   drainCount = 0;
 
   constructor() {
+    // Smaller than one JSON record, this threshold makes backpressure observable.
     super({ highWaterMark: 8 });
     this.on("drain", () => {
       this.drainCount += 1;
@@ -34,6 +35,7 @@ class SlowCollector extends Writable {
 
 const text = "Node 🌊";
 const encoded = Buffer.from(text, "utf8");
+// JavaScript counts UTF-16 code units, while Buffer measures encoded UTF-8 bytes.
 assert.equal(text.length, 7);
 assert.equal(encoded.byteLength, 9);
 assert.equal(
@@ -63,6 +65,7 @@ emitter.emit("task");
 emitter.emit("error", new Error("expected"));
 assert.deepEqual(eventOrder, ["first", "second", "handled:expected"]);
 
+// An eval worker starts as CommonJS by default, so its source string uses `require`.
 const worker = new Worker(
   `
     const { parentPort, workerData } = require("node:worker_threads");

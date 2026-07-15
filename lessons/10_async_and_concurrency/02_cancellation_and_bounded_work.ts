@@ -31,6 +31,7 @@ async function mapWithLimit<T, R>(
   const pending = values.map((value, index) => ({ index, value }));
   let nextPosition = 0;
 
+  // A fixed worker pool shares one cursor, so at most `limit` transforms run at once.
   async function worker(): Promise<void> {
     while (true) {
       const entry = pending[nextPosition];
@@ -54,3 +55,13 @@ const results = await mapWithLimit([1, 2, 3, 4], 2, async (value) => {
 });
 
 console.log(results);
+
+const cancellation = new AbortController();
+const cancelledDelay = delay(100, cancellation.signal);
+cancellation.abort(new Error("delay cancelled"));
+
+try {
+  await cancelledDelay;
+} catch (error: unknown) {
+  console.log(error instanceof Error ? error.message : String(error));
+}

@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 const courseName = "TypeScript Foundations";
 const lessonNumber = 4;
 const isStrict = true;
@@ -18,6 +16,6 @@ for (const quantity of quantities) {
   totalUnits += quantity;
 }
 
-log(`${courseName} is lesson ${lessonNumber}.`);
-log(`Strict checking enabled: ${isStrict}`);
-log(`${itemName}: $${lineTotal(itemPrice, totalUnits).toFixed(2)}`);
+console.log(`${courseName} is lesson ${lessonNumber}.`);
+console.log(`Strict checking enabled: ${isStrict}`);
+console.log(`${itemName}: $${lineTotal(itemPrice, totalUnits).toFixed(2)}`);

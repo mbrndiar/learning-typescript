@@ -5,6 +5,7 @@ interface LogContext {
 
 function log(level: "info" | "error", message: string, context: LogContext): void {
   const entry = {
+    // Fixed time keeps lesson output deterministic; production logs use the current time.
     time: new Date(0).toISOString(),
     level,
     message,

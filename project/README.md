@@ -20,7 +20,9 @@ Shared Task core
 
 The implementation deliberately avoids a web framework so routing, validation,
 cancellation, persistence, and graceful shutdown remain visible.
-The Node JSON adapter uses `proper-lockfile` for cross-process coordination.
+The Node JSON adapter uses
+[`proper-lockfile`](https://github.com/moxystudio/node-proper-lockfile) for
+cross-process coordination.
 Deno uses native file APIs. Bun uses `Bun.file`/`Bun.write` plus Node-compatible
 rename and directory APIs. Both use atomic replacement and in-process
 serialization without cross-process locking.

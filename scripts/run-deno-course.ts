@@ -32,13 +32,13 @@ async function collectPortableModule15(): Promise<CourseFile[]> {
         if (!child.isFile || !/\.(?:js|ts)$/.test(child.name)) {
           continue;
         }
-        const isPortableTest = child.name === "portable.test.ts" ||
-          child.name === "portable.test.js";
+        const isPortableCheck = child.name === "portable-check.ts" ||
+          child.name === "portable-check.js";
         const isSolution = /^solution\.(?:js|ts)$/.test(child.name);
-        if (root === "lessons" || isSolution || isPortableTest) {
+        if (root === "lessons" || isSolution || isPortableCheck) {
           files.push({
             path: `${directory}/${child.name}`,
-            mode: isPortableTest ? "test" : "run",
+            mode: "run",
           });
         }
       }

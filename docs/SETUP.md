@@ -96,17 +96,17 @@ dependency lifecycle scripts unless they are explicitly trusted.
 
 ## 🧰 7. Understand the tool boundaries
 
-| Tool        | Main responsibility                                       |
-| ----------- | --------------------------------------------------------- |
-| `node`      | Node.js execution and native erasable type stripping      |
-| `npm`       | Node package installation and `package.json` scripts      |
-| `tsx`       | Predictable Node execution of full TypeScript syntax      |
-| `tsc`       | Strict static checking for Node and Bun source trees      |
-| ESLint      | Suspicious JavaScript and TypeScript patterns             |
-| Prettier    | Repository formatting outside Deno-native TypeScript      |
-| `node:test` | Node.js tests and coverage                                |
-| `deno`      | Deno execution, permissions, format, lint, check, test    |
-| `bun`       | Bun execution, package install, tests, build, and compile |
+| Tool                                                                        | Main responsibility                                       |
+| --------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `node`                                                                      | Node.js execution and native erasable type stripping      |
+| `npm`                                                                       | Node package installation and `package.json` scripts      |
+| [`tsx`](https://tsx.is/)                                                    | Predictable Node execution of full TypeScript syntax      |
+| [`tsc`](https://www.typescriptlang.org/docs/handbook/compiler-options.html) | Strict static checking for Node and Bun source trees      |
+| [ESLint](https://eslint.org/docs/latest/)                                   | Suspicious JavaScript and TypeScript patterns             |
+| [Prettier](https://prettier.io/docs/)                                       | Repository formatting outside Deno-native TypeScript      |
+| [`node:test`](https://nodejs.org/api/test.html)                             | Node.js tests and coverage                                |
+| [`deno`](https://docs.deno.com/runtime/reference/cli/)                      | Deno execution, permissions, format, lint, check, test    |
+| [`bun`](https://bun.sh/docs/cli/run)                                        | Bun execution, package install, tests, build, and compile |
 
 Execution and type checking are separate in Node.js and Bun. Deno type-checks
 through `deno check`; still keep runtime validation for JSON, environment,
@@ -174,6 +174,14 @@ Use the workspace TypeScript version for Node/Bun files and the Deno language
 server for `lessons/13_deno_runtime`, `exercises/13_deno_runtime`, and
 `project/task-deno`. The authoritative commands are `npm run typecheck:node`,
 `npm run typecheck:bun`, and `deno task typecheck`.
+
+### ⚠️ Deno prints `@types/node` resolution warnings
+
+After `npm install`, Deno 2.9.3 may print `Failed resolving types` warnings while
+`deno doc` inspects the root `node_modules/@types/node` package. The Deno source
+does not import those declarations; this specific warning is non-fatal when
+`deno task check` still exits successfully. Investigate any actual error or
+non-zero exit instead of ignoring it.
 
 ### ⚠️ An import cannot be resolved
 

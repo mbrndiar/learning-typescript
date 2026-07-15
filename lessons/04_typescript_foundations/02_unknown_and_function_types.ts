@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 type NumberFormatter = (value: number) => string;
 
 function readCount(value: unknown): number | undefined {
@@ -25,8 +23,8 @@ for (const input of inputs) {
   const count = readCount(input);
 
   if (count === undefined) {
-    log("Invalid count");
+    console.log("Invalid count");
   } else {
-    log(formatCount(count));
+    console.log(formatCount(count));
   }
 }

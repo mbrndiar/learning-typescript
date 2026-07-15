@@ -23,7 +23,7 @@
     "test": "npm run test:node",
     "test:node": "tsx scripts/run-node-tests.ts",
     "test:project": "tsx scripts/run-project-tests.ts",
-    "test:bun": "bun test lessons/14_bun_runtime exercises/14_bun_runtime project/task-bun exercises/15_runtime_portability/portable.test.ts",
+    "test:bun": "bun test lessons/14_bun_runtime exercises/14_bun_runtime project/task-bun",
     "build:bun": "bun run scripts/bun-build-smoke.ts",
     "audit:node": "npm audit --audit-level=high",
     "audit:bun": "bun audit",

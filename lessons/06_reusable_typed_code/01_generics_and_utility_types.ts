@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 interface HasId {
   readonly id: string;
 }
@@ -33,6 +31,6 @@ const found = findById(products, "p2");
 
 if (found !== undefined) {
   const updated = applyProductChanges(found, { inStock: true });
-  log(formatLabel(updated));
-  log(`In stock: ${updated.inStock}`);
+  console.log(formatLabel(updated));
+  console.log(`In stock: ${updated.inStock}`);
 }

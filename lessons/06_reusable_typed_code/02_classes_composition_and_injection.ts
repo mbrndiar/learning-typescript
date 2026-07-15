@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 interface CounterStore {
   read(): number;
   write(value: number): void;
@@ -38,7 +36,7 @@ class VisitService {
 const store = new MemoryCounterStore();
 const writer = {
   write(message: string): void {
-    log(message);
+    console.log(message);
   },
 };
 const service = new VisitService(store, writer);

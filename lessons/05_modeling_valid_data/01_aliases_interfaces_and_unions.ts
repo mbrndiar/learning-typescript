@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 type Role = "reader" | "editor";
 type Identifier = string;
 
@@ -36,5 +34,5 @@ const lin: Learner = {
 };
 
 for (const learner of [ada, lin]) {
-  log(`${displayName(learner)} can edit: ${canEdit(learner.role)}`);
+  console.log(`${displayName(learner)} can edit: ${canEdit(learner.role)}`);
 }

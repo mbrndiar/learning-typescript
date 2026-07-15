@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 const originalNames = ["Ada", "Lin", "Grace"];
 const names = [...originalNames, "Edsger"];
 const [firstName, secondName, ...remainingNames] = names;
@@ -32,10 +30,10 @@ export function describeLearner(value) {
   return `${value.name} (${value.id})`;
 }
 
-log(`First: ${firstName}; second: ${secondName}`);
-log(`Remaining: ${remainingNames.join(", ")}`);
-log(`${name} has ID ${id}`);
-log(describeLearner(learnerWithLevel));
-log(`Visits: ${visitsByLearner.get(id)}`);
-log(`Unique names: ${uniqueNames.size}`);
-log(`Sum: ${sum(2, 4, 6)}`);
+console.log(`First: ${firstName}; second: ${secondName}`);
+console.log(`Remaining: ${remainingNames.join(", ")}`);
+console.log(`${name} has ID ${id}`);
+console.log(describeLearner(learnerWithLevel));
+console.log(`Visits: ${visitsByLearner.get(id)}`);
+console.log(`Unique names: ${uniqueNames.size}`);
+console.log(`Sum: ${sum(2, 4, 6)}`);

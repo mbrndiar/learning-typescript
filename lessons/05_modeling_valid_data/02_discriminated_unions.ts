@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 type Download =
   | { readonly state: "waiting" }
   | { readonly state: "running"; readonly percent: number }
@@ -32,5 +30,5 @@ const downloads: Download[] = [
 ];
 
 for (const download of downloads) {
-  log(describeDownload(download));
+  console.log(describeDownload(download));
 }

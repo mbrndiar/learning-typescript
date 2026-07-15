@@ -1,5 +1,3 @@
-import { log } from "node:console";
-
 import { describeLearner } from "./01_collections_and_objects.js";
 
 const learners = [
@@ -18,13 +16,13 @@ function findLearnerById(id) {
 }
 
 const foundLearner = findLearnerById("learner-2");
-log(describeLearner(foundLearner));
+console.log(describeLearner(foundLearner));
 
 try {
   findLearnerById("learner-9");
 } catch (error) {
   if (error instanceof Error) {
-    log(`Could not find learner. ${error.message}`);
+    console.log(`Could not find learner. ${error.message}`);
   } else {
     throw error;
   }
