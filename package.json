@@ -1,0 +1,35 @@
+{
+  "name": "learning-typescript-course",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lesson": "tsx",
+    "course": "tsx scripts/run-course.ts",
+    "portability": "tsx scripts/portability-smoke.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "links": "tsx scripts/check-links.ts",
+    "test": "node --import=tsx --test",
+    "test:project": "tsx scripts/run-project-tests.ts",
+    "coverage": "tsx scripts/run-project-tests.ts --coverage",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run links && npm run course && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/proper-lockfile": "4.1.4",
+    "eslint": "9.39.2",
+    "prettier": "3.7.4",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.48.0"
+  },
+  "dependencies": {
+    "proper-lockfile": "4.1.2"
+  }
+}
