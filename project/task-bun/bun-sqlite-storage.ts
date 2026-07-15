@@ -10,10 +10,17 @@ interface TaskRow {
   readonly completed: number;
 }
 
+// changes is reported as a bigint; coerce once so callers compare with numbers.
 function changedRows(result: Changes): number {
   return Number(result.changes);
 }
 
+// Bun SQLite backend using the bun:sqlite native driver. It owns its database
+// lifecycle: schema (with CHECK constraints mirroring the domain invariants) is
+// created on construction and released via close(). Because bun:sqlite creates
+// a new file world-readable, the existing mode is captured before opening and
+// re-applied afterward so a restrictive database file is not widened. All
+// queries use ?N parameter binding to prevent SQL injection.
 export class BunSqliteTaskStorage implements TaskStorage {
   private readonly database: Database;
 
@@ -65,6 +72,8 @@ export class BunSqliteTaskStorage implements TaskStorage {
     const result = this.database
       .query<never, [number]>("UPDATE tasks SET completed = 1 WHERE id = ?1")
       .run(id);
+    // Zero affected rows is how SQLite signals a missing id; surface the shared
+    // not-found error rather than reporting a phantom success.
     if (changedRows(result) === 0) {
       throw new TaskNotFoundError(id);
     }
@@ -95,6 +104,8 @@ export class BunSqliteTaskStorage implements TaskStorage {
     return this.parseRow(row, "row");
   }
 
+  // Rows are typed as unknown at runtime, so validate shape and map SQLite's
+  // 0/1 integer to a boolean instead of trusting the declared column type.
   private parseRow(value: unknown, context: string): Task {
     if (typeof value !== "object" || value === null) {
       throw new TypeError(`${context} must be an object`);

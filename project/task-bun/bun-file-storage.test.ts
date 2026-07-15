@@ -16,6 +16,9 @@ registerStorageContract("BunFileTaskStorage", async () => {
   };
 });
 
+// Overlapping add() calls must yield contiguous ids, the exact persisted
+// document, and no leftover .tmp files, proving the in-process queue serialized
+// the writes and every atomic rename cleaned up its temp file.
 test("BunFileTaskStorage serializes writes within one instance", async () => {
   const directory = await createArtifactDirectory("file-concurrency");
   try {
@@ -42,6 +45,8 @@ test("BunFileTaskStorage serializes writes within one instance", async () => {
   }
 });
 
+// A structurally valid JSON file that violates the Task schema (missing title)
+// must be rejected on load, not silently accepted.
 test("BunFileTaskStorage rejects a corrupt task document", async () => {
   const directory = await createArtifactDirectory("file-corrupt");
   try {
@@ -54,6 +59,9 @@ test("BunFileTaskStorage rejects a corrupt task document", async () => {
   }
 });
 
+// New files must default to a private 0o600, and a later mutation must preserve
+// a widened-by-the-user 0o660 rather than resetting it. Skipped on Windows,
+// which has no POSIX modes.
 test.skipIf(process.platform === "win32")(
   "BunFileTaskStorage creates private files and preserves restrictive modes",
   async () => {

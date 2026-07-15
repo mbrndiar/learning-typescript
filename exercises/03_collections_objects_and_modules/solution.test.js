@@ -14,6 +14,9 @@ test("builds keyed, unique, and accumulated catalog data", () => {
   assert.deepEqual(catalog.tags, ["writing", "school", "reading"]);
   assert.equal(catalog.totalStock, 5);
   assert.deepEqual(catalog.byId.get("p2"), items[1]);
+  // deepEqual above confirms equal content; notEqual here confirms it is a
+  // distinct object, proving buildCatalog copied the item instead of storing a
+  // reference back to the caller's array.
   assert.notEqual(catalog.byId.get("p1"), items[0]);
 });
 

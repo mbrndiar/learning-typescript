@@ -15,12 +15,16 @@ test("generic lookup preserves the entity type", () => {
   ];
   const found = findById(notes, "n1");
 
+  // Accessing text on the result is the point of the generic: lookup did not
+  // erase the more specific Note shape.
   assert.equal(found?.text, "Learn generics");
   assert.equal(findById(notes, "missing"), undefined);
 });
 
 test("service uses injected collaborators and saves created notes", () => {
   const saved: Note[] = [];
+  // This plain object is a deliberate structural-typing test double; no class
+  // or inheritance relationship is required.
   const repository: NoteRepository = {
     save(note): void {
       saved.push(note);
@@ -51,6 +55,8 @@ test("utility-derived previews expose only selected properties", () => {
     { id: "n2", text: "Second", createdAt: "2026-01-01T10:00:00Z" },
   ];
 
+  // createdAt exists on the source notes, so this scenario guards the preview
+  // boundary against leaking fields the type intentionally omits.
   assert.deepEqual(toPreviews(notes), [
     { id: "n1", text: "First" },
     { id: "n2", text: "Second" },

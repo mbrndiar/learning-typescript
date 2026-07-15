@@ -1,9 +1,14 @@
+// This lesson follows bytes across three isolation boundaries: stream
+// backpressure, EventEmitter listener contracts, and worker thread message
+// passing. Each boundary has different failure and cleanup rules.
 import assert from "node:assert/strict";
 import { EventEmitter, once } from "node:events";
 import { Readable, Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { Worker } from "node:worker_threads";
 
+// A deliberately slow writable makes the producer wait, so pipeline's
+// backpressure behavior is visible without large data.
 class SlowCollector extends Writable {
   readonly chunks: Buffer[] = [];
   drainCount = 0;
@@ -47,6 +52,8 @@ const records = Array.from({ length: 6 }, (_, index) =>
   Buffer.from(`${JSON.stringify({ id: index + 1, title: `task-${index + 1}` })}\n`),
 );
 const collector = new SlowCollector();
+// pipeline is safer than manual piping because it forwards errors, closes the
+// chain, and respects the writable's backpressure signal.
 await pipeline(Readable.from(records), collector);
 
 assert.equal(
@@ -56,6 +63,8 @@ assert.equal(
 assert.ok(collector.drainCount > 0);
 console.log(`pipeline preserved ${records.length} records across backpressure`);
 
+// EventEmitter listeners run synchronously, and "error" is a process-level
+// contract: attach a listener before something can emit one.
 const emitter = new EventEmitter();
 const eventOrder: string[] = [];
 emitter.on("task", () => eventOrder.push("first"));
@@ -65,6 +74,8 @@ emitter.emit("task");
 emitter.emit("error", new Error("expected"));
 assert.deepEqual(eventOrder, ["first", "second", "handled:expected"]);
 
+// The worker receives cloned data, not shared mutable objects. That isolation
+// helps CPU work stay safe, but requires explicit message and exit handling.
 // An eval worker starts as CommonJS by default, so its source string uses `require`.
 const worker = new Worker(
   `

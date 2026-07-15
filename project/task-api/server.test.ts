@@ -7,6 +7,9 @@ import type { TaskStorage } from "../task-core/storage.ts";
 import { createTaskServer } from "./server.ts";
 import { SqliteTaskStorage } from "./sqlite-storage.ts";
 
+// End-to-end over a real TCP socket and the real TaskClient: proves the server,
+// wire protocol, and client agree, including that a completed-then-removed task
+// yields a 404 the client surfaces as a typed error.
 test("task API supports the connected task lifecycle", async (context) => {
   const storage = new SqliteTaskStorage();
   const server = createTaskServer(storage);
@@ -41,6 +44,9 @@ test("task API supports the connected task lifecycle", async (context) => {
   );
 });
 
+// Exercises each rejection path at the HTTP boundary: malformed JSON, a missing
+// content type, a title that fails domain validation, and an unknown route all
+// map to the right 4xx status instead of a 500 or a silent accept.
 test("task API rejects malformed JSON and unknown routes", async (context) => {
   const storage = new SqliteTaskStorage();
   const server = createTaskServer(storage);
@@ -80,6 +86,9 @@ test("task API rejects malformed JSON and unknown routes", async (context) => {
   assert.equal(missing.status, 404);
 });
 
+// Security boundary: an unexpected storage error must become a generic 500 with
+// no internal message. A fake storage that throws a revealing error confirms the
+// detail is logged server-side but never sent to the client.
 test("task API does not expose internal storage errors", async (context) => {
   const failure = new TypeError("sensitive storage failure");
   const storage: TaskStorage = {

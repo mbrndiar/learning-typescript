@@ -1,3 +1,5 @@
+// Deno server entrypoint plus its argument parser (exported so tests can check
+// it without binding a socket).
 import { DenoFileTaskStorage } from "./file-storage.ts";
 import { serveTaskApi } from "./server.ts";
 
@@ -7,6 +9,8 @@ interface ServerArguments {
   readonly port: number;
 }
 
+// Validates server flags at the boundary: a port must be a legal 0..65535
+// integer, and any unknown flag or missing value fails loudly.
 export function parseServerArguments(args: readonly string[]): ServerArguments {
   let file = ".task-data/tasks.json";
   let hostname = "127.0.0.1";
@@ -34,6 +38,11 @@ export function parseServerArguments(args: readonly string[]): ServerArguments {
   return { file, hostname, port };
 }
 
+// Runs the server until a shutdown signal arrives. Graceful shutdown works by
+// aborting the AbortController the server was started with, then awaiting
+// server.finished so in-flight requests drain. Signal listeners are always
+// removed in finally so the process can exit cleanly. Windows only supports
+// SIGINT, so SIGTERM is registered only elsewhere.
 export async function main(args: readonly string[] = Deno.args): Promise<void> {
   const options = parseServerArguments(args);
   const controller = new AbortController();

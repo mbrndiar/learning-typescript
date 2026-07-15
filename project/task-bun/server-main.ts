@@ -1,3 +1,7 @@
+// Bun server entrypoint. It validates PORT at the boundary, wires SQLite
+// storage to the server, and installs graceful shutdown: SIGINT/SIGTERM resolve
+// the wait, then finally stops the server and closes the database so no socket
+// or DB handle leaks. import.meta.main keeps the module import-safe.
 import { BunSqliteTaskStorage } from "./bun-sqlite-storage.ts";
 import { createBunTaskServer } from "./server.ts";
 

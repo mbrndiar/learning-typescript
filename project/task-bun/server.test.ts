@@ -5,6 +5,9 @@ import type { TaskStorage } from "../task-core/storage.ts";
 import { BunSqliteTaskStorage } from "./bun-sqlite-storage.ts";
 import { createBunTaskHandler, createBunTaskServer } from "./server.ts";
 
+// End-to-end over a real socket and the shared TaskClient: proves the Bun
+// server, wire protocol, and client agree, including that a removed task yields
+// a client-visible 404.
 test("Bun HTTP adapter supports the shared client lifecycle", async () => {
   const storage = new BunSqliteTaskStorage();
   const server = createBunTaskServer(storage);
@@ -32,6 +35,9 @@ test("Bun HTTP adapter supports the shared client lifecycle", async () => {
   }
 });
 
+// Every rejection path in one test: malformed JSON, missing content type, a NUL
+// title that fails domain validation, an oversized body, and an unknown route
+// all map to the right 4xx, matching the Node and Deno servers exactly.
 test("Bun HTTP adapter matches validation and status behavior", async () => {
   const storage = new BunSqliteTaskStorage();
   const server = createBunTaskServer(storage);
@@ -72,6 +78,8 @@ test("Bun HTTP adapter matches validation and status behavior", async () => {
   }
 });
 
+// Security boundary: an internal storage error is logged but the client only
+// sees a generic 500, never the sensitive message.
 test("Bun HTTP adapter never leaks unexpected storage errors", async () => {
   const failure = new TypeError("sensitive storage failure");
   const storage: TaskStorage = {
@@ -102,6 +110,9 @@ test("Bun HTTP adapter never leaks unexpected storage errors", async () => {
   }
 });
 
+// The streaming body limit must abort early: a custom ReadableStream proves the
+// server cancels the source and returns 400 before pulling all chunks, so an
+// oversized upload never buffers fully into memory.
 test("Bun HTTP adapter cancels chunked bodies as soon as they exceed 64 KiB", async () => {
   const storage = new BunSqliteTaskStorage();
   let pulls = 0;

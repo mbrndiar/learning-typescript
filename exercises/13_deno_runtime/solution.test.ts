@@ -6,6 +6,8 @@ function assertEquals(actual: unknown, expected: unknown): void {
   }
 }
 
+// File and network cases stay separate so a future change cannot "solve" the
+// exercise with a broad -A-style flag.
 Deno.test("file CLI receives only its data directory", () => {
   assertEquals(
     permissionFlags({ kind: "file-cli", dataDirectory: ".task-data" }),
@@ -20,6 +22,8 @@ Deno.test("HTTP server receives only its listener", () => {
   );
 });
 
+// Port validation is part of the security boundary: bad inputs should fail
+// before a permission flag is constructed.
 Deno.test("invalid ports are rejected", () => {
   let thrown: unknown;
   try {

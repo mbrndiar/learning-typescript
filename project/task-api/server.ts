@@ -9,6 +9,12 @@ import { TaskManager } from "../task-core/manager.ts";
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle } from "../task-core/task.ts";
 
+// The Node HTTP adapter. It owns only transport concerns (routing, body limits,
+// content type, status codes) and delegates all domain logic to TaskManager, so
+// the same rules apply whether a task is created via CLI or HTTP.
+
+// Distinguishes client mistakes (400) from server faults (500) so the
+// top-level handler can map them without inspecting error strings.
 class BadRequestError extends Error {
   constructor(message: string) {
     super(message);
@@ -16,6 +22,8 @@ class BadRequestError extends Error {
   }
 }
 
+// Reads the body while enforcing a 64 KiB cap so a client cannot exhaust
+// server memory, and rejects both an empty body and malformed JSON as 400s.
 async function readJson(request: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = [];
   let size = 0;
@@ -42,6 +50,9 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
   }
 }
 
+// Validates the request shape at the HTTP boundary and reuses the domain's
+// normalizeTitle, translating its TypeError/RangeError into a 400 rather than
+// letting them bubble up as a 500.
 function parseTitle(value: unknown): string {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new BadRequestError("request body must be an object");
@@ -60,6 +71,8 @@ function parseTitle(value: unknown): string {
   }
 }
 
+// Reject requests that are not application/json before reading a body so the
+// server does not guess at the payload encoding.
 function requireJson(request: IncomingMessage): void {
   const contentType = request.headers["content-type"];
   const mediaType = contentType?.split(";", 1)[0]?.trim().toLowerCase();
@@ -68,6 +81,8 @@ function requireJson(request: IncomingMessage): void {
   }
 }
 
+// Matches positive integer ids only (no leading zeros), so malformed paths fall
+// through to a 404 instead of reaching the manager with junk.
 function parseId(pathname: string, suffix = ""): number | undefined {
   const pattern =
     suffix === ""
@@ -82,6 +97,14 @@ function sendJson(response: ServerResponse, status: number, value: unknown): voi
   response.end(`${JSON.stringify(value)}\n`);
 }
 
+/**
+ * Builds the HTTP server around a storage. Request handling runs in an async
+ * IIFE whose rejection is funneled to one catch block: that single place maps
+ * domain errors to status codes (not-found -> 404, bad request -> 400) and
+ * logs unexpected failures while returning a generic 500, so internal details
+ * never leak to clients. If headers were already sent it destroys the socket
+ * because the status line can no longer be changed.
+ */
 export function createTaskServer(storage: TaskStorage): Server {
   const manager = new TaskManager(storage);
 

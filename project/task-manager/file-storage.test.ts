@@ -8,6 +8,8 @@ import test from "node:test";
 import { registerStorageContract } from "../test-support/storage-contract.ts";
 import { FileTaskStorage } from "./file-storage.ts";
 
+// Spawns the real CLI as a separate OS process so the cross-process file lock
+// (not just in-process serialization) is actually exercised.
 function addFromProcess(file: string, title: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(
@@ -36,6 +38,8 @@ registerStorageContract("FileTaskStorage", async () => {
   };
 });
 
+// Fires overlapping add() calls in one process; ids 1..3 with no lost writes
+// prove the in-process queue serialized the read-modify-write cycles.
 test("FileTaskStorage serializes concurrent writes", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "task-file-concurrent-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
@@ -52,6 +56,8 @@ test("FileTaskStorage serializes concurrent writes", async (context) => {
   assert.equal(typeof document, "object");
 });
 
+// A file that is structurally valid JSON but violates the Task schema (missing
+// title) must be rejected on load, not silently tolerated.
 test("FileTaskStorage rejects a corrupt document", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "task-file-corrupt-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
@@ -61,6 +67,9 @@ test("FileTaskStorage rejects a corrupt document", async (context) => {
   await assert.rejects(new FileTaskStorage(file).list(), /title/);
 });
 
+// The scenario in-process serialization cannot cover: five independent
+// processes contending on the same file. Contiguous ids 1..5 prove the
+// cross-process lock prevented lost updates.
 test("FileTaskStorage coordinates separate CLI processes", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "task-file-processes-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
@@ -76,6 +85,9 @@ test("FileTaskStorage coordinates separate CLI processes", async (context) => {
   );
 });
 
+// The atomic temp-file-and-rename write must not widen permissions: a 0o660
+// file must stay 0o660 after a mutation, or a fresh temp file default would
+// leak data.
 test("FileTaskStorage preserves restrictive file permissions", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "task-file-mode-"));
   context.after(() => rm(directory, { recursive: true, force: true }));

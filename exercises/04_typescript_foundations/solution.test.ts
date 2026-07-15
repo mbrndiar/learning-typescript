@@ -9,6 +9,8 @@ test("converts Celsius to Fahrenheit", () => {
 });
 
 test("narrows unknown numeric input", () => {
+  // These cases cover the trust boundary: real numbers, numeric text, blank
+  // text, non-numeric text, non-finite numbers, and non-number values.
   assert.equal(readTemperature(12.5), 12.5);
   assert.equal(readTemperature(" 8 "), 8);
   assert.equal(readTemperature(""), undefined);

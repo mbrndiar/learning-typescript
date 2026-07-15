@@ -16,6 +16,8 @@ registerStorageContract("BunSqliteTaskStorage", async () => {
   };
 });
 
+// Writing to a file path (not :memory:) and reopening it must return the same
+// task, proving the database's on-disk lifecycle actually persists.
 test("BunSqliteTaskStorage persists after reopening a file database", async () => {
   const directory = await createArtifactDirectory("sqlite-persistence");
   const path = `${directory}/tasks.sqlite`;
@@ -37,6 +39,9 @@ test("BunSqliteTaskStorage persists after reopening a file database", async () =
   }
 });
 
+// bun:sqlite creates files world-readable, so the backend must re-apply a
+// private 0o600 on creation and preserve an existing 0o660 on reopen. Skipped
+// on Windows, which has no POSIX modes.
 test.skipIf(process.platform === "win32")(
   "BunSqliteTaskStorage creates private databases and preserves existing modes",
   async () => {

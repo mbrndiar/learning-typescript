@@ -4,6 +4,8 @@ import test from "node:test";
 import { retry } from "./solution.ts";
 
 test("retry returns after a later success", async () => {
+  // The operation fails twice to prove retry counts attempts across async
+  // boundaries instead of only wrapping the first promise.
   let calls = 0;
   const result = await retry(
     async () => {
@@ -22,6 +24,8 @@ test("retry returns after a later success", async () => {
 });
 
 test("retry preserves a non-retryable error", async () => {
+  // Identity matters here: callers may branch on the exact typed error they
+  // created, so retry must not wrap or replace it.
   const failure = new TypeError("invalid input");
   await assert.rejects(
     retry(
@@ -36,6 +40,8 @@ test("retry preserves a non-retryable error", async () => {
 });
 
 test("retry validates the attempt count", async () => {
+  // Invalid configuration should fail before the operation runs, making the
+  // retry boundary deterministic and safe to call.
   await assert.rejects(
     retry(
       async () => "unused",

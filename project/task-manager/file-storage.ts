@@ -12,6 +12,11 @@ import {
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle, type Task, validateTaskId } from "../task-core/task.ts";
 
+// The Node file backend. Every mutation is read-modify-write of the whole JSON
+// document, so correctness under concurrency depends on two independent layers:
+// an in-process promise queue that serializes overlapping calls within one
+// process, and a cross-process advisory file lock that guards against other
+// processes touching the same file. Neither alone is sufficient.
 export class FileTaskStorage implements TaskStorage {
   private queue: Promise<void> = Promise.resolve();
 
@@ -70,6 +75,10 @@ export class FileTaskStorage implements TaskStorage {
     });
   }
 
+  // Serializes operations within this process: each call chains onto the
+  // previous one (regardless of success or failure) so a read-modify-write
+  // never interleaves with another in the same process before the file lock
+  // is even acquired.
   private exclusive<T>(operation: () => Promise<T>): Promise<T> {
     const lockedOperation = () => this.withFileLock(operation);
     const result = this.queue.then(lockedOperation, lockedOperation);
@@ -80,6 +89,9 @@ export class FileTaskStorage implements TaskStorage {
     return result;
   }
 
+  // Guards against other processes. The stale/update settings recover from a
+  // crashed holder, and bounded retries let brief contention resolve instead
+  // of failing immediately. The lock is always released in finally.
   private async withFileLock<T>(operation: () => Promise<T>): Promise<T> {
     await mkdir(dirname(this.file), { recursive: true });
     const release = await lock(this.file, {
@@ -100,6 +112,8 @@ export class FileTaskStorage implements TaskStorage {
     }
   }
 
+  // Narrow an unknown thrown value to a Node errno error without assertions,
+  // so callers can distinguish "file missing" from real I/O failures.
   private hasCode(error: unknown, code: string): boolean {
     return (
       typeof error === "object" &&
@@ -109,6 +123,8 @@ export class FileTaskStorage implements TaskStorage {
     );
   }
 
+  // A missing file is a valid empty store, not an error; any other failure
+  // (including corrupt JSON via parseTaskDocument) propagates.
   private async load(): Promise<TaskDocument> {
     try {
       const text = await readFile(this.file, "utf8");
@@ -121,6 +137,10 @@ export class FileTaskStorage implements TaskStorage {
     }
   }
 
+  // Atomic write: serialize to a uniquely named temp file in the same
+  // directory, then rename over the target so readers never observe a partial
+  // document. The existing file mode is preserved (defaulting to 0o600 for a
+  // new file) and the temp file is removed on any failure.
   private async save(document: TaskDocument): Promise<void> {
     await mkdir(dirname(this.file), { recursive: true });
     const temporaryFile = `${this.file}.${process.pid}.${randomUUID()}.tmp`;

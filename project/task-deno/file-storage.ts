@@ -7,6 +7,13 @@ import {
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle, type Task, validateTaskId } from "../task-core/task.ts";
 
+// Deno file backend built on Deno.* runtime-native APIs (readTextFile, rename,
+// chmod) instead of node:fs. Concurrency is handled by an in-process promise
+// queue plus a createNew temp file per write; unlike the Node backend it does
+// not take a cross-process lock, so it assumes a single writer process.
+
+// Deno has no node:path, so derive the parent directory manually and keep the
+// backend dependency-free.
 function parentDirectory(path: string): string {
   const index = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
   return index < 0 ? "." : path.slice(0, index) || "/";
@@ -70,6 +77,9 @@ export class DenoFileTaskStorage implements TaskStorage {
     });
   }
 
+  // Serializes read-modify-write cycles within this process by chaining every
+  // operation onto the previous one, regardless of whether it resolved or
+  // rejected, so concurrent calls cannot interleave and lose writes.
   private exclusive<T>(operation: () => Promise<T>): Promise<T> {
     const result = this.queue.then(operation, operation);
     this.queue = result.then(
@@ -79,6 +89,8 @@ export class DenoFileTaskStorage implements TaskStorage {
     return result;
   }
 
+  // A missing file is a valid empty store; other failures (including invalid
+  // JSON rejected by parseTaskDocument) propagate.
   private async load(): Promise<TaskDocument> {
     try {
       const text = await Deno.readTextFile(this.file);
@@ -91,6 +103,10 @@ export class DenoFileTaskStorage implements TaskStorage {
     }
   }
 
+  // Atomic write: createNew guarantees a fresh unique temp file (never clobber
+  // a leftover), permissions mirror the existing file (chmod is skipped on
+  // Windows where modes are meaningless), and rename atomically replaces the
+  // target. The temp file is always cleaned up, tolerating a missing file.
   private async save(document: TaskDocument): Promise<void> {
     await Deno.mkdir(parentDirectory(this.file), { recursive: true });
     const temporary = `${this.file}.${Deno.pid}.${crypto.randomUUID()}.tmp`;

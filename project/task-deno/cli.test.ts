@@ -18,6 +18,9 @@ Deno.test("parseCli handles portable REST options", () => {
   assertEquals(parsed.command, { kind: "add", title: "Task" });
 });
 
+// The permissions block is the point: with all runtime permissions denied, the
+// CLI still runs commands through injected storage and IO, proving the neutral
+// core needs no file/net/env access and that authority lives only in backends.
 Deno.test({
   name: "runCli executes through an injected storage without runtime permissions",
   permissions: { read: false, write: false, net: false, env: false, run: false },

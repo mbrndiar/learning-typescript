@@ -1,3 +1,6 @@
+// A portability matrix is not a speed chart. It records which runtime owns
+// each authority boundary natively, so migration work can target concrete API
+// seams instead of vague "JavaScript compatibility" claims.
 export type RuntimeName = "Node.js" | "Deno" | "Bun" | "unknown";
 
 export interface RuntimeCapabilities {
@@ -9,6 +12,8 @@ export interface RuntimeCapabilities {
   readonly executableBuilder: string;
 }
 
+// CONTRACT: inspect a global scope without assuming any runtime-specific
+// global exists. Directly reading Deno or Bun would throw in other runtimes.
 export function detectRuntime(scope: typeof globalThis): RuntimeName {
   if (Reflect.has(scope, "Deno")) {
     return "Deno";
@@ -34,6 +39,9 @@ export function detectRuntime(scope: typeof globalThis): RuntimeName {
   return "unknown";
 }
 
+// These entries name native facilities, not compatibility shims. A runtime can
+// often emulate another API, but that does not make the behavior or operations
+// model identical.
 export const capabilityMatrix: readonly RuntimeCapabilities[] = [
   {
     runtime: "Node.js",

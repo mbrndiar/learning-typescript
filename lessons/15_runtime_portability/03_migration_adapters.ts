@@ -1,3 +1,6 @@
+// Migration becomes safer when runtime authority is represented by narrow
+// adapters. The application can then depend on "files" and "commands" without
+// importing Node, Deno, or Bun APIs in the migration target.
 interface RuntimeFiles {
   readonly name: string;
   readText(path: string): Promise<string>;
@@ -14,6 +17,9 @@ interface ApplicationRuntime {
   readonly commands: RuntimeCommands;
 }
 
+// CONTRACT: copy configuration through the injected runtime boundary and
+// normalize the trailing newline. This function should not know whether the
+// adapters are backed by node:fs, Deno APIs, Bun APIs, or a test double.
 async function exportConfiguration(
   runtime: ApplicationRuntime,
   source: string,
@@ -29,6 +35,9 @@ async function exportConfiguration(
   }
 }
 
+// The in-memory adapters are deliberately boring: they prove the boundary is
+// behavioral. Real adapters can change later while this application function
+// keeps the same contract.
 const memory = new Map([["config.json", '{"runtime":"portable"}']]);
 const demonstration: ApplicationRuntime = {
   files: {

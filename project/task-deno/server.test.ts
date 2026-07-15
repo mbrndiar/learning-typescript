@@ -8,6 +8,9 @@ interface RunningServer {
   close(): Promise<void>;
 }
 
+// Helper that starts the server on an ephemeral port and returns a close() that
+// aborts via the AbortController and awaits server.finished, so each test tears
+// down deterministically without leaking a listener.
 function startServer(
   storage: TaskStorage,
   logError?: (error: unknown) => void,
@@ -35,6 +38,8 @@ function startServer(
 
 const localNetwork = { net: ["127.0.0.1"] };
 
+// End-to-end over a loopback socket and the shared TaskClient, confirming the
+// Deno server speaks the same protocol as the other runtimes' servers.
 Deno.test({
   name: "Deno task API supports the complete HTTP lifecycle",
   permissions: localNetwork,
@@ -61,6 +66,10 @@ Deno.test({
   },
 });
 
+// Every rejection path at once: malformed JSON, missing content type, empty
+// body, a NUL title that fails domain validation, an oversized body past the
+// cap, and an unknown route. Each maps to the correct 4xx, so a naive server
+// that skipped any check would fail here. net is scoped to loopback.
 Deno.test({
   name: "Deno task API enforces JSON, body limits, and local routing",
   permissions: localNetwork,
@@ -113,6 +122,8 @@ Deno.test({
   },
 });
 
+// Security boundary: an internal storage error is logged server-side (captured
+// here) but the client only ever sees a generic 500 with no sensitive detail.
 Deno.test({
   name: "Deno task API logs but never leaks internal errors",
   permissions: localNetwork,

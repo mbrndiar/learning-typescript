@@ -5,15 +5,21 @@ import {
 } from "../../project/task-core/storage.ts";
 import { normalizeTitle, type Task } from "../../project/task-core/task.ts";
 
+// The Task domain is portable because it depends on the TaskStorage contract,
+// not on files, SQLite, permissions, or a specific server API.
 class PortableMemoryStorage implements TaskStorage {
   readonly #tasks = new Map<number, Task>();
   #nextId = 1;
 
   async list(): Promise<readonly Task[]> {
+    // Return copies so callers cannot mutate storage state behind the
+    // adapter. Real file and database adapters must preserve the same boundary.
     return [...this.#tasks.values()].map((task) => ({ ...task }));
   }
 
   async add(title: string): Promise<Task> {
+    // Normalization belongs to the domain contract, not to any one runtime's
+    // persistence mechanism.
     const task = {
       id: this.#nextId,
       title: normalizeTitle(title),
@@ -27,6 +33,8 @@ class PortableMemoryStorage implements TaskStorage {
   async complete(id: number): Promise<Task> {
     const task = this.#tasks.get(id);
     if (task === undefined) {
+      // Preserve the shared error type so callers do not need adapter-specific
+      // missing-task handling.
       throw new TaskNotFoundError(id);
     }
     const completed = { ...task, completed: true };
@@ -41,6 +49,8 @@ class PortableMemoryStorage implements TaskStorage {
   }
 }
 
+// TaskManager can run unchanged because runtime-specific authority has already
+// been pushed down into the storage adapter.
 const manager = new TaskManager(new PortableMemoryStorage());
 const created = await manager.add("Run one domain everywhere");
 await manager.complete(created.id);

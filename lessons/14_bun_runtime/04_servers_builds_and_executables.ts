@@ -1,9 +1,15 @@
+// This lesson keeps the full Bun lifecycle in view: a server starts
+// immediately, an in-memory bundle is not an executable, and compiled output
+// is a platform-specific artifact that must be cleaned up.
 const scratchId = crypto.randomUUID();
 const entryPath = `${import.meta.dir}/.lesson-04-${scratchId}.ts`;
 const executablePath = `${import.meta.dir}/.lesson-04-${scratchId}`;
 const entryFile = Bun.file(entryPath);
 const executableFile = Bun.file(executablePath);
 
+// Bun.serve creates a live server as soon as it is called. Keeping the handle
+// lets callers stop it explicitly instead of leaving a process-level resource
+// running after the lesson or test completes.
 const server = Bun.serve({
   hostname: "127.0.0.1",
   port: 0,
@@ -13,6 +19,8 @@ const server = Bun.serve({
   fetch(request) {
     const { pathname } = new URL(request.url);
     if (pathname === "/stream") {
+      // The response body is built from Web streams, not Node streams. That is
+      // the portable data-flow layer inside a Bun-native server.
       const body = new ReadableStream<string>({
         start(controller) {
           controller.enqueue("Bun");
@@ -35,6 +43,8 @@ try {
   );
 
   await Bun.write(entryFile, 'console.log("compiled Bun program");\n');
+  // Without an output directory, Bun.build returns artifacts in memory. This
+  // proves bundling without leaving a generated bundle in the repository.
   const build = await Bun.build({
     entrypoints: [entryPath],
     target: "bun",
@@ -45,6 +55,8 @@ try {
     throw new AggregateError(build.logs, "Bun.build failed");
   }
 
+  // Compiling is different from bundling: it writes an executable artifact for
+  // the current platform, so stdout, stderr, and exit must all be observed.
   const compile = Bun.spawn({
     cmd: [
       process.execPath,
@@ -67,6 +79,8 @@ try {
     throw new Error(`bun build --compile failed: ${compileError.trim()}`);
   }
 
+  // Running the compiled file verifies the artifact is executable, not merely
+  // present on disk.
   const executable = Bun.spawn({
     cmd: [executablePath],
     stdout: "pipe",
@@ -90,6 +104,8 @@ try {
     executableOutput: executableOutput.trim(),
   });
 } finally {
+  // stop(true) closes the server promptly for this deterministic lesson; real
+  // services usually coordinate graceful shutdown around in-flight requests.
   await server.stop(true);
   if (await entryFile.exists()) {
     await entryFile.delete();

@@ -4,6 +4,8 @@ import test from "node:test";
 import { describeDelivery, summarizeOrder, type Order } from "./solution.ts";
 
 test("describes each discriminated delivery state", () => {
+  // One example per union member keeps the runtime examples aligned with the
+  // exhaustive switch the type checker is enforcing.
   assert.equal(describeDelivery({ state: "preparing" }), "Preparing order");
   assert.equal(
     describeDelivery({ state: "shipped", trackingNumber: "TRACK-1" }),
@@ -17,6 +19,8 @@ test("describes each discriminated delivery state", () => {
 });
 
 test("summarizes orders with and without optional notes", () => {
+  // The two fixtures separate "property absent" from "property present" so the
+  // optional-note branch cannot be implemented by always appending text.
   const preparing: Order = {
     id: "order-1",
     customer: "Lin",

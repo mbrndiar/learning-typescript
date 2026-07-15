@@ -3,6 +3,10 @@ import { mkdir, rm } from "node:fs/promises";
 
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 
+// Bun's variant of the shared storage contract, expressed with bun:test. Every
+// Bun backend runs it so file and SQLite stores are held to the same guarantees
+// (positive increasing ids, ids never reused, uniform not-found error) that a
+// naive implementation would violate.
 export interface StorageFixture {
   readonly storage: TaskStorage;
   close?(): void | Promise<void>;
@@ -45,6 +49,8 @@ export function registerStorageContract(
   });
 }
 
+// Artifact helpers create and remove unique directories under the module's own
+// folder so file-backed tests never collide and always clean up after themselves.
 export async function createArtifactDirectory(prefix: string): Promise<string> {
   const directory = `${import.meta.dir}/.test-artifacts/${prefix}-${crypto.randomUUID()}`;
   await mkdir(directory, { recursive: true });

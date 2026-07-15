@@ -2,8 +2,13 @@ import { TaskManager } from "../task-core/manager.ts";
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle } from "../task-core/task.ts";
 
+// Deno HTTP adapter built on the Web-standard Request/Response and Deno.serve,
+// rather than node:http. It owns only transport concerns and delegates domain
+// logic to TaskManager, so the wire contract matches the Node server exactly.
+
 const maximumBodyBytes = 64 * 1024;
 
+// Separates client mistakes (400) from server faults (500) at the catch site.
 class BadRequestError extends Error {
   constructor(message: string) {
     super(message);
@@ -11,6 +16,9 @@ class BadRequestError extends Error {
   }
 }
 
+// Injectable hooks (signal, onListen, logError) keep the server testable: tests
+// can abort it deterministically and capture errors instead of writing to the
+// real console.
 export interface TaskServerOptions {
   readonly hostname?: string;
   readonly port?: number;
@@ -19,6 +27,9 @@ export interface TaskServerOptions {
   readonly logError?: (error: unknown) => void;
 }
 
+// Enforces the body-size cap twice: it trusts a declared content-length as a
+// fast rejection, then still counts streamed bytes because the header can lie.
+// Reading through the Web Streams reader keeps this on the Web API boundary.
 async function readJson(request: Request): Promise<unknown> {
   const declaredLength = request.headers.get("content-length");
   if (declaredLength !== null) {
@@ -69,6 +80,8 @@ async function readJson(request: Request): Promise<unknown> {
   }
 }
 
+// Validates request shape and reuses the domain normalizeTitle, mapping its
+// validation errors to 400 instead of letting them surface as a 500.
 function parseTitle(value: unknown): string {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new BadRequestError("request body must be an object");
@@ -112,6 +125,11 @@ function jsonResponse(status: number, value: unknown): Response {
   });
 }
 
+/**
+ * Builds the request handler. A single try/catch maps domain errors to status
+ * codes (not-found -> 404, bad request -> 400) and turns anything unexpected
+ * into a logged, generic 500 so internal details never reach the client.
+ */
 export function createTaskHandler(
   storage: TaskStorage,
   logError: (error: unknown) => void = console.error,
@@ -153,6 +171,8 @@ export function createTaskHandler(
   };
 }
 
+// Starts a Deno.serve server bound to loopback by default. Passing options.signal
+// through lets callers abort the server for graceful shutdown.
 export function serveTaskApi(
   storage: TaskStorage,
   options: TaskServerOptions = {},

@@ -1,9 +1,14 @@
+// Deno.serve uses Web Request and Response objects, which makes handlers easy
+// to test without a socket and portable across Web-standard runtimes.
+// Server lifecycle and permissions stay outside this pure route function.
 export function route(request: Request): Response {
   const url = new URL(request.url);
   if (request.method === "GET" && url.pathname === "/health") {
     return Response.json({ status: "ok" });
   }
   if (request.method === "POST" && url.pathname === "/echo") {
+    // Returning the original body preserves streaming behavior instead of
+    // buffering an arbitrary upload before responding.
     return new Response(request.body, {
       status: 200,
       headers: {
@@ -14,6 +19,8 @@ export function route(request: Request): Response {
   return Response.json({ error: "not found" }, { status: 404 });
 }
 
+// Compiled executables carry both code and requested authority, so
+// permissions are part of the distribution contract.
 export const compileConcepts = [
   "deno compile embeds the runtime and module graph in a standalone executable",
   "permissions passed to deno compile become permissions requested by the executable",
@@ -25,6 +32,8 @@ export const nodeCompatibilityNotes = [
   "Deno-native HTTP uses Deno.serve with Web Request and Response objects",
 ] as const;
 
+// Binding loopback and port 0 avoids exposing the lesson on the network or
+// colliding with a fixed local port.
 export async function runLocalServerDemo(): Promise<string> {
   const controller = new AbortController();
   const server = Deno.serve(
@@ -46,6 +55,8 @@ export async function runLocalServerDemo(): Promise<string> {
     const value = await response.json() as { status: string };
     return `${response.status}:${value.status}`;
   } finally {
+    // Abort plus server.finished gives tests a deterministic shutdown point
+    // and satisfies Deno's resource sanitizer.
     controller.abort();
     await server.finished;
   }

@@ -5,6 +5,8 @@ import { TaskClient } from "./client.ts";
 import { TaskNotFoundError } from "../task-core/storage.ts";
 import { RestTaskStorage } from "./rest-storage.ts";
 
+// The whole reason RestTaskStorage exists: a transport-level 404 must reach
+// callers as the same TaskNotFoundError any other backend raises.
 test("RestTaskStorage translates HTTP 404 into the storage error", async () => {
   const storage = new RestTaskStorage(
     new TaskClient(

@@ -1,3 +1,6 @@
+// Deno starts with no file, environment, or subprocess authority. This lesson
+// keeps each capability narrow so failures explain missing permissions instead
+// of accidentally succeeding with ambient access.
 const encoder = new TextEncoder();
 
 function parentDirectory(path: string): string {
@@ -19,6 +22,8 @@ async function removeIfPresent(path: string, options?: Deno.RemoveOptions): Prom
   }
 }
 
+// Write-then-rename prevents readers from seeing a half-written file. The
+// temporary file is private and removed even when replacement fails.
 export async function atomicWriteText(path: string, text: string): Promise<void> {
   await Deno.mkdir(parentDirectory(path), { recursive: true });
   const temporary = `${path}.${Deno.pid}.${crypto.randomUUID()}.tmp`;
@@ -30,6 +35,8 @@ export async function atomicWriteText(path: string, text: string): Promise<void>
   }
 }
 
+// Querying permissions is non-interactive, so examples can run in CI without
+// accidentally prompting for broader authority.
 export async function permissionStates(
   path: string,
 ): Promise<Record<string, "granted" | "denied" | "prompt">> {
@@ -52,6 +59,8 @@ export async function runNativeApiDemo(directory: string): Promise<readonly stri
   await atomicWriteText(file, `${JSON.stringify({ runtime: "deno", secureByDefault: true })}\n`);
   const stored = JSON.parse(await Deno.readTextFile(file)) as { runtime: string };
 
+  // The subprocess grant is scoped to the Deno executable; piping output keeps
+  // the child result explicit instead of inheriting terminal state.
   const command = new Deno.Command(Deno.execPath(), {
     args: ["eval", 'console.log("child-ok")'],
     stdout: "piped",

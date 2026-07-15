@@ -22,6 +22,8 @@ describe("Bun task CLI", () => {
     expect(parsed.command).toEqual({ kind: "add", title: "Bun task" });
   });
 
+  // Injecting IO and a storage factory drives the CLI end-to-end without real
+  // streams or files and confirms a validation failure maps to exit code 1.
   test("executes shared CLI behavior through injected storage", async () => {
     const storage = new MemoryTaskStorage();
     const stdout: string[] = [];

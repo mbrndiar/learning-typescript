@@ -1,5 +1,8 @@
 import { parseTask, type Task } from "./task.ts";
 
+// TaskDocument is the on-disk JSON schema shared by every file-based backend.
+// An explicit version enables format evolution, and a monotonic nextId
+// guarantees identifiers are never reused even after tasks are removed.
 export interface TaskDocument {
   readonly version: 1;
   readonly nextId: number;
@@ -12,6 +15,11 @@ export const emptyTaskDocument: TaskDocument = {
   tasks: [],
 };
 
+/**
+ * Validates untrusted file contents into a trusted TaskDocument. The uniqueness
+ * and nextId > max(id) checks reject corrupt files that would otherwise let the
+ * store hand out a colliding identifier.
+ */
 export function parseTaskDocument(value: unknown): TaskDocument {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new TypeError("task document must be an object");
@@ -44,6 +52,8 @@ export function parseTaskDocument(value: unknown): TaskDocument {
   };
 }
 
+// Serialize with a trailing newline so the file is POSIX-friendly and stable
+// under line-based diffing; the exact bytes matter because writes are atomic.
 export function serializeTaskDocument(document: TaskDocument): string {
   return `${JSON.stringify(document, null, 2)}\n`;
 }

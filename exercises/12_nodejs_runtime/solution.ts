@@ -1,3 +1,5 @@
+// Reference solution for the Node runtime exercise. It favors streaming
+// boundaries over whole-file buffering so large or slow inputs stay bounded.
 import { StringDecoder } from "node:string_decoder";
 import { Readable, type Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -10,6 +12,8 @@ export interface ImportOptions {
 
 const DEFAULT_MAX_LINE_BYTES = 64 * 1024;
 
+// Serialization validates as it streams, so the destination never receives a
+// record that the shared task core would reject.
 async function* serializeTasks(
   tasks: Iterable<Task> | AsyncIterable<Task>,
 ): AsyncGenerator<Buffer> {
@@ -21,6 +25,8 @@ async function* serializeTasks(
   }
 }
 
+// CONTRACT: export compact JSON Lines and resolve only after pipeline has
+// handled backpressure, completion, or a writable failure.
 export async function exportTasks(
   tasks: Iterable<Task> | AsyncIterable<Task>,
   destination: Writable,
@@ -28,6 +34,8 @@ export async function exportTasks(
   await pipeline(Readable.from(serializeTasks(tasks)), destination);
 }
 
+// CONTRACT: consume a byte stream incrementally, preserve split UTF-8, and
+// report boundary errors with physical line numbers.
 export async function importTasks(
   source: Readable,
   options: ImportOptions = {},
@@ -37,12 +45,16 @@ export async function importTasks(
     throw new RangeError("maxLineBytes must be a positive integer");
   }
 
+  // StringDecoder keeps partial UTF-8 code points between chunks; toString()
+  // on each chunk would replace split characters with U+FFFD.
   const decoder = new StringDecoder("utf8");
   const tasks: Task[] = [];
   const ids = new Set<number>();
   let pending = "";
   let lineNumber = 0;
 
+  // Physical line numbers advance before blank-line skipping so diagnostics
+  // still match the original file.
   const parseLine = (lineWithPossibleCarriageReturn: string): void => {
     lineNumber += 1;
     const line = lineWithPossibleCarriageReturn.endsWith("\r")
@@ -89,6 +101,8 @@ export async function importTasks(
       newlineIndex = pending.indexOf("\n");
     }
 
+    // Check the unfinished line after each chunk so a missing newline cannot
+    // grow the retained buffer past the configured limit.
     if (Buffer.byteLength(pending, "utf8") > maxLineBytes) {
       throw new RangeError(`line ${lineNumber + 1} exceeds maxLineBytes`);
     }

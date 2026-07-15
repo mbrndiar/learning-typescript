@@ -1,3 +1,8 @@
+// Smoke test for Bun's two distribution paths: bundling (Bun.build) and a
+// self-contained executable (bun build --compile). It builds, compiles, runs
+// the compiled CLI once to confirm it actually works, and always deletes the
+// generated executable, data file, and directory in finally so the tree is left
+// clean. Subprocess timeouts stop a hung build or run from stalling CI.
 export {};
 
 const executable =

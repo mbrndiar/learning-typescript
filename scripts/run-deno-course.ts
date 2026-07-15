@@ -1,3 +1,8 @@
+// Runs the Deno chapter and the portable module 15 material under the real Deno
+// CLI. Each CourseFile records not just its path but the exact minimal
+// permissions and env it needs, so the runner grants least privilege per file
+// rather than a blanket --allow-all, mirroring how the course teaches Deno's
+// deny-by-default security model.
 interface CourseFile {
   readonly path: string;
   readonly mode: "run" | "test";
@@ -17,6 +22,9 @@ async function directoryExists(path: string): Promise<boolean> {
   }
 }
 
+// Module 15 is runtime-portable, so its lesson files, exercise solutions, and
+// portable-check scripts all run as plain programs (no per-file permissions);
+// exercise starters are excluded since only solutions are expected to run.
 async function collectPortableModule15(): Promise<CourseFile[]> {
   const files: CourseFile[] = [];
   for (const root of ["lessons", "exercises"]) {
@@ -47,6 +55,9 @@ async function collectPortableModule15(): Promise<CourseFile[]> {
   return files.sort((left, right) => left.path.localeCompare(right.path));
 }
 
+// Spawns `deno run|test` with the file's declared flags, inheriting stdio but
+// closing stdin so an interactive prompt cannot hang the run. A non-zero exit
+// aborts the whole course run so failures are never swallowed.
 function runCourseFile(file: CourseFile): Promise<void> {
   const args: string[] = [file.mode];
   if (file.config !== undefined) {
@@ -70,6 +81,10 @@ function runCourseFile(file: CourseFile): Promise<void> {
   });
 }
 
+// Module 13 files are listed explicitly because each needs a hand-picked set of
+// permissions (scoped read/write dirs, a single env var, loopback-only net, or
+// permission to re-invoke deno); module 15 is appended via the portable
+// collector. import.meta.main keeps this importable without executing.
 export async function runDenoCourse(): Promise<void> {
   const config = "deno.json";
   const files: CourseFile[] = [

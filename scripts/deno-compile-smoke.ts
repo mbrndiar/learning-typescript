@@ -1,3 +1,8 @@
+// Smoke test for `deno compile`: builds a self-contained executable of the Deno
+// CLI to confirm compilation succeeds on this platform. The compiled binary
+// bakes in least-privilege permissions (read/write scoped to .task-data only),
+// and the generated executable and directory are always removed in finally so
+// the working tree stays clean.
 const output = Deno.build.os === "windows" ? "compiled/task-deno.exe" : "compiled/task-deno";
 
 await Deno.mkdir("compiled", { recursive: true });

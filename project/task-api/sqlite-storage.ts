@@ -3,10 +3,16 @@ import { DatabaseSync, type StatementResultingChanges } from "node:sqlite";
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle, type Task, validateTaskId } from "../task-core/task.ts";
 
+// SQLite backend using Node's built-in synchronous driver. changes is typed as
+// number | bigint; coerce it so callers always compare against a plain number.
 function changedRows(result: StatementResultingChanges): number {
   return Number(result.changes);
 }
 
+// The database owns its own lifecycle: the schema is created on construction
+// (with CHECK constraints mirroring the domain title/completed invariants as a
+// second line of defense) and the handle is released via close(). Every query
+// uses parameter binding (never string interpolation) to prevent SQL injection.
 export class SqliteTaskStorage implements TaskStorage {
   private readonly database: DatabaseSync;
 
@@ -41,6 +47,8 @@ export class SqliteTaskStorage implements TaskStorage {
     const result = this.database
       .prepare("UPDATE tasks SET completed = 1 WHERE id = ?")
       .run(id);
+    // A zero-row update is how SQLite reports "no such id"; translate it to the
+    // shared not-found error instead of silently succeeding.
     if (changedRows(result) === 0) {
       throw new TaskNotFoundError(id);
     }
@@ -55,6 +63,8 @@ export class SqliteTaskStorage implements TaskStorage {
     }
   }
 
+  // Releases the underlying file handle; the storage-contract fixture calls
+  // this so tests do not leak database connections.
   close(): void {
     this.database.close();
   }
@@ -69,6 +79,8 @@ export class SqliteTaskStorage implements TaskStorage {
     return this.parseRow(row, "row");
   }
 
+  // Rows returned by the driver are typed as unknown, so validate the shape and
+  // map SQLite's integer 0/1 to a boolean rather than trusting the column type.
   private parseRow(value: unknown, context: string): Task {
     if (typeof value !== "object" || value === null) {
       throw new TypeError(`${context} must be an object`);

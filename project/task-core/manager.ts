@@ -1,6 +1,11 @@
 import type { TaskStorage } from "./storage.ts";
 import { normalizeTitle, type Task, validateTaskId } from "./task.ts";
 
+/**
+ * The single domain entry point for callers. It applies validation once and
+ * delegates persistence to any TaskStorage, so validation cannot be bypassed by
+ * choosing a different backend and no backend needs to re-implement the rules.
+ */
 export class TaskManager {
   constructor(private readonly storage: TaskStorage) {}
 

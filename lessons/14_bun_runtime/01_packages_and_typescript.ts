@@ -1,8 +1,13 @@
+// This lesson separates Bun's convenience from its safety boundary: running
+// TypeScript is transpilation, package installs are supply-chain changes, and
+// lifecycle scripts are trust decisions.
 type CommandPurpose = {
   readonly command: string;
   readonly purpose: string;
 };
 
+// Similar-looking Bun commands have different durability effects: some only
+// execute code, while others rewrite dependency metadata or the lockfile.
 const commands = [
   { command: "bun install", purpose: "resolve dependencies and update bun.lock" },
   {
@@ -16,6 +21,9 @@ const commands = [
   { command: "bunx tsc --noEmit", purpose: "execute tsc and statically type-check" },
 ] satisfies readonly CommandPurpose[];
 
+// trustedDependencies is an explicit allow-list for dependency lifecycle
+// scripts. Treat it like granting code execution during install, not like a
+// setting to toggle until installation becomes quiet.
 const packageSecurityExample = {
   scripts: {
     check: "tsc --noEmit",
@@ -23,6 +31,8 @@ const packageSecurityExample = {
   trustedDependencies: ["reviewed-native-addon"],
 } as const;
 
+// bunfig.toml controls Bun runtime/tool behavior. package.json still remains
+// the portable package contract that other JavaScript tooling understands.
 const bunfigExample = `
 # bunfig.toml configures Bun itself; package.json still owns package metadata.
 [install]

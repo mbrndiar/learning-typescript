@@ -1,6 +1,9 @@
 import { stat, readdir, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
+// Validates that relative Markdown links point at files that actually exist, so
+// course docs cannot rot. It only checks local links: anchors and any scheme
+// (http:, mailto:) are skipped because this script does not make network calls.
 async function collectMarkdown(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const files: string[] = [];
@@ -44,6 +47,8 @@ for (const file of await collectMarkdown(".")) {
   const text = await readFile(file, "utf8");
   for (const match of text.matchAll(linkPattern)) {
     const target = match[1]?.trim();
+    // Skip empty links, in-page anchors, and any absolute URL scheme; only
+    // repository-relative paths are resolvable to a local file.
     if (
       target === undefined ||
       target === "" ||
@@ -53,6 +58,8 @@ for (const file of await collectMarkdown(".")) {
       continue;
     }
 
+    // Strip any #fragment and percent-decode before resolving against the file's
+    // own directory so relative links are checked from the correct base.
     const pathPart = decodeURIComponent(target.split("#", 1)[0] ?? "");
     const localPath = resolve(dirname(file), pathPart);
     if (!(await exists(localPath))) {

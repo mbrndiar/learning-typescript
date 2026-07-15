@@ -1,3 +1,6 @@
+// Reference solution. A Set collects tags so duplicates across items collapse
+// to one; storing { ...item } means the catalog holds copies, not references
+// to the caller's objects.
 export function buildCatalog(items) {
   const byId = new Map();
   const uniqueTags = new Set();

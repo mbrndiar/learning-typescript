@@ -4,7 +4,9 @@ export interface Task {
   readonly done: boolean;
 }
 
+// CONTRACT: accept only the public Task JSON shape from an untrusted boundary
+// and return normalized tasks; throw TypeError instead of guessing.
 export function parseTasks(_value: unknown): Task[] {
-  // TODO: validate the array and every task without using `any`.
+  // TODO: reject non-arrays and malformed task entries without using `any`.
   return [];
 }

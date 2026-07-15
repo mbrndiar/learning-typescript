@@ -1,8 +1,13 @@
+// Deno's test runner checks for leaked async operations, resources, and exits
+// by default. The examples keep lifecycle explicit so sanitizer failures point
+// to the code under test, not the test scaffolding.
 interface Hooks {
   readonly beforeEach?: () => void | Promise<void>;
   readonly afterEach?: () => void | Promise<void>;
 }
 
+// Hook cleanup belongs in finally so a failed body cannot leak state into the
+// next step.
 export async function withHooks(
   hooks: Hooks,
   body: () => void | Promise<void>,
@@ -21,6 +26,8 @@ function assertEquals<T>(actual: T, expected: T): void {
   }
 }
 
+// Nested steps show arrange and assert as separate lifecycle phases; if a
+// step leaves work open, sanitizers fail the owning test.
 Deno.test({
   name: "Deno.test supports nested steps and explicit lifecycle hooks",
   sanitizeOps: true,
@@ -51,6 +58,8 @@ Deno.test({
   },
 });
 
+// This test removes ambient permissions to prove the code under test does not
+// depend on the developer's command-line grants.
 Deno.test({
   name: "per-test permissions can remove ambient authority",
   permissions: { read: false, write: false, net: false, env: false, run: false },
@@ -62,10 +71,14 @@ Deno.test({
   },
 });
 
+// Coverage is a two-command flow: collect raw data during tests, then render
+// it separately so reporting stays outside test behavior.
 export const coverageCommands = [
   "deno test --coverage=.coverage lessons/13_deno_runtime/03_deno_testing.test.ts",
   "deno coverage .coverage",
 ] as const;
 
+// Keeping compatibility examples as data avoids teaching node:test as the
+// native Deno testing style.
 export const nodeTestCompatibilityExample =
   'Node compatibility example (not Deno-native): import test from "node:test";';

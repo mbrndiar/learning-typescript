@@ -3,11 +3,19 @@ import { test } from "node:test";
 
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 
+// A fixture pairs a storage under test with an optional close() so backends
+// that own resources (DB handles, temp files) can be torn down deterministically.
 export interface StorageFixture {
   readonly storage: TaskStorage;
   close?(): void | Promise<void>;
 }
 
+/**
+ * Shared behavioral contract every TaskStorage must satisfy. Running one suite
+ * against all backends (file, SQLite, REST, memory) keeps them from silently
+ * drifting apart; the id assertions pin the monotonic-and-never-reused
+ * guarantee that a naive implementation would break.
+ */
 export function registerStorageContract(
   name: string,
   createFixture: () => Promise<StorageFixture>,

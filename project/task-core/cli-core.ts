@@ -1,6 +1,11 @@
 import { TaskManager } from "./manager.ts";
 import type { TaskStorage } from "./storage.ts";
 
+// cli-core is the runtime-neutral CLI: it parses argv and runs commands but
+// never touches process, files, or fetch directly. Each runtime supplies IO and
+// a storage factory, so argument parsing and command dispatch are tested once
+// and shared by the Node, Deno, and Bun entrypoints.
+
 export interface CliOptions {
   readonly backend: "file" | "rest";
   readonly file: string;
@@ -19,11 +24,15 @@ export interface ParsedCli {
   readonly command: CliCommand;
 }
 
+// CliIo abstracts stdout/stderr so the core stays free of runtime globals and
+// tests can capture output without touching the real streams.
 export interface CliIo {
   readonly stdout: (text: string) => void;
   readonly stderr: (text: string) => void;
 }
 
+// The factory is injected because constructing a backend requires runtime
+// authority (file access, network) that the neutral core deliberately lacks.
 export type StorageFactory = (options: CliOptions) => TaskStorage;
 
 const usage =
@@ -37,6 +46,11 @@ function takeValue(args: readonly string[], index: number, flag: string): string
   return value;
 }
 
+/**
+ * Parses argv into validated options and a command. Flags are validated at this
+ * boundary (backend enum, positive timeout, well-formed URL) so downstream code
+ * never sees malformed input, and unexpected extra arguments fail loudly.
+ */
 export function parseCli(args: readonly string[]): ParsedCli {
   let backend: CliOptions["backend"] = "file";
   let file = "tasks.json";
@@ -92,6 +106,11 @@ export function parseCli(args: readonly string[]): ParsedCli {
   };
 }
 
+/**
+ * Runs a parsed command and returns a process exit code. All errors are routed
+ * to stderr and mapped to exit code 1 here, so each runtime entrypoint only has
+ * to forward the code rather than duplicate error handling.
+ */
 export async function runCliCore(
   args: readonly string[],
   io: CliIo,

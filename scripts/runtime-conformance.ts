@@ -1,3 +1,8 @@
+// runtime-conformance is a single portable smoke test run identically under
+// Node, Deno, and Bun. It deliberately avoids any runtime-specific test
+// framework (node:test, Deno.test, bun:test) and uses only shared APIs plus a
+// hand-rolled assert, so the exact same file proves the domain, capability
+// filtering, and Web Crypto behave the same on every runtime.
 import { TaskManager } from "../project/task-core/manager.ts";
 import { TaskNotFoundError, type TaskStorage } from "../project/task-core/storage.ts";
 import { normalizeTitle, type Task } from "../project/task-core/task.ts";
@@ -12,6 +17,7 @@ function assert(condition: boolean, message: string): asserts condition {
   }
 }
 
+// Inlined memory backend so the smoke test depends on nothing but task-core.
 class ConformanceStorage implements TaskStorage {
   readonly #tasks = new Map<number, Task>();
   #nextId = 1;
@@ -94,6 +100,8 @@ const digest = await crypto.subtle.digest(
 );
 assert(digest.byteLength === 32, "Web Crypto SHA-256 must produce 32 bytes");
 
+// Detect the host runtime from its global so the pass message names it; this is
+// the only runtime-specific branch and it is observational, not behavioral.
 const runtime = Reflect.has(globalThis, "Deno")
   ? "Deno"
   : Reflect.has(globalThis, "Bun")

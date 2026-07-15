@@ -2,6 +2,9 @@ import { TaskNotFoundError } from "../task-core/storage.ts";
 import { DenoFileTaskStorage } from "./file-storage.ts";
 import { assert, assertEquals, assertRejects } from "./test-support.ts";
 
+// Tests scope Deno permissions to a single directory (filePermissions), so a
+// bug that tried to touch paths outside testRoot would fail the sandbox rather
+// than silently succeed. Each case uses a unique subdirectory and cleans it up.
 const testRoot = "project/task-deno/.test-data";
 const filePermissions = { read: [testRoot], write: [testRoot] };
 
@@ -48,6 +51,8 @@ Deno.test({
     }),
 });
 
+// Overlapping add() calls must yield contiguous ids and a still-parseable file,
+// proving the in-process queue serialized the read-modify-write cycles.
 Deno.test({
   name: "DenoFileTaskStorage serializes concurrent writes and emits valid JSON",
   permissions: filePermissions,
@@ -75,6 +80,8 @@ Deno.test({
     }),
 });
 
+// The atomic write must not widen a restrictive mode: a 0o660 file stays 0o660
+// after a mutation. Skipped on Windows, which has no POSIX modes.
 Deno.test({
   name: "DenoFileTaskStorage preserves restrictive modes",
   permissions: filePermissions,
@@ -91,6 +98,9 @@ Deno.test({
     }),
 });
 
+// Security boundary: with file permissions denied, the backend cannot reach the
+// filesystem at all and Deno raises NotCapable. Confirms the sandbox, not the
+// code, is the last line of defense and that it cannot be bypassed.
 Deno.test({
   name: "DenoFileTaskStorage cannot bypass denied file permissions",
   permissions: { read: false, write: false },

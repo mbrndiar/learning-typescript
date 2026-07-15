@@ -1,3 +1,6 @@
+// Runtime selection is a requirements exercise, not a brand preference. Each
+// boolean below represents a hard constraint that can rule out otherwise good
+// choices.
 export interface RuntimeRequirements {
   readonly defaultDenyPermissions: boolean;
   readonly maximumNodeCompatibility: boolean;
@@ -10,6 +13,9 @@ interface RuntimeProfile extends RuntimeRequirements {
   readonly operationalNote: string;
 }
 
+// Profiles keep technical capabilities next to operational tradeoffs. A real
+// migration would add hosting, observability, native dependencies, and support
+// policy before choosing a production runtime.
 const profiles: readonly RuntimeProfile[] = [
   {
     name: "Node.js",
@@ -38,6 +44,8 @@ const profiles: readonly RuntimeProfile[] = [
   },
 ];
 
+// CONTRACT: return runtimes satisfying every requested capability. A false
+// requirement means "not required", not "must lack this capability".
 export function compatibleRuntimes(
   requirements: RuntimeRequirements,
 ): readonly RuntimeProfile[] {

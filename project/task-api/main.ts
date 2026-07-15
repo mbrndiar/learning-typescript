@@ -1,3 +1,8 @@
+// Node server entrypoint: wire SQLite storage to the HTTP server, bind to
+// loopback only, and install graceful shutdown. On SIGINT/SIGTERM it stops
+// accepting connections, force-closes stragglers after a 5s deadline (the timer
+// is unref'd so it never keeps the process alive), and always closes the
+// database so no handle leaks. The closing guard makes a second signal a no-op.
 import { once } from "node:events";
 
 import { createTaskServer } from "./server.ts";

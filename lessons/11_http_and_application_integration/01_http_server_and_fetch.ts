@@ -1,15 +1,23 @@
 import { once } from "node:events";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
+// This lesson keeps the HTTP boundary explicit: bytes become unknown JSON,
+// unknown JSON is validated into domain data, and responses leave as status
+// codes plus JSON.
 interface CreateTask {
   readonly title: string;
 }
 
+// readJson consumes the request stream under a small size limit. It returns
+// unknown because decoding JSON does not prove the value matches our domain
+// shape; validation happens at the next boundary.
 async function readJson(request: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = [];
   let size = 0;
 
   for await (const chunk of request) {
+    // Count bytes while streaming so an oversized client is rejected before
+    // the server commits to buffering an unbounded body in memory.
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += buffer.length;
     if (size > 16_384) {
@@ -21,6 +29,8 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
   return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
 }
 
+// parseCreateTask is the runtime contract for this endpoint. TypeScript types
+// protect code after this point, but clients can send any JSON shape.
 function parseCreateTask(value: unknown): CreateTask {
   if (typeof value !== "object" || value === null) {
     throw new TypeError("body must be an object");
@@ -32,11 +42,15 @@ function parseCreateTask(value: unknown): CreateTask {
   return { title: title.trim() };
 }
 
+// Headers and status must be chosen before the body is ended; after bytes are
+// written, the HTTP response boundary is already visible to the client.
 function sendJson(response: ServerResponse, status: number, value: unknown): void {
   response.writeHead(status, { "content-type": "application/json" });
   response.end(`${JSON.stringify(value)}\n`);
 }
 
+// handle separates protocol checks from domain work. Bad method, path,
+// content type, body size, or body shape is handled before a task is created.
 async function handle(
   request: IncomingMessage,
   response: ServerResponse,
@@ -64,6 +78,8 @@ async function handle(
 }
 
 const server = createServer((request, response) => {
+  // createServer does not await an async handler for us. Catching here keeps
+  // an unexpected rejection from becoming an unhandled process-level failure.
   void handle(request, response).catch((error: unknown) => {
     console.error(error);
     if (!response.headersSent) {
@@ -74,6 +90,8 @@ const server = createServer((request, response) => {
   });
 });
 
+// Port 0 asks the OS for a free ephemeral port, avoiding collisions when
+// lessons or tests run in parallel on the same machine.
 server.listen(0, "127.0.0.1");
 await once(server, "listening");
 
@@ -91,6 +109,8 @@ try {
 
   console.log(response.status, await response.json());
 } finally {
+  // Closing the server is part of the lifecycle: without it, the open socket
+  // keeps the Node.js process alive after the demonstration request finishes.
   await new Promise<void>((resolve, reject) => {
     server.close((error) => (error ? reject(error) : resolve()));
   });

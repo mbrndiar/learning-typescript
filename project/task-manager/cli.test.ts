@@ -4,6 +4,8 @@ import test from "node:test";
 import { MemoryTaskStorage } from "../test-support/memory-storage.ts";
 import { parseCli, runCli } from "./cli.ts";
 
+// Argument parsing is a trust boundary: valid flags map to typed options and an
+// invalid backend enum is rejected before any command runs.
 test("parseCli handles storage options and commands", () => {
   const parsed = parseCli([
     "--backend",
@@ -23,6 +25,8 @@ test("parseCli handles storage options and commands", () => {
   assert.throws(() => parseCli(["--backend", "invalid", "list"]), /file or rest/);
 });
 
+// Injecting IO and a storage factory lets the CLI be driven end-to-end without
+// real streams or files, and confirms validation failures map to exit code 1.
 test("runCli executes commands through an injected storage", async () => {
   const storage = new MemoryTaskStorage();
   const stdout: string[] = [];

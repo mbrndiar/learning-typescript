@@ -2,6 +2,10 @@ import { spawn } from "node:child_process";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
+// Runs the Node-compatible test suites across lessons, exercises, and project
+// in a single node:test invocation. The Deno- and Bun-specific chapters and
+// project packages are excluded because their tests target runtime-specific
+// frameworks that node:test cannot execute.
 async function collectTests(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const tests: string[] = [];

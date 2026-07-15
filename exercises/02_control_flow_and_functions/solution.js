@@ -1,3 +1,6 @@
+// Reference solution. classifyScore checks thresholds high-to-low so the first
+// satisfied condition wins; createCounter stores count in the closure so each
+// counter keeps private, persistent state.
 export function classifyScore(score) {
   if (score >= 90) {
     return "excellent";

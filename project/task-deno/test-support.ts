@@ -1,6 +1,11 @@
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle, type Task } from "../task-core/task.ts";
 
+// Minimal in-repo test helpers for the Deno suite. Deno's own std assertions
+// are avoided so the project stays dependency-light and portable, and these are
+// intentionally tiny (structural equality via JSON, a rejection matcher) rather
+// than a full assertion library.
+
 export function assert(condition: unknown, message = "assertion failed"): asserts condition {
   if (!condition) {
     throw new Error(message);
@@ -28,6 +33,9 @@ export async function assertRejects(
   throw new Error("expected operation to reject");
 }
 
+// Dependency-free reference backend for Deno tests. It resolves/rejects
+// promises explicitly (rather than using async) to keep behavior identical
+// without pulling in any async machinery.
 export class MemoryTaskStorage implements TaskStorage {
   private readonly tasks = new Map<number, Task>();
   private nextId = 1;

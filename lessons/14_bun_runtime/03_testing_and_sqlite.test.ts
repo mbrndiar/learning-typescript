@@ -11,6 +11,8 @@ import {
 } from "bun:test";
 
 describe("bun:test hooks and mocks", () => {
+  // The shared event log makes hook lifecycle visible without depending on
+  // console output or test ordering outside this describe block.
   const events: string[] = [];
 
   beforeAll(() => events.push("beforeAll"));
@@ -38,6 +40,8 @@ describe("bun:test hooks and mocks", () => {
   );
 });
 
+// Concurrent tests are safe only when their fixtures do not share mutable
+// state. These cases use independent values to make that boundary obvious.
 test.concurrent("independent concurrent case A", async () => {
   await Bun.sleep(1);
   expect(new Blob(["A"]).size).toBe(1);
@@ -48,6 +52,8 @@ test.concurrent("independent concurrent case B", async () => {
   expect(new Blob(["BB"]).size).toBe(2);
 });
 
+// A single SQLite connection is shared mutable state, so this scenario stays
+// serial even though Bun supports concurrent tests.
 test.serial("bun:sqlite remains serial when sharing one connection", () => {
   using database = new Database(":memory:", { strict: true });
   database.run(`

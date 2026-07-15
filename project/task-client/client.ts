@@ -1,10 +1,17 @@
 import { parseTask, type Task } from "../task-core/task.ts";
 
+// TaskClient is the HTTP-boundary adapter: it speaks the task REST protocol and
+// re-validates every response with parseTask, because data crossing the network
+// is untrusted no matter what the server claims. fetch is injected (defaulting
+// to the Web API global) so the same client works on every runtime and is
+// testable with a fake.
 export type Fetch = (
   input: string | URL | Request,
   init?: RequestInit,
 ) => Promise<Response>;
 
+// Carries the HTTP status so callers can branch (e.g. 404 -> TaskNotFoundError)
+// without parsing response text.
 export class TaskClientError extends Error {
   constructor(
     readonly status: number,
@@ -47,6 +54,10 @@ export class TaskClient {
     await this.send(`/tasks/${id}`, { method: "DELETE" }, true);
   }
 
+  // Single request choke point. It always requests JSON and adds content-type
+  // only when a body is present, applies a per-request timeout via AbortSignal
+  // so a hung server cannot block forever, maps non-2xx into TaskClientError,
+  // and treats 204 (or an explicitly empty response) as no JSON payload.
   private async send(
     path: string,
     init: RequestInit = {},

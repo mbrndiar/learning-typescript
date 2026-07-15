@@ -1,3 +1,6 @@
+// Contract: turn a list of items into a catalog with three views -- a Map
+// keyed by id (holding shallow copies so callers cannot mutate the inputs),
+// the list of unique tags across all items, and the summed stock.
 export function buildCatalog(items) {
   // TODO: Accumulate stock, copied items, and unique tags.
   return {
@@ -7,6 +10,9 @@ export function buildCatalog(items) {
   };
 }
 
+// Contract: return the item for `id`, or throw when it is absent. A Map
+// returns undefined for a missing key, so treat that as the error case rather
+// than passing undefined back to the caller.
 export function getCatalogItem(catalog, id) {
   // TODO: Throw an Error when the ID is absent.
   return catalog.byId.get(id);

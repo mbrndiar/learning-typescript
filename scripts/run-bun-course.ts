@@ -1,3 +1,7 @@
+// Runs the Bun chapter and the Bun-portable module 15 material under the real
+// Bun CLI, using Bun-native APIs (Bun.Glob, Bun.spawn). Each file runs as its
+// own subprocess so one failure aborts the run loudly rather than corrupting
+// shared state.
 const repositoryRoot = import.meta.dir.replace(/[/\\]scripts$/, "");
 
 async function collectTypeScript(directory: string): Promise<string[]> {
@@ -25,6 +29,8 @@ async function collectTypeScript(directory: string): Promise<string[]> {
   return files.sort();
 }
 
+// Selection rule: exclude files named *.deno.test.ts or *.node.test.ts, which
+// target another runtime and would fail under Bun.
 function isBunPortable(file: string): boolean {
   return !/\.(?:deno|node)\.test\.ts$/.test(file);
 }
@@ -35,6 +41,8 @@ function displayPath(file: string): string {
     : file;
 }
 
+// Dispatch on filename: *.test.ts runs under `bun test`, everything else under
+// `bun run`. A non-zero exit aborts the course run.
 async function runFile(file: string): Promise<void> {
   const isTest = file.endsWith(".test.ts");
   const command = isTest
@@ -54,6 +62,10 @@ async function runFile(file: string): Promise<void> {
   }
 }
 
+// Assemble the file list per selection rules: full lesson 14, only solutions
+// and tests from exercise 14, and the Bun-portable subset of module 15
+// (solutions and portable-check scripts, no exercise starters). import.meta.main
+// keeps the module importable without running.
 export async function runBunCourse(): Promise<void> {
   const lesson14 = await collectTypeScript("lessons/14_bun_runtime");
   const exercise14 = (await collectTypeScript("exercises/14_bun_runtime")).filter(

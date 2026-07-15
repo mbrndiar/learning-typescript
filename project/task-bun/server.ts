@@ -2,6 +2,12 @@ import { TaskManager } from "../task-core/manager.ts";
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle } from "../task-core/task.ts";
 
+// Bun HTTP adapter built on Web-standard Request/Response and Bun.serve. Like
+// the Node and Deno servers it owns only transport concerns and delegates
+// domain logic to TaskManager, so the wire contract is identical across
+// runtimes; only the serve API differs.
+
+// Distinguishes client mistakes (400) from server faults (500) at the catch site.
 class BadRequestError extends Error {
   constructor(message: string) {
     super(message);
@@ -34,6 +40,9 @@ function requireJson(request: Request): void {
   }
 }
 
+// Enforces the body-size cap twice: a declared content-length gives a fast
+// rejection, but streamed bytes are still counted because the header cannot be
+// trusted. Reading via the Web Streams reader keeps this on the Web API side.
 async function readJson(request: Request): Promise<unknown> {
   const contentLength = request.headers.get("content-length");
   if (contentLength !== null) {
@@ -84,6 +93,8 @@ async function readJson(request: Request): Promise<unknown> {
   }
 }
 
+// Validates request shape and reuses the domain normalizeTitle, mapping its
+// validation errors to 400 rather than a 500.
 function parseTitle(value: unknown): string {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new BadRequestError("request body must be an object");
@@ -111,6 +122,11 @@ function parseId(pathname: string, suffix = ""): number | undefined {
   return match === null ? undefined : Number(match[1]);
 }
 
+/**
+ * Builds the request handler. One try/catch maps domain errors to status codes
+ * (not-found -> 404, bad request -> 400) and converts anything unexpected into
+ * a logged, generic 500 so internal details never reach the client.
+ */
 export function createBunTaskHandler(
   storage: TaskStorage,
   logError: (error: unknown) => void = console.error,
@@ -155,6 +171,9 @@ export function createBunTaskHandler(
   };
 }
 
+// Starts a Bun.serve server bound to loopback by default. Both the explicit
+// /tasks routes and the fetch fallback point at the same handler so id-bearing
+// paths still work, and the error hook is a last-resort 500 guard.
 export function createBunTaskServer(
   storage: TaskStorage,
   options: BunTaskServerOptions = {},

@@ -10,6 +10,10 @@ import {
 import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 import { normalizeTitle, type Task, validateTaskId } from "../task-core/task.ts";
 
+// Bun file backend. It mixes Bun-native I/O (Bun.file, Bun.write) with node:fs
+// helpers Bun implements (mkdir/rename/chmod), showing Bun's Node compatibility.
+// Like the Deno backend it relies on an in-process queue and per-write unique
+// temp files, not a cross-process lock, so it assumes a single writer process.
 export class BunFileTaskStorage implements TaskStorage {
   private queue: Promise<void> = Promise.resolve();
 
@@ -68,6 +72,9 @@ export class BunFileTaskStorage implements TaskStorage {
     });
   }
 
+  // Serializes read-modify-write cycles within this process; each call chains
+  // onto the prior one whether it resolved or rejected, so writes never
+  // interleave and lose updates.
   private exclusive<T>(operation: () => Promise<T>): Promise<T> {
     const result = this.queue.then(operation, operation);
     this.queue = result.then(
@@ -77,6 +84,8 @@ export class BunFileTaskStorage implements TaskStorage {
     return result;
   }
 
+  // A missing file reads as an empty store; a present but malformed file is
+  // rejected by parseTaskDocument.
   private async load(): Promise<TaskDocument> {
     const file = Bun.file(this.filePath);
     if (!(await file.exists())) {
@@ -85,6 +94,9 @@ export class BunFileTaskStorage implements TaskStorage {
     return parseTaskDocument(JSON.parse(await file.text()) as unknown);
   }
 
+  // Atomic write: serialize to a unique temp file, mirror the existing file's
+  // mode (skipped on Windows), then rename over the target so readers never see
+  // a partial document. The temp file is always removed in finally.
   private async save(document: TaskDocument): Promise<void> {
     await mkdir(dirname(this.filePath), { recursive: true });
     const temporaryPath = `${this.filePath}.${crypto.randomUUID()}.tmp`;

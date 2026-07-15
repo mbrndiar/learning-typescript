@@ -3,6 +3,8 @@ import test from "node:test";
 
 import { findCompatibleRuntimes, type RuntimeProfile } from "./solution.ts";
 
+// The fixture gives each runtime a different mix of capabilities, so the
+// selector must intersect requirements instead of matching one headline trait.
 const profiles: readonly RuntimeProfile[] = [
   {
     name: "Node.js",
@@ -27,6 +29,8 @@ const profiles: readonly RuntimeProfile[] = [
   },
 ];
 
+// This scenario asks for two capabilities at once to prove that compatibility
+// means satisfying every requested boundary, not any single boundary.
 test("findCompatibleRuntimes applies every requested capability", () => {
   assert.deepEqual(
     findCompatibleRuntimes(profiles, {
@@ -43,6 +47,8 @@ test("findCompatibleRuntimes applies every requested capability", () => {
   );
 });
 
+// Order is part of the contract because callers may pre-rank runtimes by
+// policy, support, or deployment preference before filtering.
 test("findCompatibleRuntimes preserves input order and handles no requirements", () => {
   assert.deepEqual(findCompatibleRuntimes(profiles, {}), ["Node.js", "Deno", "Bun"]);
   assert.deepEqual(
