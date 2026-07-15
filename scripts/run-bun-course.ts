@@ -67,7 +67,7 @@ export async function runBunCourse(): Promise<void> {
   ).filter(
     (file) =>
       isBunPortable(file) &&
-      (file.endsWith("/solution.ts") || file.endsWith(".test.ts")),
+      (file.endsWith("/solution.ts") || file.endsWith("/portable.test.ts")),
   );
 
   const files = [...lesson14, ...exercise14, ...lesson15, ...exercise15];
