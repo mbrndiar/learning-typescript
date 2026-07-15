@@ -8,6 +8,12 @@ async function collectTests(directory: string): Promise<string[]> {
 
   for (const entry of entries) {
     const path = join(directory, entry.name);
+    if (
+      entry.isDirectory() &&
+      (entry.name === "task-deno" || entry.name === "task-bun")
+    ) {
+      continue;
+    }
     if (entry.isDirectory()) {
       tests.push(...(await collectTests(path)));
     } else if (entry.name.endsWith(".test.ts")) {

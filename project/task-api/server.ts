@@ -5,9 +5,9 @@ import {
   type ServerResponse,
 } from "node:http";
 
-import { TaskManager } from "../task-manager/manager.ts";
-import { TaskNotFoundError, type TaskStorage } from "../task-manager/storage.ts";
-import { normalizeTitle } from "../task-manager/task.ts";
+import { TaskManager } from "../task-core/manager.ts";
+import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
+import { normalizeTitle } from "../task-core/task.ts";
 
 class BadRequestError extends Error {
   constructor(message: string) {

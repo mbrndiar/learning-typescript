@@ -1,7 +1,7 @@
 import { DatabaseSync, type StatementResultingChanges } from "node:sqlite";
 
-import { TaskNotFoundError, type TaskStorage } from "../task-manager/storage.ts";
-import { normalizeTitle, type Task, validateTaskId } from "../task-manager/task.ts";
+import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
+import { normalizeTitle, type Task, validateTaskId } from "../task-core/task.ts";
 
 function changedRows(result: StatementResultingChanges): number {
   return Number(result.changes);

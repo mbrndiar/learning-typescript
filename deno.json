@@ -1,0 +1,45 @@
+{
+  "lock": {
+    "path": "deno.lock",
+    "frozen": true
+  },
+  "imports": {
+    "@course/helpers": "./lessons/13_deno_runtime/course-helpers.ts",
+    "@std/path": "jsr:@std/path@1.1.6"
+  },
+  "fmt": {
+    "include": [
+      "lessons/13_deno_runtime/**/*.ts",
+      "exercises/13_deno_runtime/**/*.ts",
+      "project/task-deno/**/*.ts",
+      "scripts/run-deno-course.ts",
+      "scripts/deno-compile-smoke.ts"
+    ],
+    "lineWidth": 100,
+    "semiColons": true
+  },
+  "lint": {
+    "include": [
+      "lessons/13_deno_runtime",
+      "exercises/13_deno_runtime",
+      "project/task-deno",
+      "scripts/run-deno-course.ts",
+      "scripts/deno-compile-smoke.ts"
+    ],
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "tasks": {
+    "fmt": "deno fmt",
+    "fmt:check": "deno fmt --check",
+    "lint": "deno lint",
+    "typecheck": "deno check lessons/13_deno_runtime/*.ts exercises/13_deno_runtime/*.ts project/task-deno/*.ts scripts/run-deno-course.ts scripts/deno-compile-smoke.ts lessons/15_runtime_portability/*.ts exercises/15_runtime_portability/solution.ts exercises/15_runtime_portability/portable.test.ts scripts/runtime-conformance.ts",
+    "test": "deno test --allow-read=project/task-deno/.test-data --allow-write=project/task-deno/.test-data --allow-net=127.0.0.1 lessons/13_deno_runtime/03_deno_testing.test.ts exercises/13_deno_runtime/solution.test.ts project/task-deno exercises/15_runtime_portability/portable.test.ts",
+    "course": "deno run --allow-read=lessons,exercises --allow-run=deno scripts/run-deno-course.ts",
+    "docs": "deno doc project/task-deno/file-storage.ts project/task-deno/server.ts",
+    "audit": "deno audit --lock=deno.lock",
+    "compile": "deno run --allow-run=deno --allow-write=compiled scripts/deno-compile-smoke.ts",
+    "check": "deno task fmt:check && deno task lint && deno task typecheck && deno task test && deno task course && deno task docs && deno task audit && deno task compile"
+  }
+}

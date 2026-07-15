@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"]
+  },
+  "include": [
+    "lessons/**/*.ts",
+    "exercises/**/*.ts",
+    "project/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "lessons/13_deno_runtime/**",
+    "lessons/14_bun_runtime/**",
+    "exercises/13_deno_runtime/**",
+    "exercises/14_bun_runtime/**",
+    "project/task-deno/**",
+    "project/task-bun/**",
+    "scripts/*deno*.ts",
+    "scripts/*bun*.ts"
+  ]
+}

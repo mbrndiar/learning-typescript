@@ -3,7 +3,7 @@ import { once } from "node:events";
 import test from "node:test";
 
 import { TaskClient, TaskClientError } from "../task-client/client.ts";
-import type { TaskStorage } from "../task-manager/storage.ts";
+import type { TaskStorage } from "../task-core/storage.ts";
 import { createTaskServer } from "./server.ts";
 import { SqliteTaskStorage } from "./sqlite-storage.ts";
 

@@ -1,4 +1,4 @@
-import { parseTask, type Task } from "../task-manager/task.ts";
+import { parseTask, type Task } from "../task-core/task.ts";
 
 export type Fetch = (
   input: string | URL | Request,

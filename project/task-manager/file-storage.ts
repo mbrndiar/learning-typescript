@@ -3,48 +3,14 @@ import { chmod, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/pro
 import { dirname } from "node:path";
 import { lock } from "proper-lockfile";
 
-import { TaskNotFoundError, type TaskStorage } from "./storage.ts";
-import { normalizeTitle, parseTask, type Task, validateTaskId } from "./task.ts";
-
-interface TaskDocument {
-  readonly version: 1;
-  readonly nextId: number;
-  readonly tasks: readonly Task[];
-}
-
-const emptyDocument: TaskDocument = { version: 1, nextId: 1, tasks: [] };
-
-function parseDocument(value: unknown): TaskDocument {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new TypeError("task document must be an object");
-  }
-
-  const record = value as Record<string, unknown>;
-  if (record.version !== 1) {
-    throw new TypeError("unsupported task document version");
-  }
-  if (!Number.isSafeInteger(record.nextId) || (record.nextId as number) <= 0) {
-    throw new TypeError("task document nextId must be a positive integer");
-  }
-  if (!Array.isArray(record.tasks)) {
-    throw new TypeError("task document tasks must be an array");
-  }
-
-  const tasks = record.tasks.map((task, index) => parseTask(task, `tasks[${index}]`));
-  const identifiers = new Set(tasks.map((task) => task.id));
-  if (identifiers.size !== tasks.length) {
-    throw new TypeError("task identifiers must be unique");
-  }
-  if (tasks.some((task) => task.id >= (record.nextId as number))) {
-    throw new TypeError("nextId must be greater than every task id");
-  }
-
-  return {
-    version: 1,
-    nextId: record.nextId as number,
-    tasks,
-  };
-}
+import {
+  emptyTaskDocument,
+  parseTaskDocument,
+  serializeTaskDocument,
+  type TaskDocument,
+} from "../task-core/task-document.ts";
+import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
+import { normalizeTitle, type Task, validateTaskId } from "../task-core/task.ts";
 
 export class FileTaskStorage implements TaskStorage {
   private queue: Promise<void> = Promise.resolve();
@@ -146,10 +112,10 @@ export class FileTaskStorage implements TaskStorage {
   private async load(): Promise<TaskDocument> {
     try {
       const text = await readFile(this.file, "utf8");
-      return parseDocument(JSON.parse(text) as unknown);
+      return parseTaskDocument(JSON.parse(text) as unknown);
     } catch (error: unknown) {
       if (this.hasCode(error, "ENOENT")) {
-        return emptyDocument;
+        return emptyTaskDocument;
       }
       throw error;
     }
@@ -167,7 +133,7 @@ export class FileTaskStorage implements TaskStorage {
       }
     }
     try {
-      await writeFile(temporaryFile, `${JSON.stringify(document, null, 2)}\n`, {
+      await writeFile(temporaryFile, serializeTaskDocument(document), {
         encoding: "utf8",
         mode,
       });

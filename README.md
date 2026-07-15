@@ -3,7 +3,8 @@
 A complete, hands-on introduction to JavaScript, TypeScript, and server-side
 runtime programming for independent learners. The course begins with a short
 JavaScript foundation, then uses strict TypeScript with Node.js as the primary
-runtime. A final module compares portable code across Node.js, Deno, and Bun.
+runtime. A four-module runtime track then explores Node.js, Deno, Bun, and
+cross-runtime migration in depth.
 
 ## 🎯 What you will learn
 
@@ -14,16 +15,21 @@ By the end of the course, you will be able to:
 - model data with strict types, unions, generics, classes, and composition;
 - validate untrusted values at command-line, file, JSON, and HTTP boundaries;
 - use npm, ES modules, files, processes, structured logs, and SQLite;
-- write deterministic tests with Node's built-in test runner;
+- write deterministic tests with `node:test`, `Deno.test`, and `bun:test`;
 - reason about promises, the event loop, cancellation, streams, and workers;
-- build HTTP/JSON clients and servers with graceful shutdown; and
-- identify which code is portable across Node.js, Deno, and Bun.
+- build HTTP/JSON clients and servers with graceful shutdown;
+- use native permissions, file, process, HTTP, database, build, and compile APIs;
+- migrate one shared Task domain through Node.js, Deno, and Bun adapters; and
+- prove portability through executable conformance checks.
 
-## ✅ Requirements
+## ✅ Initial requirements
 
-- Node.js 24 LTS or newer
+- Node.js 24 LTS or Node.js 26 Current
 - npm (included with Node.js)
-- Git for cloning the repository
+
+Node.js is the only runtime required initially. Git is needed only if you clone
+the repository instead of downloading it. Install Deno 2.9.3 for module 13 and
+Bun 1.3.14 for module 14; modules 1-12 use Node.js alone.
 
 See [`docs/SETUP.md`](docs/SETUP.md) for installation, editor setup, and
 troubleshooting. If programming syntax is entirely new, begin with
@@ -62,16 +68,21 @@ For every module:
 ```bash
 npm run format:check
 npm run lint
-npm run typecheck
-npm run course
-npm test
+npm run typecheck:node
+npm run course:node
+npm run test:node
 npm run coverage
 npm run links
+
+# After installing Deno and Bun for modules 13-15
+npm run check:deno
+npm run check:bun
+npm run portability
 ```
 
 ## 📐 Conventions
 
-- Modules 1-3 use JavaScript; modules 4-12 use TypeScript by default.
+- Modules 1-3 use JavaScript; modules 4-15 use TypeScript by default.
 - ES modules (`import` and `export`) are the default. CommonJS is covered only
   for interoperability.
 - TypeScript is always checked in strict mode. Avoid `any` and unsafe type
@@ -93,15 +104,17 @@ The [`Task Manager`](project/README.md) grows from a typed CLI into a connected
 application:
 
 ```text
-Task Manager CLI -> Manager -> Storage
-                             |-> JSON file
-                             `-> REST client -> HTTP API -> SQLite
+Shared Task core
+├── Node.js -> CLI -> JSON/REST -> node:http -> node:sqlite
+├── Deno    -> CLI -> JSON/REST -> Deno.serve
+└── Bun     -> CLI -> JSON/REST -> Bun.serve -> bun:sqlite
 ```
 
-The domain and storage contract remain independent from runtime-specific
-adapters. Node's built-in `node:sqlite` is intentionally isolated so the final
-runtime-portability module can show exactly what does and does not travel to
-Deno or Bun.
+The domain, JSON document format, CLI execution, and storage contract remain
+independent from runtime-specific adapters. The portable REST storage adapter is
+[`project/task-client/rest-storage.ts`](project/task-client/rest-storage.ts).
+Node file storage adds cross-process locking; Deno and Bun file storage provide
+atomic replacement plus in-process serialization only.
 
 ## 🗺️ Course outline
 
@@ -116,7 +129,10 @@ Deno or Bun.
 9. [Tooling, Debugging, CLI, and Observability](lessons/09_tooling_debugging_cli_observability/)
 10. [Asynchronous JavaScript and Concurrency](lessons/10_async_and_concurrency/)
 11. [HTTP and Application Integration](lessons/11_http_and_application_integration/)
-12. [Node.js, Deno, and Bun Portability](lessons/12_runtime_portability/)
+12. [Node.js Runtime Deep Dive](lessons/12_nodejs_runtime/)
+13. [Deno Runtime Deep Dive](lessons/13_deno_runtime/)
+14. [Bun Runtime Deep Dive](lessons/14_bun_runtime/)
+15. [Cross-Runtime Portability and Migration](lessons/15_runtime_portability/)
 
 ## 🗒️ Cheat sheet and boundaries
 
@@ -124,3 +140,6 @@ Deno or Bun.
 tooling reference. This course focuses on language and server-side foundations.
 Browser DOM programming, React/Vue/Angular, bundlers, full-stack frameworks, and
 cloud deployment are separate follow-on topics.
+
+Use [`docs/RUNTIME_PORTABILITY.md`](docs/RUNTIME_PORTABILITY.md) for the full
+runtime capability, migration, and selection guide.

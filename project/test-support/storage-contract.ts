@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { TaskNotFoundError, type TaskStorage } from "../task-manager/storage.ts";
+import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
 
 export interface StorageFixture {
   readonly storage: TaskStorage;

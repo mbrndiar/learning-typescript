@@ -1,5 +1,5 @@
-import { TaskNotFoundError, type TaskStorage } from "../task-manager/storage.ts";
-import { normalizeTitle, type Task } from "../task-manager/task.ts";
+import { TaskNotFoundError, type TaskStorage } from "../task-core/storage.ts";
+import { normalizeTitle, type Task } from "../task-core/task.ts";
 
 export class MemoryTaskStorage implements TaskStorage {
   private readonly tasks = new Map<number, Task>();

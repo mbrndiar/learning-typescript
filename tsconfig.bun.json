@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "types": ["bun"]
+  },
+  "include": [
+    "lessons/14_bun_runtime/**/*.ts",
+    "lessons/15_runtime_portability/**/*.ts",
+    "exercises/14_bun_runtime/**/*.ts",
+    "exercises/15_runtime_portability/**/*.ts",
+    "project/task-core/**/*.ts",
+    "project/task-client/**/*.ts",
+    "project/task-bun/**/*.ts",
+    "scripts/run-bun-course.ts",
+    "scripts/bun-build-smoke.ts",
+    "scripts/runtime-conformance.ts"
+  ],
+  "exclude": ["**/*.deno.test.ts", "project/task-core/**/*.test.ts"]
+}

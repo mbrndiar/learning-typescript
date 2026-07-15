@@ -8,14 +8,21 @@ lesson, experiment, and exercise.
 ```bash
 node file.js                       # run JavaScript
 npm run lesson -- file.ts          # run TypeScript with tsx
-npm run typecheck                  # strict static checking
+npm run typecheck:node             # strict Node source checking
+npm run typecheck:bun              # strict Bun source checking
 npm run format                     # apply Prettier
 npm run lint                       # run ESLint
-npm run course                     # run lessons and solutions
-npm test                           # run all discovered tests
+npm run course:node                # run Node lessons and solutions
+npm run test:node                  # run Node-discovered tests
 npm run test:project               # run capstone tests
 npm run coverage                   # enforce capstone coverage
-npm run check                      # local CI sequence
+npm run check                      # standard Node course check
+npm run check:deno                 # full Deno validation
+npm run check:bun                  # full Bun validation
+npm run build:bun                  # Bun bundle and compile smoke
+
+deno task check                    # same Deno validation natively
+npm run portability               # shared runtime conformance
 ```
 
 ## 🧱 Bindings, values, and operators
@@ -235,6 +242,10 @@ const text = await readFile(file, "utf8");
 Use `try`/`finally` for cleanup and write to a temporary file before renaming
 when a partially written file would be dangerous.
 
+Atomic replacement prevents torn documents, not lost updates. The Node capstone
+adds cross-process locking. Its Deno and Bun file adapters serialize writes only
+inside one process and do not lock across processes.
+
 ## ⚡ Promises, cancellation, and concurrency
 
 ```typescript
@@ -303,13 +314,52 @@ promises. Control time, files, randomness, and network boundaries.
 
 ## 🌐 Runtime portability
 
-| Concern        | Node.js                         | Deno                       | Bun               |
-| -------------- | ------------------------------- | -------------------------- | ----------------- |
-| Run TypeScript | `tsx` or erasable native syntax | built in                   | built in          |
-| Type-check     | `tsc --noEmit`                  | `deno check`               | `tsc`             |
-| Packages       | npm                             | `deno install`/npm support | npm-compatible    |
-| Permissions    | process authority               | explicit grants            | process authority |
-| Tests          | `node:test`                     | `deno test`                | `bun:test`        |
+| Concern         | Node.js                    | Deno                | Bun                   |
+| --------------- | -------------------------- | ------------------- | --------------------- |
+| Course baseline | 24 LTS / 26 Current        | 2.9.3               | 1.3.14                |
+| Run TypeScript  | `node` stripping or `tsx`  | `deno run`          | `bun run`             |
+| Type-check      | `tsc`                      | `deno check`        | `tsc`                 |
+| Config          | `tsconfig.node.json`       | `deno.json`         | `tsconfig.bun.json`   |
+| Lockfile        | `package-lock.json`        | `deno.lock`         | `bun.lock`            |
+| Permissions     | optional restriction model | default-deny grants | process authority     |
+| Tests           | `node:test`                | `Deno.test`         | `bun:test`            |
+| HTTP            | `node:http`                | `Deno.serve`        | `Bun.serve`           |
+| SQLite          | `node:sqlite`              | package required    | `bun:sqlite`          |
+| Distribution    | `npm pack --dry-run`       | `deno compile`      | `bun build --compile` |
+
+## 🔐 Runtime permissions
+
+```bash
+# Node restrictions are opt-in and are not a malicious-code sandbox
+node --permission --allow-fs-read=tasks.json app.ts
+
+# Deno denies sensitive I/O until a resource is granted
+deno run --allow-read=tasks.json --allow-write=tasks.json app.ts
+```
+
+Bun inherits operating-system process authority. Use filesystem permissions,
+containers, service accounts, and deployment policy for isolation.
+
+## 🧪 Native runtime tests
+
+```bash
+node --test
+deno test
+bun test
+```
+
+Use native tests for native authority and lifecycle behavior. Use
+`scripts/runtime-conformance.ts` only for behavior intentionally shared by all
+three runtimes.
+
+## 📦 Runtime build commands
+
+```bash
+npm pack --dry-run
+deno task compile
+npm run build:bun
+```
 
 Prefer ES modules, explicit extensions, Web APIs, and small runtime adapters.
-Portability is established by running tests on each claimed runtime.
+Portability is established by running executable evidence on each claimed
+runtime.
