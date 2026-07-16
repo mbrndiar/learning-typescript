@@ -94,12 +94,35 @@ Code can inherit authority through resources you explicitly grant.
 Deno denies sensitive I/O by default. Scope permissions by resource:
 
 ```bash
-deno run --allow-read=tasks.json --allow-write=tasks.json app.ts
-deno run --allow-net=127.0.0.1:8080 server.ts
+deno run --allow-read=.task-data --allow-write=.task-data \
+  project/task-deno/main.ts --file .task-data/tasks.json list
+deno run --allow-net=127.0.0.1:8080 \
+  project/task-deno/main.ts --backend rest --url http://127.0.0.1:8080 list
 ```
 
 Use `Deno.permissions.query`, `request`, and `revoke` when a program needs to
 reason about authority. Tests can declare permissions per test.
+
+File adapters that create a state file also create its parent or a temporary
+sibling. Grant the dedicated state directory rather than only the final file.
+The event-relay Deno adapter uses the same rule:
+
+```bash
+deno run \
+  --allow-read=.relay-data,capstones/idiomatic/tests/fixtures/events-valid.jsonl \
+  --allow-write=.relay-data \
+  capstones/idiomatic/solution/deno/main.ts \
+  ingest --log .relay-data/events.jsonl \
+  --input capstones/idiomatic/tests/fixtures/events-valid.jsonl
+
+deno run --allow-read=.relay-data --allow-write=.relay-data \
+  --allow-net=127.0.0.1:8080 \
+  capstones/idiomatic/solution/deno/main.ts \
+  serve --log .relay-data/events.jsonl
+```
+
+The relay needs no environment, subprocess, FFI, or system permission. Its
+server additionally needs only the selected loopback listener.
 
 ### 🥟 Bun authority
 
@@ -138,7 +161,8 @@ behavior needs native tests.
 
 ## 🌐 HTTP servers
 
-The three capstone servers share resource shapes and status semantics:
+The three retained Task project servers share resource shapes and status
+semantics:
 
 - `GET /tasks` lists tasks.
 - `POST /tasks` requires JSON and returns `201`.
@@ -170,6 +194,11 @@ binary deployment remain adapter responsibilities.
 `TaskClient` and
 [`RestTaskStorage`](../project/task-client/rest-storage.ts) form the portable
 Web-fetch REST boundary shared by all three runtime CLIs.
+
+The idiomatic event relay has a different contract: `GET /healthz`,
+`POST /v1/events`, and filtered `GET /v1/events`. Its
+[normative specification](../capstones/idiomatic/SPEC.md) defines the exact
+request limits, statuses, and lifecycle behavior.
 
 ## 📦 Builds and executables
 
@@ -204,6 +233,10 @@ affect portability.
 9. Run cross-runtime conformance.
 10. Update operational documentation before claiming support.
 
+For this repository's retained Task project, use the
+[old-to-new migration guide](PROJECT_MIGRATION.md). It distinguishes reusable
+adapter patterns from incompatible Task, key/value, and event data models.
+
 ## 🧭 Runtime selection
 
 Choose from requirements, not identity:
@@ -226,21 +259,32 @@ The course backs its support claims with:
 npm run check:deno
 npm run check:bun
 npm run portability
+npm run coverage
+npm run audit:node
 deno run scripts/runtime-conformance.ts
 bun run scripts/runtime-conformance.ts
 ```
 
-CI runs each runtime's configured lessons, exercises, Task adapters, formatting,
-linting, type checking, tests, and relevant build or compile smoke checks.
+CI runs each runtime's configured lessons, exercises, Task adapters, capstones,
+formatting, linting, type checking, tests, audits, and relevant build or compile
+smoke checks. Node 26 runs the aggregate coverage gate; Node 24 also runs the
+full Node test matrix. Deno and Bun run their native checks in separate jobs.
 
-## 📡 Cross-runtime event relay
+## 🏆 Capstone boundaries
 
-The idiomatic capstone in
-[`capstones/idiomatic/`](../capstones/idiomatic/README.md) is the repository's
-complete capability-based portability example. Its core uses only standard
-TypeScript, promises, async iterables, `AbortSignal`, `TextEncoder`, and
-`TextDecoder`. Node.js, Deno, and Bun adapters inject file, process, stdin, and
-loopback HTTP authority.
+- The
+  [comparative versioned configuration store](../capstones/comparative/README.md)
+  is intentionally Node-only. It measures the
+  [frozen cross-language contract](../capstones/comparative/spec/SPEC.md), not
+  runtime portability.
+- The [idiomatic event relay](../capstones/idiomatic/README.md) is the complete
+  capability-based portability example. Its
+  [specification](../capstones/idiomatic/SPEC.md) keeps the core on standard
+  TypeScript, promises, async iterables, `AbortSignal`, `TextEncoder`, and
+  `TextDecoder`; Node.js, Deno, and Bun adapters inject file, process, stdin,
+  and loopback HTTP authority.
+- The [connected Task project](../project/README.md) is retained teaching and
+  migration material, not a third capstone.
 
 `npm run portability` first runs the same in-memory semantic smoke under the
 current runtime, then invokes all three solution CLIs as subprocesses against one

@@ -74,6 +74,14 @@ The portable storage contract covers observable Task behavior. It does not
 pretend that every file-locking, permission, or database guarantee is
 identical.
 
+The Task application is retained predecessor material. The formal
+[comparative capstone](../../capstones/comparative/README.md) is intentionally
+Node-only, while the
+[idiomatic event relay](../../capstones/idiomatic/README.md) is the complete
+cross-runtime capstone. Use the
+[old-to-new migration guide](../../docs/PROJECT_MIGRATION.md) to reuse adapter
+patterns without mixing their incompatible domains or storage formats.
+
 ## 🔁 Migration workflow
 
 1. Inventory imports, globals, package scripts, environment access, subprocesses,
@@ -84,6 +92,7 @@ identical.
 4. Replace one adapter at a time and keep domain tests unchanged.
 5. Add native tests for permission, shutdown, file, and database behavior.
 6. Run the same conformance scenario on every runtime claimed in documentation.
+7. Keep legacy data migration separate from code-adapter migration.
 
 ## 🧭 Runtime selection
 

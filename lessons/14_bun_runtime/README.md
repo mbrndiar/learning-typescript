@@ -38,6 +38,9 @@ npm run build:bun
 npm run check:bun
 ```
 
+`npm run check:bun` also runs `bun audit`; the audit may contact the package
+advisory service.
+
 ## 📦 Packages, lockfiles, and scripts
 
 `bun install` resolves the project and updates the text-based `bun.lock`.

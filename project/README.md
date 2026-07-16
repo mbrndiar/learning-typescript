@@ -1,6 +1,14 @@
 # 🔗 Connected Task Manager
 
-The capstone combines one shared domain with runtime-specific programs:
+## 📌 Status
+
+This is the retained predecessor to the two formal capstones. Modules 12-15 use
+it to compare one Task domain across runtime adapters, and its tests remain part
+of the repository checks. It is not a third capstone, and there is no automatic
+data migration from Task documents/databases to the comparative key/value store
+or idiomatic event relay.
+
+The project combines one shared domain with runtime-specific programs:
 
 - `task-core` owns Task validation, storage semantics, document parsing, manager
   coordination, and backend-independent CLI execution.
@@ -42,14 +50,36 @@ npm run lesson -- project/task-manager/main.ts \
   --backend rest --url http://127.0.0.1:8080 add "Remote task"
 
 # Deno, after module 13 setup
-deno run --allow-read=tasks.json --allow-write=tasks.json \
-  project/task-deno/main.ts add "Deno task"
+deno run --allow-read=.task-data --allow-write=.task-data \
+  project/task-deno/main.ts \
+  --file .task-data/tasks.json add "Deno task"
 
 # Bun, after module 14 setup
-bun run project/task-bun/main.ts add "Bun task"
+bun run project/task-bun/main.ts \
+  --file .task-data/tasks.json add "Bun task"
 ```
 
-## 🧩 Staged extensions
+The Deno grant names the state directory because the atomic writer creates a
+temporary sibling before renaming it over the final file.
+
+## 🔁 Reuse and migration
+
+Reuse patterns, not incompatible domain models:
+
+- `task-core` demonstrates a runtime-neutral domain, injected storage, and CLI
+  command boundary; the idiomatic relay applies those seams to events.
+- `task-api`, `task-deno`, and `task-bun` demonstrate native server, file,
+  lifecycle, and permission adapters.
+- `task-client` demonstrates a portable Web `fetch` boundary.
+- the comparative capstone separately demonstrates a frozen Node/SQLite
+  contract and must not absorb Task-specific behavior.
+
+Follow [`docs/PROJECT_MIGRATION.md`](../docs/PROJECT_MIGRATION.md) for the
+old-to-new ownership map, validation sequence, data incompatibilities,
+dependency cleanup, and eventual retirement criteria. Do not delete this tree
+as an incidental part of capstone work.
+
+## 🧩 Optional extensions
 
 1. Add a `show <id>` command.
 2. Add title search and completed/pending filters.

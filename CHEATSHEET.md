@@ -14,16 +14,23 @@ npm run format                     # apply Prettier
 npm run lint                       # run ESLint
 npm run course:node                # run Node lessons and solutions
 npm run test:node                  # run Node-discovered tests
-npm run test:project               # run capstone tests
+npm run test:project               # run retained Task project tests
+npm run test:capstones:node        # run both selected Node capstone targets
 npm run test:capstone:comparative  # run the selected comparative target
 npm run test:capstone:comparative:contention # repeat real SQLite races
-npm run coverage                   # enforce capstone coverage
+npm run coverage:project           # enforce retained-project coverage
+npm run coverage:comparative       # enforce comparative coverage
+npm run coverage:idiomatic         # enforce idiomatic-core coverage
+npm run coverage                   # run all three Node coverage gates
+npm run audit:node                 # audit npm dependencies
 npm run check                      # standard Node course check
 npm run check:deno                 # full Deno validation
 npm run check:bun                  # full Bun validation
 npm run build:bun                  # Bun bundle and compile smoke
 
 deno task check                    # same Deno validation natively
+deno task audit                    # audit Deno lockfile dependencies
+npm run audit:bun                  # audit Bun lockfile dependencies
 npm run portability               # shared runtime conformance
 ```
 
@@ -336,7 +343,8 @@ promises. Control time, files, randomness, and network boundaries.
 node --permission --allow-fs-read=tasks.json app.ts
 
 # Deno denies sensitive I/O until a resource is granted
-deno run --allow-read=tasks.json --allow-write=tasks.json app.ts
+deno run --allow-read=.task-data --allow-write=.task-data \
+  project/task-deno/main.ts --file .task-data/tasks.json list
 ```
 
 Bun inherits operating-system process authority. Use filesystem permissions,

@@ -84,6 +84,9 @@ build/Release/
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 tasks.json
 *.tmp
 **/.test-data/

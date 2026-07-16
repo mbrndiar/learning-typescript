@@ -35,7 +35,8 @@ deno run --config=deno.json \
 
 Run the complete Deno 2.9.3 track with `deno task check`, or use the equivalent
 `npm run check:deno` package wrapper. Individual root tasks include
-`fmt:check`, `lint`, `typecheck`, `test`, `course`, `docs`, and `compile`.
+`fmt:check`, `lint`, `typecheck`, `test`, `course`, `docs`, `audit`, and
+`compile`.
 
 To demonstrate deny precedence, add `--deny-env=HOME`; a matching deny wins even when another flag
 broadly allows environment access.
@@ -48,8 +49,9 @@ use explicit extensions. `jsr:` is Deno's ESM-first package path; `npm:` and dis
 examples**, not Deno-native APIs.
 
 Use `deno fmt --check`, `deno lint`, and `deno check` locally. `deno doc` renders module
-documentation. `deno audit` evaluates installed dependency advisories and may contact a registry, so
-it is orientation only in this offline lesson.
+documentation. `deno task audit` evaluates locked dependency advisories and may
+contact a registry; it is a repository and CI gate, while the individual lesson
+programs remain deterministic and offline.
 
 ## 🔐 Permissions and native boundaries
 

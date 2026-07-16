@@ -73,6 +73,7 @@ npm run course:node
 npm run test:node
 npm run coverage
 npm run links
+npm run audit:node
 
 # After installing Deno and Bun for modules 13-15
 npm run check:deno
@@ -100,14 +101,25 @@ Starter files contain TODOs and behavioral tests; `solution.ts` or
 
 ## 🏆 Capstones
 
-The Node-only [`comparative-kv` capstone](capstones/comparative/README.md)
-implements the frozen cross-language SQLite contract with `node:sqlite`,
-restricted JSON normalization, global revisions, CAS, migration, and real
-subprocess contention. Its guided starter and five milestone suites are separate
-from the cross-runtime application below.
+The course has two completed reference capstones with matching guided starters:
 
-The [`Task Manager`](project/README.md) grows from a typed CLI into a connected
-application:
+- The Node-only [`comparative-kv` capstone](capstones/comparative/README.md)
+  implements the frozen cross-language
+  [`comparative-kv` specification](capstones/comparative/spec/SPEC.md) with
+  `node:sqlite`, restricted JSON normalization, global revisions, CAS,
+  migration, and real subprocess contention.
+- The idiomatic
+  [cross-runtime event relay](capstones/idiomatic/README.md) implements its
+  [TypeScript specification](capstones/idiomatic/SPEC.md) with a portable core
+  and native Node.js, Deno, and Bun adapters.
+
+See the [capstone index](capstones/README.md) for target selection, milestone
+commands, coverage, and conformance checks.
+
+## 🧭 Retained migration reference
+
+The [`project/` Task Manager](project/README.md) is the earlier connected
+application used by modules 12-15:
 
 ```text
 Shared Task core
@@ -121,6 +133,12 @@ independent from runtime-specific adapters. The portable REST storage adapter is
 [`project/task-client/rest-storage.ts`](project/task-client/rest-storage.ts).
 Node file storage adds cross-process locking; Deno and Bun file storage provide
 atomic replacement plus in-process serialization only.
+
+It remains intentionally available as a comparison and migration source; it is
+not a third capstone and its Task data is not compatible with either capstone's
+storage format. Follow the durable
+[old-to-new migration guide](docs/PROJECT_MIGRATION.md) before reusing or
+retiring any part of `project/`.
 
 ## 🗺️ Course outline
 

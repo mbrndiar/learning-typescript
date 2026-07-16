@@ -13,6 +13,9 @@ const child = spawn(
     "--test",
     "--test-concurrency=1",
     "--experimental-test-coverage",
+    "--test-coverage-lines=85",
+    "--test-coverage-functions=85",
+    "--test-coverage-branches=80",
     ...tests,
   ],
   {

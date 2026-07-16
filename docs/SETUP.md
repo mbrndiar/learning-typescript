@@ -26,6 +26,7 @@ npm install
 
 `npm install` uses `package-lock.json` to install the pinned TypeScript, ESLint,
 Prettier, `tsx`, Node types, and Bun types used by the course.
+Use `npm ci` in automation or when reproducing CI from an unchanged lockfile.
 
 ## 🧑‍💻 3. Choose an editor
 
@@ -69,12 +70,14 @@ execution. `deno.lock` pins resolved JSR and npm dependencies.
 Deno denies sensitive access by default. Prefer narrow grants:
 
 ```bash
-deno run --allow-read=tasks.json --allow-write=tasks.json \
-  project/task-deno/main.ts list
+deno run --allow-read=.task-data --allow-write=.task-data \
+  project/task-deno/main.ts --file .task-data/tasks.json list
 ```
 
 Avoid `-A` while learning. It grants all permissions and hides the capability
-boundary the module is designed to teach.
+boundary the module is designed to teach. Grant the containing state directory,
+not just a not-yet-created file: the atomic writer must create the directory and
+a temporary sibling before renaming it.
 
 ## 🥟 6. Install Bun for module 14
 
@@ -89,7 +92,7 @@ npm run check:bun
 
 Bun executes TypeScript by transpiling it; it does not replace strict static
 checking. `npm run check:bun` runs `npm run typecheck:bun`, Bun tests, the Bun
-course collector, and the bundle/compile smoke test.
+course collector, the bundle/compile smoke test, and `bun audit`.
 
 Review lifecycle scripts before trusting a dependency. Bun blocks arbitrary
 dependency lifecycle scripts unless they are explicitly trusted.
@@ -112,17 +115,42 @@ Execution and type checking are separate in Node.js and Bun. Deno type-checks
 through `deno check`; still keep runtime validation for JSON, environment,
 commands, files, and HTTP.
 
-## ⌨️ 8. Essential commands
+## 🧩 8. Configuration and coverage boundaries
+
+- `tsconfig.base.json` owns the strict options shared by the TypeScript compiler
+  configurations.
+- `tsconfig.node.json` checks Node-compatible lessons, exercises, the retained
+  Task project, both Node capstones, and Node tooling while excluding native
+  Deno and Bun trees.
+- `tsconfig.capstones.node.json` is the focused Node capstone check.
+- `tsconfig.bun.json` uses Bun types and bundler-style resolution for Bun and
+  cross-runtime source.
+- Root `tsconfig.json` extends the Node configuration for editor discovery.
+- `deno.json` independently owns Deno compiler options, source scopes,
+  permissions, tasks, formatting, and linting.
+
+`npm run coverage` runs three Node coverage commands. The retained project and
+both capstones enforce at least 85% lines, 85% functions, and 80% branches.
+`coverage:idiomatic` scopes measurement to the portable solution core;
+`coverage:comparative` also exercises its subprocess fixture support. Deno and
+Bun expose native coverage commands for runtime-focused investigation, but the
+repository-wide numeric gate is the Node coverage command.
+
+## ⌨️ 9. Essential commands
 
 ```bash
 # Node.js path
 npm run format:check
 npm run lint
 npm run typecheck:node
+npm run typecheck:capstones:node
 npm run course:node
 npm run test:node
+npm run test:project
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstones:node
 npm run coverage
 npm run links
+npm run audit:node
 
 # Deno path
 deno task fmt:check
@@ -131,6 +159,7 @@ deno task typecheck
 deno task test
 deno task course
 deno task docs
+deno task audit
 deno task compile
 deno task check
 # Equivalent package wrapper: npm run check:deno
@@ -138,6 +167,7 @@ deno task check
 # Bun path
 npm run typecheck:bun
 npm run build:bun
+npm run audit:bun
 npm run check:bun
 
 # Portable evidence
@@ -145,6 +175,12 @@ npm run portability
 deno run scripts/runtime-conformance.ts
 bun run scripts/runtime-conformance.ts
 ```
+
+The Deno and Bun `check` commands already include their native audit. Audits may
+contact package advisory services and therefore require network access.
+
+`CAPSTONE_IMPLEMENTATION` accepts only `starter` or `solution`; it defaults to
+`starter` for guided work. CI sets it to `solution`.
 
 ## ⚠️ Troubleshooting
 
@@ -172,7 +208,8 @@ Do not delete committed lockfiles to make an error disappear.
 
 Use the workspace TypeScript version for Node/Bun files and the Deno language
 server for `lessons/13_deno_runtime`, `exercises/13_deno_runtime`, and
-`project/task-deno`. The authoritative commands are `npm run typecheck:node`,
+`project/task-deno` plus the idiomatic Deno adapter. The authoritative commands
+are `npm run typecheck:node`, `npm run typecheck:capstones:node`,
 `npm run typecheck:bun`, and `deno task typecheck`.
 
 ### ⚠️ Deno prints `@types/node` resolution warnings

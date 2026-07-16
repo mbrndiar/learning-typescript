@@ -48,6 +48,9 @@ behavior, and real independent-process conformance. The fixture runner rejects
 unknown fixture operations, captures raw process output, enforces compact
 single-line envelopes, uses repository-local scenario directories, checks
 SQLite integrity, and proves database/WAL sidecars are removable.
+The coverage command selects the solution and enforces at least 85% lines, 85%
+functions, and 80% branches across the loaded comparative implementation and
+fixture harness.
 
 `CAPSTONE_IMPLEMENTATION` defaults to `starter`, so the normal starter smoke test
 remains green while milestone suites are skipped. Set it to `solution` for the

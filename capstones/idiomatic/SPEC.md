@@ -7,9 +7,9 @@ equal in weight to the comparative SQLite key/value capstone. Observable event
 semantics, commands, files, HTTP behavior, errors, and acceptance criteria are
 normative. Internal class/module architecture is not.
 
-The current connected Task project under
-[`project/`](../../project/README.md) stays in place until both replacements
-pass the complete Node, Deno, Bun, and conformance matrix.
+The connected Task project under [`project/`](../../project/README.md) is a
+retained predecessor and migration reference, not part of this contract. Its
+continued presence does not change the relay's acceptance criteria.
 
 ## Bounded problem
 
@@ -174,12 +174,18 @@ npx tsx capstones/idiomatic/<impl>/node/main.ts \
   serve --log PATH [--host 127.0.0.1] [--port 8080] [--queue-capacity N]
 
 # Deno: permissions must name only required paths and loopback network access
-deno run --allow-read=PATH --allow-write=PATH \
-  capstones/idiomatic/<impl>/deno/main.ts ingest --log PATH --input -
+deno run --allow-read=LOG_DIRECTORY,INPUT_FILE --allow-write=LOG_DIRECTORY \
+  capstones/idiomatic/<impl>/deno/main.ts \
+  ingest --log LOG_DIRECTORY/events.jsonl --input INPUT_FILE
 
 # Bun
 bun run capstones/idiomatic/<impl>/bun/main.ts replay --log PATH
 ```
+
+When `--input -` is used, omit `INPUT_FILE`; the log directory remains required
+because the adapter may create the directory and log. `serve` additionally
+requires `--allow-net=HOST:PORT`, scoped to a loopback address. No relay command
+requires environment, subprocess, FFI, or system permission.
 
 All runtimes accept the same subcommands/options. `--after` defaults to `0`;
 `--limit` is `1..1_000`, default `100`; `--queue-capacity` is `1..1_024`,
@@ -398,7 +404,8 @@ DNS, or external services.
 
 ## Dependencies and runtime scope
 
-No new runtime or development dependency is proposed.
+The capstone requires no runtime or development dependency beyond the
+repository's existing pins.
 
 Exact existing pins retained:
 
@@ -408,13 +415,13 @@ Exact existing pins retained:
 - Deno `2.9.3`, Bun `1.3.14`, `@std/path` `1.1.6`;
 - Node runtime matrix `24.x` and `26.x`.
 
-The repository dependency `proper-lockfile` `4.1.2` and
-`@types/proper-lockfile` `4.1.4` may remain for the old project but are rejected
-for this capstone because multi-process writers are out of scope. Also rejected:
+The retained Task project uses `proper-lockfile` `4.1.2` and
+`@types/proper-lockfile` `4.1.4`; this capstone rejects both because
+multi-process writers are out of scope. Also rejected:
 web frameworks, schema validators, database clients, broker SDKs, stream helper
 libraries, retry packages, and test assertion libraries.
 
-Required behavior is supported on the current Linux CI. Portable core and
+Required behavior is supported by the Linux CI matrix. Portable core and
 runtime adapters must avoid POSIX-only assumptions so hosted Windows/macOS can
 be added without changing the contract. Deno commands use least permissions;
 Node/Bun do not inspect paths outside explicit CLI inputs.
@@ -428,15 +435,12 @@ deployment, or production observability stack is required.
 
 ## Quality and coverage commands
 
-Focused commands the harness must support:
+Track commands the harness must support:
 
 ```bash
-CAPSTONE_IMPLEMENTATION=solution npx tsx --test \
-  capstones/idiomatic/tests/node/m1-domain.test.ts
-CAPSTONE_IMPLEMENTATION=solution deno test \
-  capstones/idiomatic/tests/deno
-CAPSTONE_IMPLEMENTATION=solution bun test \
-  capstones/idiomatic/tests/bun
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:node
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:deno
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:bun
 ```
 
 Final validation extends, rather than replaces, the repository commands:
@@ -453,8 +457,8 @@ npm run check:bun
 npm run audit:node
 ```
 
-Project/capstone coverage remains at least the current 85% threshold used by
-the Node project runner.
+The retained project, comparative capstone, and idiomatic portable core enforce
+at least 85% lines, 85% functions, and 80% branches through `npm run coverage`.
 
 ## Migration and reuse guidance
 
@@ -468,5 +472,8 @@ Reuse/refactor:
 - `AbortSignal`, loopback, temporary-data, and graceful-shutdown test support.
 
 Do not copy Task lifecycle/domain/storage interfaces. Node locking is only a
-reference for documenting the deliberate one-writer limitation. The old
-project remains intact until a later migration verifies both capstones.
+reference for documenting the deliberate one-writer limitation. Task documents,
+comparative key/value databases, and relay event logs are intentionally
+incompatible. Follow the
+[old-to-new migration guide](../../docs/PROJECT_MIGRATION.md) for ownership,
+reuse, validation, dependency cleanup, and any future retirement of `project/`.

@@ -27,8 +27,8 @@ npx tsx capstones/idiomatic/solution/node/main.ts \
   --input capstones/idiomatic/tests/fixtures/events-valid.jsonl
 
 deno run \
-  --allow-read=.relay-data/events.jsonl,capstones/idiomatic/tests/fixtures/events-valid.jsonl \
-  --allow-write=.relay-data/events.jsonl \
+  --allow-read=.relay-data,capstones/idiomatic/tests/fixtures/events-valid.jsonl \
+  --allow-write=.relay-data \
   capstones/idiomatic/solution/deno/main.ts \
   ingest --log .relay-data/events.jsonl \
   --input capstones/idiomatic/tests/fixtures/events-valid.jsonl
@@ -39,6 +39,18 @@ bun run capstones/idiomatic/solution/bun/main.ts \
 
 `serve` defaults to `127.0.0.1:8080` and provides `GET /healthz`,
 `POST /v1/events`, and filtered `GET /v1/events`.
+
+The Deno file adapter must be able to create the log directory and file. Grant
+`.relay-data` for read/write rather than only the final file. Ingesting from
+stdin needs no extra read path; ingesting from a file needs that input path too.
+Serving additionally needs only the selected loopback listener:
+
+```bash
+deno run --allow-read=.relay-data --allow-write=.relay-data \
+  --allow-net=127.0.0.1:8080 \
+  capstones/idiomatic/solution/deno/main.ts \
+  serve --log .relay-data/events.jsonl
+```
 
 ## Five milestone groups
 
@@ -57,3 +69,6 @@ CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:bun
 npm run coverage:idiomatic
 npm run portability
 ```
+
+`coverage:idiomatic` measures the portable solution core and enforces at least
+85% lines, 85% functions, and 80% branches.
