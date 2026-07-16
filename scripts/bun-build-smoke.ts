@@ -8,6 +8,9 @@ export {};
 const executable =
   process.platform === "win32" ? "compiled/task-bun.exe" : "compiled/task-bun";
 const taskFile = "compiled/tasks.json";
+const relayExecutable =
+  process.platform === "win32" ? "compiled/relay-bun.exe" : "compiled/relay-bun";
+const relayLog = "compiled/events.jsonl";
 
 const build = await Bun.build({
   entrypoints: ["project/task-bun/main.ts"],
@@ -17,6 +20,15 @@ const build = await Bun.build({
 });
 if (!build.success || build.outputs.length !== 1) {
   throw new AggregateError(build.logs, "Bun.build smoke failed");
+}
+const relayBuild = await Bun.build({
+  entrypoints: ["capstones/idiomatic/solution/bun/main.ts"],
+  target: "bun",
+  format: "esm",
+  minify: true,
+});
+if (!relayBuild.success || relayBuild.outputs.length !== 1) {
+  throw new AggregateError(relayBuild.logs, "Bun relay build smoke failed");
 }
 
 await Bun.$`mkdir -p compiled`.quiet();
@@ -65,11 +77,61 @@ try {
     );
   }
 
+  const relayCompile = Bun.spawn({
+    cmd: [
+      process.execPath,
+      "build",
+      "--compile",
+      "capstones/idiomatic/solution/bun/main.ts",
+      "--outfile",
+      relayExecutable,
+    ],
+    stdout: "pipe",
+    stderr: "pipe",
+    timeout: 60_000,
+  });
+  const [relayCompileOutput, relayCompileError, relayCompileExit] = await Promise.all([
+    new Response(relayCompile.stdout).text(),
+    new Response(relayCompile.stderr).text(),
+    relayCompile.exited,
+  ]);
+  if (relayCompileExit !== 0) {
+    throw new Error(
+      relayCompileError.trim() ||
+        relayCompileOutput.trim() ||
+        `bun relay build --compile exited with ${relayCompileExit}`,
+    );
+  }
+  const relayRun = Bun.spawn({
+    cmd: [
+      relayExecutable,
+      "ingest",
+      "--log",
+      relayLog,
+      "--input",
+      "capstones/idiomatic/tests/fixtures/events-valid.jsonl",
+    ],
+    stdout: "pipe",
+    stderr: "pipe",
+    timeout: 5_000,
+  });
+  const [relayStdout, relayStderr, relayExit] = await Promise.all([
+    new Response(relayRun.stdout).text(),
+    new Response(relayRun.stderr).text(),
+    relayRun.exited,
+  ]);
+  if (relayExit !== 0 || relayStdout.trim().split("\n").length !== 2) {
+    throw new Error(
+      relayStderr.trim() ||
+        `compiled Bun relay produced unexpected output: ${relayStdout.trim()}`,
+    );
+  }
+
   console.log(
-    `Bun bundle and executable smoke passed (${build.outputs[0]!.size} bundled bytes)`,
+    `Bun bundle and executable smoke passed (${build.outputs[0]!.size} task bytes, ${relayBuild.outputs[0]!.size} relay bytes)`,
   );
 } finally {
-  for (const path of [executable, taskFile]) {
+  for (const path of [executable, taskFile, relayExecutable, relayLog]) {
     const file = Bun.file(path);
     if (await file.exists()) {
       await file.delete();

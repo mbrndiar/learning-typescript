@@ -8,8 +8,9 @@ The course now has two capstone tracks:
   Node.js, Deno, and Bun adapters.
 
 Both tracks contain matching `starter/` and `solution/` module boundaries. The
-current files are deliberately compileable scaffolds: they expose typed public
-seams and a stable test layout, but they do not implement any milestone.
+idiomatic solution is complete across Node.js, Deno, and Bun; its guided starter
+keeps the same seams with scoped milestone TODO failures. The comparative track
+retains its existing scaffold and implementation status.
 
 ## 🎯 Selecting a target
 
@@ -21,9 +22,9 @@ CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:node
 ```
 
 The value must be `starter` or `solution`; omitting it selects `starter`.
-Scaffold smoke tests explicitly import both targets and assert that unfinished
-operations report `CAPSTONE_INCOMPLETE` (or `not_implemented` for the pure relay
-parser) rather than accidentally behaving like a partial solution.
+Boundary smoke tests explicitly import both idiomatic targets, assert the
+starter's intentional `CAPSTONE_INCOMPLETE`/`not_implemented` behavior, and
+verify that the solution accepts a complete event.
 
 ## ✅ Current harness checks
 
@@ -32,8 +33,9 @@ npm run typecheck:capstones:node
 npm run test:capstones:node
 deno task capstone:test
 bun test capstones/idiomatic/tests/bun
+npm run coverage:idiomatic
+npm run portability
 ```
 
 The ordinary Node, Deno, and Bun repository checks also include the relevant
-capstone trees. Milestone tests will be added to the existing runtime-specific
-test directories without changing these commands.
+capstone trees. Five shared milestone contracts are wrapped by every runtime.

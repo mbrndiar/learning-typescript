@@ -86,6 +86,7 @@ build/Release/
 *.db-wal
 tasks.json
 *.tmp
+**/.test-data/
 
 # Generated configuration timestamps
 vite.config.js.timestamp-*

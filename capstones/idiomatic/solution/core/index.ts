@@ -1,35 +1,41 @@
-import {
-  CapstoneIncompleteError,
-  type CapstoneImplementation,
-} from "../../../shared/harness.ts";
-import type { ParseResult, RelayRuntimeAdapter, RuntimeName } from "./contracts.ts";
+import type { CapstoneImplementation } from "../../../shared/harness.ts";
+import type {
+  RelayRuntimeAdapter,
+  RuntimeCapabilities,
+  RuntimeName,
+} from "./contracts.ts";
+import { relayFailure } from "./errors.ts";
+import { runRelayCli } from "./cli.ts";
 
+export * from "./cli.ts";
 export * from "./contracts.ts";
+export * from "./domain.ts";
+export * from "./errors.ts";
+export * from "./http.ts";
+export * from "./log.ts";
+export * from "./ndjson.ts";
+export * from "./queue.ts";
+export * from "./relay.ts";
 
 export const CAPSTONE_IMPLEMENTATION: CapstoneImplementation = "solution";
 
-export function parseEvent(_value: unknown): ParseResult {
-  return {
-    ok: false,
-    error: {
-      code: "not_implemented",
-      message: "event parsing is intentionally incomplete in the capstone scaffold",
-      details: { implementation: CAPSTONE_IMPLEMENTATION },
-    },
-  };
-}
-export function createRuntimeAdapter(runtime: RuntimeName): RelayRuntimeAdapter {
+export function createRuntimeAdapter(
+  runtime: RuntimeName,
+  capabilities?: RuntimeCapabilities,
+): RelayRuntimeAdapter {
   return {
     runtime,
     implementation: CAPSTONE_IMPLEMENTATION,
-    run(_arguments) {
-      return Promise.reject(
-        new CapstoneIncompleteError(
-          "idiomatic",
-          CAPSTONE_IMPLEMENTATION,
-          `${runtime} relay adapter`,
-        ),
-      );
+    run(arguments_) {
+      if (capabilities === undefined) {
+        return Promise.reject(
+          relayFailure(
+            "not_implemented",
+            `${runtime} runtime capabilities were not provided`,
+          ),
+        );
+      }
+      return runRelayCli(arguments_, capabilities);
     },
   };
 }

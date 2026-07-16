@@ -1,0 +1,2 @@
+{"record":"header","schemaVersion":1}
+{"record":"event","sequence":2,"event":{"kind":"metric","id":"evt-001","source":"checkout","observedAt":"2026-07-16T08:00:00Z","name":"request.duration_ms","value":125}}

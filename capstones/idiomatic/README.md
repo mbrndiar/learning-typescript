@@ -1,65 +1,59 @@
 # 📡 Idiomatic capstone: cross-runtime event relay
 
-Read the normative learner contract in [`SPEC.md`](SPEC.md). The capstone keeps
-event semantics and orchestration in a runtime-neutral core, then makes process,
-file, and server authority explicit in Node.js, Deno, and Bun adapters.
+[`SPEC.md`](SPEC.md) is the normative contract. The completed solution keeps
+validation, replay, bounded delivery, CLI behavior, and HTTP semantics in a
+runtime-neutral core. Thin Node.js, Deno, and Bun adapters own process signals,
+files, stdin, and loopback server APIs.
 
-## 🧱 Scaffold layout
+## Features
 
-```text
-idiomatic/
-├── starter/
-│   ├── core/
-│   ├── node/
-│   ├── deno/
-│   └── bun/
-├── solution/
-│   ├── core/
-│   ├── node/
-│   ├── deno/
-│   └── bun/
-└── tests/
-    ├── contracts/
-    ├── node/
-    ├── deno/
-    └── bun/
+- strict `unknown` narrowing for metric and alert events;
+- RFC 3339-to-UTC normalization without Unicode normalization;
+- bounded FIFO delivery with producer backpressure and subscriber acknowledgement;
+- version-1, single-writer JSON Lines logs with fail-closed replay;
+- NDJSON ingest that continues after invalid records;
+- filtered replay and a 64 KiB-bounded loopback HTTP API;
+- graceful cancellation and deterministic resource cleanup.
+
+The guided `starter/` exports the same public boundary and uses explicit
+`TODO(m1-domain)` through `TODO(m4-http)` failures. The complete implementation
+lives in `solution/`. Neither core imports runtime-specific modules or globals.
+
+## Run the relay
+
+```bash
+npx tsx capstones/idiomatic/solution/node/main.ts \
+  ingest --log .relay-data/events.jsonl \
+  --input capstones/idiomatic/tests/fixtures/events-valid.jsonl
+
+deno run \
+  --allow-read=.relay-data/events.jsonl,capstones/idiomatic/tests/fixtures/events-valid.jsonl \
+  --allow-write=.relay-data/events.jsonl \
+  capstones/idiomatic/solution/deno/main.ts \
+  ingest --log .relay-data/events.jsonl \
+  --input capstones/idiomatic/tests/fixtures/events-valid.jsonl
+
+bun run capstones/idiomatic/solution/bun/main.ts \
+  replay --log .relay-data/events.jsonl
 ```
 
-The two cores export identical event unions, result/error types, `EventLog`,
-`Subscriber`, `ReplayQuery`, and `parseEvent` boundaries. Each matching runtime
-adapter exports `RUNTIME`, `createAdapter`, and `main`. The scaffold parser
-returns a typed `not_implemented` result and adapter operations reject with
-`CapstoneIncompleteError`; no relay, queue, log, CLI, or HTTP behavior exists
-yet.
+`serve` defaults to `127.0.0.1:8080` and provides `GET /healthz`,
+`POST /v1/events`, and filtered `GET /v1/events`.
 
-## 🎯 Shared contracts and target selection
+## Five milestone groups
 
-Framework-neutral contracts live in `tests/contracts/`. Native wrappers load the
-selected target through a small runtime-local loader and then run the same
-contract:
+Framework-free contracts in `tests/contracts/` are wrapped by each runtime:
+
+1. `m1-domain` — validation, normalization, capacity, sequence, and replay;
+2. `m2-async` — NDJSON, bounded queue, ordering, failure, and cancellation;
+3. `m3-adapter` — create/reopen/replay and corrupt-log rejection;
+4. `m4-http` — loopback requests, limits, status mapping, and cleanup;
+5. `m5-conformance` — shared fixtures and equivalent observable semantics.
 
 ```bash
 CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:node
-CAPSTONE_IMPLEMENTATION=solution deno task capstone:test
-CAPSTONE_IMPLEMENTATION=solution bun test capstones/idiomatic/tests/bun
-```
-
-Omitting the variable selects `starter`. The current `m0-scaffold` tests import
-both targets explicitly, verify public-boundary symmetry, and assert intentional
-incompleteness. This keeps all repository checks green without pretending that
-a milestone is implemented.
-
-Future contracts stay in `tests/contracts/`; wrappers use stable names and
-locations such as `tests/node/m1-domain.test.ts`,
-`tests/deno/m1-domain.test.ts`, and `tests/bun/m1-domain.test.ts`, continuing
-through `m5-conformance`. Existing package/runtime commands discover the added
-tests without being renamed.
-
-## ✅ Focused checks
-
-```bash
-npm run typecheck:capstones:node
-npm run test:capstone:idiomatic:node
-deno task capstone:test
-npm run test:capstone:idiomatic:bun
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:deno
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:bun
+npm run coverage:idiomatic
+npm run portability
 ```

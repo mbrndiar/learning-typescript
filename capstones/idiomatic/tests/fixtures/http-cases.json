@@ -1,0 +1,7 @@
+[
+  { "method": "GET", "path": "/healthz", "status": 200 },
+  { "method": "POST", "path": "/v1/events", "status": 201 },
+  { "method": "GET", "path": "/v1/events?after=0&limit=100", "status": 200 },
+  { "method": "DELETE", "path": "/v1/events", "status": 405 },
+  { "method": "GET", "path": "/missing", "status": 404 }
+]

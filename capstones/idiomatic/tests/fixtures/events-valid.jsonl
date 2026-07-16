@@ -1,0 +1,2 @@
+{"kind":"metric","id":"evt-001","source":" checkout ","observedAt":"2026-07-16T08:00:00Z","name":"request.duration_ms","value":125,"tags":{"route":"/cart","region":"eu"}}
+{"kind":"alert","id":"evt-002","source":"checkout","observedAt":"2026-07-16T10:01:00+02:00","code":"UPSTREAM_TIMEOUT","severity":"warning","message":" catalog request timed out "}

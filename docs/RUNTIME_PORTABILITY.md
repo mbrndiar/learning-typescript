@@ -232,3 +232,16 @@ bun run scripts/runtime-conformance.ts
 
 CI runs each runtime's configured lessons, exercises, Task adapters, formatting,
 linting, type checking, tests, and relevant build or compile smoke checks.
+
+## 📡 Cross-runtime event relay
+
+The idiomatic capstone in
+[`capstones/idiomatic/`](../capstones/idiomatic/README.md) is the repository's
+complete capability-based portability example. Its core uses only standard
+TypeScript, promises, async iterables, `AbortSignal`, `TextEncoder`, and
+`TextDecoder`. Node.js, Deno, and Bun adapters inject file, process, stdin, and
+loopback HTTP authority.
+
+`npm run portability` first runs the same in-memory semantic smoke under the
+current runtime, then invokes all three solution CLIs as subprocesses against one
+fixture and compares their ingest and replay streams byte-for-byte.

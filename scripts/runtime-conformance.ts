@@ -1,11 +1,12 @@
 // runtime-conformance is a single portable smoke test run identically under
 // Node, Deno, and Bun. It deliberately avoids any runtime-specific test
 // framework (node:test, Deno.test, bun:test) and uses only shared APIs plus a
-// hand-rolled assert, so the exact same file proves the domain, capability
-// filtering, and Web Crypto behave the same on every runtime.
-import { TaskManager } from "../project/task-core/manager.ts";
-import { TaskNotFoundError, type TaskStorage } from "../project/task-core/storage.ts";
-import { normalizeTitle, type Task } from "../project/task-core/task.ts";
+// hand-rolled assert, so the exact same file proves the relay domain, portable
+// async storage, capability filtering, and Web Crypto behave the same everywhere.
+import {
+  InMemoryEventLog,
+  parseEvent,
+} from "../capstones/idiomatic/solution/core/index.ts";
 import {
   findCompatibleRuntimes,
   type RuntimeProfile,
@@ -17,50 +18,31 @@ function assert(condition: boolean, message: string): asserts condition {
   }
 }
 
-// Inlined memory backend so the smoke test depends on nothing but task-core.
-class ConformanceStorage implements TaskStorage {
-  readonly #tasks = new Map<number, Task>();
-  #nextId = 1;
-
-  async list(): Promise<readonly Task[]> {
-    return [...this.#tasks.values()].map((task) => ({ ...task }));
-  }
-
-  async add(title: string): Promise<Task> {
-    const task = {
-      id: this.#nextId,
-      title: normalizeTitle(title),
-      completed: false,
-    };
-    this.#nextId += 1;
-    this.#tasks.set(task.id, task);
-    return { ...task };
-  }
-
-  async complete(id: number): Promise<Task> {
-    const task = this.#tasks.get(id);
-    if (task === undefined) {
-      throw new TaskNotFoundError(id);
-    }
-    const completed = { ...task, completed: true };
-    this.#tasks.set(id, completed);
-    return { ...completed };
-  }
-
-  async remove(id: number): Promise<void> {
-    if (!this.#tasks.delete(id)) {
-      throw new TaskNotFoundError(id);
-    }
-  }
+const parsed = parseEvent({
+  kind: "metric",
+  id: "conformance-1",
+  source: " portability ",
+  observedAt: "2026-07-16T10:00:00+02:00",
+  name: "runtime.check",
+  value: -0,
+  tags: { runtime: "portable" },
+});
+assert(parsed.ok, "portable relay event must parse");
+assert(parsed.event.kind === "metric", "metric variant must remain discriminated");
+assert(
+  parsed.event.observedAt === "2026-07-16T08:00:00.000Z",
+  "timestamp normalization must be identical",
+);
+assert(!Object.is(parsed.event.value, -0), "negative zero must normalize");
+const log = new InMemoryEventLog();
+const stored = await log.append(parsed.event);
+assert(stored.sequence === 1, "portable event log must assign sequence one");
+const replayed = [];
+for await (const event of log.replay({ kind: "metric", limit: 1 })) {
+  replayed.push(event);
 }
-
-const manager = new TaskManager(new ConformanceStorage());
-const created = await manager.add("Cross-runtime conformance");
-const completed = await manager.complete(created.id);
-assert(completed.completed, "Task completion must persist");
-assert((await manager.list()).length === 1, "Task list must contain one task");
-await manager.remove(created.id);
-assert((await manager.list()).length === 0, "Task removal must persist");
+assert(replayed.length === 1, "portable replay must preserve the event");
+await log.close();
 
 const profiles: readonly RuntimeProfile[] = [
   {

@@ -1,8 +1,9 @@
 import {
-  CapstoneIncompleteError,
   type CapstoneImplementation,
+  CapstoneIncompleteError,
 } from "../../../shared/harness.ts";
 import type {
+  IncomingEvent,
   ParseResult,
   RelayRuntimeAdapter,
   RuntimeName,
@@ -82,13 +83,6 @@ export async function runIdiomaticScaffoldContract(
     "core must identify its implementation",
   );
 
-  const parsed = core.parseEvent({ kind: "metric" });
-  assert(!parsed.ok, "scaffold parser must not accept an event");
-  assert(
-    parsed.error.code === "not_implemented",
-    "scaffold parser must expose intentional incompleteness",
-  );
-
   const adapter = adapterModule.createAdapter();
   assert(adapterModule.RUNTIME === runtime, "entry module must identify its runtime");
   assert(adapter.runtime === runtime, "adapter must identify its runtime");
@@ -96,6 +90,27 @@ export async function runIdiomaticScaffoldContract(
     adapter.implementation === implementation,
     "adapter must identify its implementation",
   );
-  await assertIncomplete(() => adapter.run([]), implementation);
-  await assertIncomplete(() => adapterModule.main([]), implementation);
+  if (implementation === "starter") {
+    const parsed = core.parseEvent({ kind: "metric" });
+    assert(!parsed.ok, "starter parser must remain intentionally incomplete");
+    assert(
+      parsed.error.code === "not_implemented",
+      "starter parser must expose intentional incompleteness",
+    );
+    await assertIncomplete(() => adapter.run([]), implementation);
+    await assertIncomplete(() => adapterModule.main([]), implementation);
+    return;
+  }
+
+  const valid: IncomingEvent = {
+    kind: "alert",
+    id: "scaffold-1",
+    source: "contract",
+    observedAt: "2026-07-16T08:01:00.000Z",
+    code: "READY",
+    severity: "info",
+    message: "solution is implemented",
+  };
+  const parsed = core.parseEvent(valid);
+  assert(parsed.ok, "solution parser must accept a complete event");
 }

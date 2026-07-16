@@ -1,5 +1,8 @@
 name: Check course
 
+env:
+  CAPSTONE_IMPLEMENTATION: solution
+
 on:
   push:
     branches: [main]

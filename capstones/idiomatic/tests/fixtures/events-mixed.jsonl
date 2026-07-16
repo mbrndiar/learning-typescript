@@ -1,0 +1,4 @@
+{"kind":"metric","id":"evt-001","source":"checkout","observedAt":"2026-07-16T08:00:00Z","name":"request.duration_ms","value":125}
+{"kind":"alert"
+{"kind":"alert","id":"evt-002","source":"checkout","observedAt":"2026-07-16T08:01:00Z","code":"TIMEOUT","severity":"critical","message":"bad severity"}
+{"kind":"alert","id":"evt-003","source":"checkout","observedAt":"2026-07-16T08:02:00Z","code":"RECOVERED","severity":"info","message":"healthy"}
