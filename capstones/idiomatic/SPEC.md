@@ -7,9 +7,9 @@ equal in weight to the comparative SQLite key/value capstone. Observable event
 semantics, commands, files, HTTP behavior, errors, and acceptance criteria are
 normative. Internal class/module architecture is not.
 
-The connected Task project under [`project/`](../../project/README.md) is a
-retained predecessor and migration reference, not part of this contract. Its
-continued presence does not change the relay's acceptance criteria.
+The removed connected Task project is a historical predecessor, not part of
+this contract. Its [final pre-removal source][legacy-project] does not change the
+relay's acceptance criteria.
 
 ## Bounded problem
 
@@ -415,9 +415,8 @@ Exact existing pins retained:
 - Deno `2.9.3`, Bun `1.3.14`, `@std/path` `1.1.6`;
 - Node runtime matrix `24.x` and `26.x`.
 
-The retained Task project uses `proper-lockfile` `4.1.2` and
-`@types/proper-lockfile` `4.1.4`; this capstone rejects both because
-multi-process writers are out of scope. Also rejected:
+The repository has no runtime dependencies. Multi-process locking packages are
+out of scope because the relay specifies one writer. Also rejected:
 web frameworks, schema validators, database clients, broker SDKs, stream helper
 libraries, retry packages, and test assertion libraries.
 
@@ -457,15 +456,15 @@ npm run check:bun
 npm run audit:node
 ```
 
-The retained project, comparative capstone, and idiomatic portable core enforce
-at least 85% lines, 85% functions, and 80% branches through `npm run coverage`.
+The comparative capstone and idiomatic portable core enforce at least 85% lines,
+85% functions, and 80% branches through `npm run coverage`.
 
 ## Migration and reuse guidance
 
 Reuse/refactor:
 
-- the runtime-neutral core and CLI-command separation from
-  [`project/task-core/`](../../project/task-core/README.md);
+- runtime-neutral core and CLI-command separation patterns from the
+  [historical Task core][legacy-task-core];
 - strict `unknown` parsing, shared contract factories, and semantic conformance;
 - Node/Deno/Bun process, file, test, server lifecycle, permission, build, and
   compile patterns from the current runtime adapters;
@@ -476,4 +475,7 @@ reference for documenting the deliberate one-writer limitation. Task documents,
 comparative key/value databases, and relay event logs are intentionally
 incompatible. Follow the
 [old-to-new migration guide](../../docs/PROJECT_MIGRATION.md) for ownership,
-reuse, validation, dependency cleanup, and any future retirement of `project/`.
+reuse, validation, and the completed dependency cleanup.
+
+[legacy-project]: https://github.com/mbrndiar/learning-typescript/tree/74dfe53d5240c53a0596a35299ae8cfd9a55d51e/project
+[legacy-task-core]: https://github.com/mbrndiar/learning-typescript/tree/74dfe53d5240c53a0596a35299ae8cfd9a55d51e/project/task-core

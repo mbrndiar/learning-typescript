@@ -10,9 +10,6 @@
     "lessons/15_runtime_portability/**/*.ts",
     "exercises/14_bun_runtime/**/*.ts",
     "exercises/15_runtime_portability/**/*.ts",
-    "project/task-core/**/*.ts",
-    "project/task-client/**/*.ts",
-    "project/task-bun/**/*.ts",
     "capstones/shared/**/*.ts",
     "capstones/idiomatic/starter/core/**/*.ts",
     "capstones/idiomatic/starter/bun/**/*.ts",
@@ -24,5 +21,5 @@
     "scripts/bun-build-smoke.ts",
     "scripts/runtime-conformance.ts"
   ],
-  "exclude": ["**/*.deno.test.ts", "project/task-core/**/*.test.ts"]
+  "exclude": ["**/*.deno.test.ts"]
 }

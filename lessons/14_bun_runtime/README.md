@@ -20,13 +20,11 @@ bun test lessons/14_bun_runtime/03_testing_and_sqlite.test.ts
 bun run lessons/14_bun_runtime/04_servers_builds_and_executables.ts
 ```
 
-Run the matching exercise and the Bun project:
+Run the matching exercise and Bun capstone tests:
 
 ```bash
 bun test exercises/14_bun_runtime/solution.test.ts
-bun test project/task-bun
-bun run project/task-bun/main.ts --file project/task-bun/tasks.json add "Learn Bun"
-bun run project/task-bun/main.ts --file project/task-bun/tasks.json list
+bun test capstones/idiomatic/tests/bun
 ```
 
 Run the course collector and type checker:
@@ -85,7 +83,7 @@ genuinely transient boundary, but must not hide deterministic defects.
 
 ```bash
 bun test lessons/14_bun_runtime/03_testing_and_sqlite.test.ts
-bun test --coverage project/task-bun
+bun test --coverage capstones/idiomatic/tests/bun
 ```
 
 Coverage reports executed lines and functions; it does not prove useful
@@ -122,14 +120,14 @@ artifact is platform-specific unless a compile target is selected explicitly.
 3. Which APIs in the boundary map are portable Web APIs?
 4. How do `timeout` and `signal` differ in `Bun.spawn`?
 5. When should a `bun:test` case be serial rather than concurrent?
-6. Why must a SQLite adapter remain behind `TaskStorage`?
+6. Why should a SQLite adapter remain behind a storage capability?
 7. What cleanup is required after `Bun.serve` and spawned processes?
 8. What does `--compile` produce that an in-memory `Bun.build` does not?
 
 ## 🔗 Continue building
 
 - Complete the [matching Bun exercise](../../exercises/14_bun_runtime/).
-- Study the [Bun task adapter](../../project/task-bun/).
-- Revisit the [runtime-neutral task core](../../project/task-core/).
-- Compare the [Web fetch client](../../project/task-client/).
+- Study the [idiomatic Bun adapter](../../capstones/idiomatic/solution/bun/).
+- Revisit the [runtime-neutral relay core](../../capstones/idiomatic/solution/core/).
+- Run the [Bun contract tests](../../capstones/idiomatic/tests/bun/).
 - Review the [runtime portability lesson](../15_runtime_portability/).

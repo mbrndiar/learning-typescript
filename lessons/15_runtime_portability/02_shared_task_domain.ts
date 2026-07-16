@@ -1,9 +1,51 @@
-import { TaskManager } from "../../project/task-core/manager.ts";
-import {
-  TaskNotFoundError,
-  type TaskStorage,
-} from "../../project/task-core/storage.ts";
-import { normalizeTitle, type Task } from "../../project/task-core/task.ts";
+export {};
+
+interface Task {
+  readonly id: number;
+  readonly title: string;
+  readonly completed: boolean;
+}
+
+interface TaskStorage {
+  list(): Promise<readonly Task[]>;
+  add(title: string): Promise<Task>;
+  complete(id: number): Promise<Task>;
+  remove(id: number): Promise<void>;
+}
+
+class TaskNotFoundError extends Error {
+  constructor(readonly taskId: number) {
+    super(`task ${taskId} was not found`);
+    this.name = "TaskNotFoundError";
+  }
+}
+
+function normalizeTitle(title: string): string {
+  const normalized = title.trim();
+  if (normalized === "") {
+    throw new TypeError("title must not be blank");
+  }
+  return normalized;
+}
+
+class TaskManager {
+  constructor(private readonly storage: TaskStorage) {}
+
+  list(): Promise<readonly Task[]> {
+    return this.storage.list();
+  }
+
+  add(title: string): Promise<Task> {
+    return this.storage.add(normalizeTitle(title));
+  }
+
+  complete(id: number): Promise<Task> {
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      throw new RangeError("task id must be a positive integer");
+    }
+    return this.storage.complete(id);
+  }
+}
 
 // The Task domain is portable because it depends on the TaskStorage contract,
 // not on files, SQLite, permissions, or a specific server API.
@@ -49,7 +91,7 @@ class PortableMemoryStorage implements TaskStorage {
   }
 }
 
-// TaskManager can run unchanged because runtime-specific authority has already
+// The manager can run unchanged because runtime-specific authority has already
 // been pushed down into the storage adapter.
 const manager = new TaskManager(new PortableMemoryStorage());
 const created = await manager.add("Run one domain everywhere");

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { Readable, Writable } from "node:stream";
 import test from "node:test";
 
-import type { Task } from "../../project/task-core/task.ts";
+import type { Task } from "./task.ts";
 import { exportTasks, importTasks } from "./solution.ts";
 
 // A tiny highWaterMark and delayed callback exercise backpressure without

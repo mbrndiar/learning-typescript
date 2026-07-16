@@ -19,7 +19,7 @@ By the end of the course, you will be able to:
 - reason about promises, the event loop, cancellation, streams, and workers;
 - build HTTP/JSON clients and servers with graceful shutdown;
 - use native permissions, file, process, HTTP, database, build, and compile APIs;
-- migrate one shared Task domain through Node.js, Deno, and Bun adapters; and
+- design one shared domain behind Node.js, Deno, and Bun adapters; and
 - prove portability through executable conformance checks.
 
 ## ✅ Initial requirements
@@ -116,29 +116,14 @@ The course has two completed reference capstones with matching guided starters:
 See the [capstone index](capstones/README.md) for target selection, milestone
 commands, coverage, and conformance checks.
 
-## 🧭 Retained migration reference
+## 🧭 Historical migration reference
 
-The [`project/` Task Manager](project/README.md) is the earlier connected
-application used by modules 12-15:
-
-```text
-Shared Task core
-├── Node.js -> CLI -> JSON/REST -> node:http -> node:sqlite
-├── Deno    -> CLI -> JSON/REST -> Deno.serve
-└── Bun     -> CLI -> JSON/REST -> Bun.serve -> bun:sqlite
-```
-
-The domain, JSON document format, CLI execution, and storage contract remain
-independent from runtime-specific adapters. The portable REST storage adapter is
-[`project/task-client/rest-storage.ts`](project/task-client/rest-storage.ts).
-Node file storage adds cross-process locking; Deno and Bun file storage provide
-atomic replacement plus in-process serialization only.
-
-It remains intentionally available as a comparison and migration source; it is
-not a third capstone and its Task data is not compatible with either capstone's
-storage format. Follow the durable
-[old-to-new migration guide](docs/PROJECT_MIGRATION.md) before reusing or
-retiring any part of `project/`.
+The earlier connected Task application has been removed from the current tree
+after its learning goals moved into the two formal capstones. Its immutable
+pre-removal source and data-compatibility guidance remain available through the
+[old-to-new migration guide](docs/PROJECT_MIGRATION.md). It is historical
+reference material, not a third capstone, and its Task data is not compatible
+with either capstone's storage format.
 
 ## 🗺️ Course outline
 

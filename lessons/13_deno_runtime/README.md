@@ -112,6 +112,6 @@ rather than the Deno-native recommendation.
 ## 🧭 Project links
 
 - Build the [matching permission-planning exercise](../../exercises/13_deno_runtime/).
-- Study the [Deno task adapter](../../project/task-deno/).
-- Compare the runtime-neutral [task core](../../project/task-core/).
-- Reuse the portable [Web fetch client](../../project/task-client/).
+- Study the [idiomatic Deno adapter](../../capstones/idiomatic/solution/deno/).
+- Compare the runtime-neutral [relay core](../../capstones/idiomatic/solution/core/).
+- Run the [Deno contract tests](../../capstones/idiomatic/tests/deno/).

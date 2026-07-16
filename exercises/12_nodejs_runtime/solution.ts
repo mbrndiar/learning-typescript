@@ -4,7 +4,7 @@ import { StringDecoder } from "node:string_decoder";
 import { Readable, type Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
-import { parseTask, type Task } from "../../project/task-core/task.ts";
+import { parseTask, type Task } from "./task.ts";
 
 export interface ImportOptions {
   readonly maxLineBytes?: number;
@@ -13,7 +13,7 @@ export interface ImportOptions {
 const DEFAULT_MAX_LINE_BYTES = 64 * 1024;
 
 // Serialization validates as it streams, so the destination never receives a
-// record that the shared task core would reject.
+// record that the exercise's domain validator would reject.
 async function* serializeTasks(
   tasks: Iterable<Task> | AsyncIterable<Task>,
 ): AsyncGenerator<Buffer> {

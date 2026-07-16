@@ -4,7 +4,7 @@
 
 - separate ECMAScript, TypeScript, Web APIs, and runtime-specific APIs;
 - compare capabilities without reducing runtime choice to speed claims;
-- keep the Task domain portable through explicit adapters;
+- keep domain logic portable through explicit adapters;
 - migrate files, commands, tests, servers, and databases deliberately; and
 - prove each portability claim with executable conformance checks.
 
@@ -57,30 +57,26 @@ Compatibility is not the same as native behavior. A Deno program importing
 
 ## 🧩 One domain, three adapters
 
-The shared code in [`project/task-core/`](../../project/task-core/) owns Task
-validation, storage semantics, manager coordination, document parsing, and CLI
-execution. The portable REST adapter lives in
-[`project/task-client/rest-storage.ts`](../../project/task-client/rest-storage.ts).
-Runtime projects own authority:
+The self-contained shared-domain lesson demonstrates how validation and
+coordination depend on a storage capability rather than runtime I/O. The
+[idiomatic event relay](../../capstones/idiomatic/README.md) develops that pattern
+into the complete cross-runtime application, where runtime adapters own
+authority:
 
 ```text
-Task core
-├── Node adapters: files, CLI, node:http, node:sqlite
-├── Deno adapters: permissions, files, CLI, Deno.serve
-└── Bun adapters: files, CLI, Bun.serve, bun:sqlite
+Relay core
+├── Node adapter: files, processes, CLI, node:http
+├── Deno adapter: permissions, files, CLI, Deno.serve
+└── Bun adapter: files, processes, CLI, Bun.serve
 ```
 
-The portable storage contract covers observable Task behavior. It does not
-pretend that every file-locking, permission, or database guarantee is
-identical.
-
-The Task application is retained predecessor material. The formal
-[comparative capstone](../../capstones/comparative/README.md) is intentionally
-Node-only, while the
-[idiomatic event relay](../../capstones/idiomatic/README.md) is the complete
-cross-runtime capstone. Use the
-[old-to-new migration guide](../../docs/PROJECT_MIGRATION.md) to reuse adapter
-patterns without mixing their incompatible domains or storage formats.
+The portable contract covers observable relay behavior. It does not pretend that
+every file, permission, process, or server guarantee is identical. The formal
+[comparative capstone](../../capstones/comparative/README.md) remains
+intentionally Node-only. The
+[old-to-new migration guide](../../docs/PROJECT_MIGRATION.md) points to the
+removed predecessor's final commit for historical audits without mixing its
+incompatible Task data into either capstone.
 
 ## 🔁 Migration workflow
 

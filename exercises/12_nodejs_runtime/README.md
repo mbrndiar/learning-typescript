@@ -3,8 +3,7 @@
 ## 🎯 Goal
 
 Implement `exportTasks` and `importTasks` in `exercise.ts`. The functions form a
-Node-specific streaming boundary for the runtime-neutral `Task` model in
-`project/task-core`.
+Node-specific streaming boundary for the local runtime-neutral `Task` model.
 
 ## 📜 Contract
 
@@ -19,8 +18,8 @@ Node-specific streaming boundary for the runtime-neutral `Task` model in
 - reject a pending line larger than `maxLineBytes`; and
 - avoid reading or concatenating the complete input before parsing records.
 
-No external dependency is needed. Reuse `parseTask` from
-`project/task-core/task.ts` instead of duplicating domain validation.
+No external dependency is needed. Reuse `parseTask` from `task.ts` instead of
+duplicating domain validation.
 
 ## ▶️ Run the tests
 

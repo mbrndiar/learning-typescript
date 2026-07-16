@@ -8,7 +8,6 @@
   "include": [
     "lessons/**/*.ts",
     "exercises/**/*.ts",
-    "project/**/*.ts",
     "capstones/**/*.ts",
     "scripts/**/*.ts"
   ],
@@ -17,8 +16,6 @@
     "lessons/14_bun_runtime/**",
     "exercises/13_deno_runtime/**",
     "exercises/14_bun_runtime/**",
-    "project/task-deno/**",
-    "project/task-bun/**",
     "capstones/idiomatic/starter/deno/**",
     "capstones/idiomatic/starter/bun/**",
     "capstones/idiomatic/solution/deno/**",

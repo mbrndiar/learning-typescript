@@ -41,10 +41,10 @@ jobs:
       - name: Run lessons and reference solutions
         run: npm run course:node
 
-      - name: Run exercise, project, and capstone tests
+      - name: Run exercise and capstone tests
         run: npm run test:node
 
-      - name: Measure project and capstone coverage
+      - name: Measure capstone coverage
         if: matrix.node-version == '26.x'
         run: npm run coverage
 

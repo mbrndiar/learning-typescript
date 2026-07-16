@@ -4,7 +4,7 @@
 import type { Writable } from "node:stream";
 import type { Readable } from "node:stream";
 
-import type { Task } from "../../project/task-core/task.ts";
+import type { Task } from "./task.ts";
 
 export interface ImportOptions {
   readonly maxLineBytes?: number;

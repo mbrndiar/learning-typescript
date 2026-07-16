@@ -70,8 +70,9 @@ execution. `deno.lock` pins resolved JSR and npm dependencies.
 Deno denies sensitive access by default. Prefer narrow grants:
 
 ```bash
-deno run --allow-read=.task-data --allow-write=.task-data \
-  project/task-deno/main.ts --file .task-data/tasks.json list
+deno run --allow-read=.relay-data --allow-write=.relay-data \
+  capstones/idiomatic/solution/deno/main.ts replay \
+  --log .relay-data/events.jsonl
 ```
 
 Avoid `-A` while learning. It grants all permissions and hides the capability
@@ -119,9 +120,8 @@ commands, files, and HTTP.
 
 - `tsconfig.base.json` owns the strict options shared by the TypeScript compiler
   configurations.
-- `tsconfig.node.json` checks Node-compatible lessons, exercises, the retained
-  Task project, both Node capstones, and Node tooling while excluding native
-  Deno and Bun trees.
+- `tsconfig.node.json` checks Node-compatible lessons, exercises, both Node
+  capstones, and Node tooling while excluding native Deno and Bun trees.
 - `tsconfig.capstones.node.json` is the focused Node capstone check.
 - `tsconfig.bun.json` uses Bun types and bundler-style resolution for Bun and
   cross-runtime source.
@@ -129,8 +129,8 @@ commands, files, and HTTP.
 - `deno.json` independently owns Deno compiler options, source scopes,
   permissions, tasks, formatting, and linting.
 
-`npm run coverage` runs three Node coverage commands. The retained project and
-both capstones enforce at least 85% lines, 85% functions, and 80% branches.
+`npm run coverage` runs two Node coverage commands. Both capstones enforce at
+least 85% lines, 85% functions, and 80% branches.
 `coverage:idiomatic` scopes measurement to the portable solution core;
 `coverage:comparative` also exercises its subprocess fixture support. Deno and
 Bun expose native coverage commands for runtime-focused investigation, but the
@@ -146,7 +146,6 @@ npm run typecheck:node
 npm run typecheck:capstones:node
 npm run course:node
 npm run test:node
-npm run test:project
 CAPSTONE_IMPLEMENTATION=solution npm run test:capstones:node
 npm run coverage
 npm run links
@@ -208,8 +207,8 @@ Do not delete committed lockfiles to make an error disappear.
 
 Use the workspace TypeScript version for Node/Bun files and the Deno language
 server for `lessons/13_deno_runtime`, `exercises/13_deno_runtime`, and
-`project/task-deno` plus the idiomatic Deno adapter. The authoritative commands
-are `npm run typecheck:node`, `npm run typecheck:capstones:node`,
+the idiomatic Deno adapter. The authoritative commands are
+`npm run typecheck:node`, `npm run typecheck:capstones:node`,
 `npm run typecheck:bun`, and `deno task typecheck`.
 
 ### ⚠️ Deno prints `@types/node` resolution warnings
@@ -225,7 +224,7 @@ non-zero exit instead of ignoring it.
 Use explicit relative file extensions:
 
 ```typescript
-import { parseTask } from "./task.ts";
+import { parseEvent } from "./event.ts";
 ```
 
 Node uses `NodeNext`, Bun uses `Bundler` resolution for its native source tree,

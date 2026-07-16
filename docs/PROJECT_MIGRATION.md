@@ -1,13 +1,15 @@
-# 🔁 Migrating from the Retained Task Project
+# 🔁 Migrating from the Removed Task Project
 
-The connected [`project/`](../project/README.md) application predates the two
-formal capstones. It remains executable teaching material and a source of
-adapter patterns. This guide defines how to reuse or retire it without treating
-the three unrelated storage contracts as interchangeable.
+The connected Task application was removed after its learning goals were
+superseded by the comparative and idiomatic capstones. Its last repository state
+is preserved at commit
+[`74dfe53d5240c53a0596a35299ae8cfd9a55d51e`][legacy-project], under the
+historical `project/` path. Use that immutable snapshot when auditing an old
+deployment or studying an adapter; no current source imports it.
 
 ## Contract boundaries
 
-| Existing area                                             | Durable destination or lesson                                                                                                                    |
+| Historical area                                           | Durable destination or lesson                                                                                                                    |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `project/task-core` domain and injected CLI/storage seams | Reapply the capability pattern in the [idiomatic relay core](../capstones/idiomatic/solution/core/); do not copy Task types.                     |
 | `project/task-manager` Node CLI composition               | Compare with the [idiomatic Node adapter](../capstones/idiomatic/solution/node/).                                                                |
@@ -18,7 +20,7 @@ the three unrelated storage contracts as interchangeable.
 
 The normative destinations are the
 [`comparative-kv` specification](../capstones/comparative/spec/SPEC.md) and the
-[event-relay specification](../capstones/idiomatic/SPEC.md). Existing Task
+[event-relay specification](../capstones/idiomatic/SPEC.md). Historical Task
 behavior must not be added to either contract unless that specification changes
 deliberately.
 
@@ -30,20 +32,22 @@ deliberately.
 - Relay logs contain a versioned JSON Lines event stream with contiguous relay
   sequences.
 
-No file rename or schema-version bump converts one model into another. If a
-real application needs old Task data, define a separate export/import tool with
-an explicit mapping, validation, dry run, backup, idempotency rule, and rollback
+No file rename or schema-version bump converts one model into another. If a real
+application still has Task data, define a separate export/import tool with an
+explicit mapping, validation, dry run, backup, idempotency rule, and rollback
 plan. Keep that operational migration outside both capstone contracts.
 
 ## Safe code migration sequence
 
-1. Identify the behavior being retained: domain rule, capability seam, runtime
+1. Read the exact historical source from the pinned commit, not an unversioned
+   branch.
+2. Identify the behavior being retained: domain rule, capability seam, runtime
    adapter, test helper, or operational command.
-2. Confirm the destination specification permits that behavior.
-3. Port one seam without importing Task domain or storage types.
-4. Add native tests for file, permission, process, server, database, and
-   shutdown behavior; keep portable contracts runtime-neutral.
-5. Run the focused destination checks, then the complete matrix:
+3. Confirm the destination specification permits that behavior.
+4. Port one seam without importing Task domain or storage types.
+5. Add native tests for file, permission, process, server, database, and shutdown
+   behavior; keep portable contracts runtime-neutral.
+6. Run the focused destination checks, then the complete matrix:
 
    ```bash
    npm run typecheck:capstones:node
@@ -58,23 +62,17 @@ plan. Keep that operational migration outside both capstone contracts.
    npm run portability
    ```
 
-6. Update links, setup commands, permission grants, and support claims.
-7. Keep `project/` intact unless a dedicated removal change also updates
-   lessons, exercises, tests, scripts, dependencies, and migration notes.
+7. Update links, setup commands, permission grants, and support claims.
 
-## Eventual retirement checklist
+## Removal record
 
-A future removal is safe only when:
+The removal deleted the complete connected implementation and its tests, removed
+its Node/Deno/Bun command and coverage entries, and dropped `proper-lockfile` plus
+its type declarations. The current lockfiles and CI matrix cover only lessons,
+exercises, and the two capstones.
 
-- no lesson, exercise, guide, script, test, or configuration includes
-  `project/`;
-- equivalent learning goals remain covered by the two capstones;
-- any required Task data has an independently tested export/import path;
-- `proper-lockfile` and `@types/proper-lockfile` have no remaining imports and
-  can be removed from both lockfiles;
-- Node, Deno, Bun, coverage, audit, link, build/compile, and conformance checks
-  pass after the removal; and
-- release notes state the compatibility and data-retention impact.
+Historical data is not deleted from an existing user checkout or deployment by
+this source removal. Preserve and migrate it explicitly before replacing an old
+Task installation.
 
-Until all criteria are addressed in one deliberate change, retaining
-`project/` is the stable repository policy.
+[legacy-project]: https://github.com/mbrndiar/learning-typescript/tree/74dfe53d5240c53a0596a35299ae8cfd9a55d51e/project

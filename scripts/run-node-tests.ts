@@ -2,8 +2,8 @@ import { spawn } from "node:child_process";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
-// Runs the Node-compatible test suites across lessons, exercises, project, and
-// capstones in a single node:test invocation. Deno- and Bun-specific trees are
+// Runs the Node-compatible test suites across lessons, exercises, and capstones
+// in a single node:test invocation. Deno- and Bun-specific trees are
 // excluded because their tests target runtime-specific frameworks.
 async function collectTests(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -15,8 +15,6 @@ async function collectTests(directory: string): Promise<string[]> {
       entry.isDirectory() &&
       (entry.name === "13_deno_runtime" ||
         entry.name === "14_bun_runtime" ||
-        entry.name === "task-deno" ||
-        entry.name === "task-bun" ||
         entry.name === "deno" ||
         entry.name === "bun")
     ) {
@@ -34,9 +32,7 @@ async function collectTests(directory: string): Promise<string[]> {
 
 const tests = (
   await Promise.all(
-    ["lessons", "exercises", "project", "capstones"].map((directory) =>
-      collectTests(directory),
-    ),
+    ["lessons", "exercises", "capstones"].map((directory) => collectTests(directory)),
   )
 )
   .flat()

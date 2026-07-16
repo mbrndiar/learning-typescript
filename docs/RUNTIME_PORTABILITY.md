@@ -91,21 +91,9 @@ Code can inherit authority through resources you explicitly grant.
 
 ### 🦕 Deno permissions
 
-Deno denies sensitive I/O by default. Scope permissions by resource:
-
-```bash
-deno run --allow-read=.task-data --allow-write=.task-data \
-  project/task-deno/main.ts --file .task-data/tasks.json list
-deno run --allow-net=127.0.0.1:8080 \
-  project/task-deno/main.ts --backend rest --url http://127.0.0.1:8080 list
-```
-
-Use `Deno.permissions.query`, `request`, and `revoke` when a program needs to
-reason about authority. Tests can declare permissions per test.
-
-File adapters that create a state file also create its parent or a temporary
-sibling. Grant the dedicated state directory rather than only the final file.
-The event-relay Deno adapter uses the same rule:
+Deno denies sensitive I/O by default. Scope permissions by resource. File
+adapters that create a state file also create its parent or a temporary sibling,
+so grant the dedicated state directory rather than only the final file:
 
 ```bash
 deno run \
@@ -123,6 +111,8 @@ deno run --allow-read=.relay-data --allow-write=.relay-data \
 
 The relay needs no environment, subprocess, FFI, or system permission. Its
 server additionally needs only the selected loopback listener.
+Use `Deno.permissions.query`, `request`, and `revoke` when a program needs to
+reason about authority. Tests can declare permissions per test.
 
 ### 🥟 Bun authority
 
@@ -142,10 +132,10 @@ separate package-install boundary.
 | Stream model      | Node and Web streams       | Web streams          | Web streams and Bun sinks |
 
 An atomic temporary-file rename prevents partial documents but does not alone
-coordinate competing processes. The Node capstone also uses `proper-lockfile`.
-The Deno and Bun adapters add in-process serialization but intentionally provide
-no cross-process lock. On Unix-like systems, both adapters create private task
-files and preserve existing restrictive modes.
+coordinate competing processes. The event relay deliberately specifies one
+writer and adds in-process serialization; it does not claim a cross-process
+lock. On Unix-like systems, runtime adapters create private files and preserve
+existing restrictive modes.
 
 ## 🧪 Tests and coverage
 
@@ -161,42 +151,26 @@ behavior needs native tests.
 
 ## 🌐 HTTP servers
 
-The three retained Task project servers share resource shapes and status
-semantics:
-
-- `GET /tasks` lists tasks.
-- `POST /tasks` requires JSON and returns `201`.
-- `PATCH /tasks/:id/complete` returns the completed task.
-- `DELETE /tasks/:id` returns `204`.
-- invalid input returns `400`; missing resources return `404`.
-- unexpected errors are logged locally and return a generic `500`.
-
-The adapters remain native:
+The event-relay adapters remain native:
 
 - Node uses streams from `IncomingMessage` and writes through `ServerResponse`.
 - Deno receives Web `Request` and returns `Response` through `Deno.serve`.
 - Bun receives Web `Request` and returns `Response` through `Bun.serve`.
 
-Test request limits, content type, aborts, local binding, and shutdown in each
-runtime rather than hiding them behind an oversized abstraction.
+They expose `GET /healthz`, `POST /v1/events`, and filtered `GET /v1/events`
+under one normative contract. Test request limits, content type, aborts, local
+binding, and shutdown in each runtime rather than hiding them behind an
+oversized abstraction.
 
 ## 🗄️ Database boundaries
 
-`TaskStorage` keeps the domain independent from a database:
+The comparative capstone uses `node:sqlite`; Deno has no SQLite adapter in this
+course, while the Bun lesson demonstrates `bun:sqlite`. Parameter binding,
+transactions, row validation, close behavior, and native binary deployment
+remain adapter responsibilities.
 
-- Node uses `node:sqlite`.
-- Bun can use `bun:sqlite`.
-- Deno has no SQLite adapter in this course; a package adapter would be required.
-
-Parameter binding, transactions, row validation, close behavior, and native
-binary deployment remain adapter responsibilities.
-
-`TaskClient` and
-[`RestTaskStorage`](../project/task-client/rest-storage.ts) form the portable
-Web-fetch REST boundary shared by all three runtime CLIs.
-
-The idiomatic event relay has a different contract: `GET /healthz`,
-`POST /v1/events`, and filtered `GET /v1/events`. Its
+The idiomatic event relay intentionally uses a versioned JSON Lines log instead
+of a database. Its
 [normative specification](../capstones/idiomatic/SPEC.md) defines the exact
 request limits, statuses, and lifecycle behavior.
 
@@ -225,7 +199,7 @@ affect portability.
    subprocesses, tests, servers, databases, native addons, and build commands.
 2. Separate language/Web-standard code from runtime authority.
 3. Extract small file, command, server, and database interfaces.
-4. Keep the Task domain and behavioral contract unchanged.
+4. Keep the domain and behavioral contract unchanged.
 5. Replace one adapter and one test layer at a time.
 6. Add the target runtime's configuration and lockfile.
 7. Apply the target permission and lifecycle model explicitly.
@@ -233,9 +207,10 @@ affect portability.
 9. Run cross-runtime conformance.
 10. Update operational documentation before claiming support.
 
-For this repository's retained Task project, use the
-[old-to-new migration guide](PROJECT_MIGRATION.md). It distinguishes reusable
-adapter patterns from incompatible Task, key/value, and event data models.
+For the removed Task predecessor, use the
+[old-to-new migration guide](PROJECT_MIGRATION.md). It links the immutable final
+source and distinguishes reusable adapter patterns from incompatible Task,
+key/value, and event data models.
 
 ## 🧭 Runtime selection
 
@@ -265,10 +240,10 @@ deno run scripts/runtime-conformance.ts
 bun run scripts/runtime-conformance.ts
 ```
 
-CI runs each runtime's configured lessons, exercises, Task adapters, capstones,
-formatting, linting, type checking, tests, audits, and relevant build or compile
-smoke checks. Node 26 runs the aggregate coverage gate; Node 24 also runs the
-full Node test matrix. Deno and Bun run their native checks in separate jobs.
+CI runs each runtime's configured lessons, exercises, capstones, formatting,
+linting, type checking, tests, audits, and relevant build or compile smoke
+checks. Node 26 runs the aggregate coverage gate; Node 24 also runs the full Node
+test matrix. Deno and Bun run their native checks in separate jobs.
 
 ## 🏆 Capstone boundaries
 
@@ -283,8 +258,8 @@ full Node test matrix. Deno and Bun run their native checks in separate jobs.
   TypeScript, promises, async iterables, `AbortSignal`, `TextEncoder`, and
   `TextDecoder`; Node.js, Deno, and Bun adapters inject file, process, stdin,
   and loopback HTTP authority.
-- The [connected Task project](../project/README.md) is retained teaching and
-  migration material, not a third capstone.
+- The [removed Task predecessor](PROJECT_MIGRATION.md) is available only through
+  its pinned historical commit and is not a third capstone.
 
 `npm run portability` first runs the same in-memory semantic smoke under the
 current runtime, then invokes all three solution CLIs as subprocesses against one

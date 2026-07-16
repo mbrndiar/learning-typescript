@@ -49,7 +49,7 @@ command.
 3. Why is parsing performed before writing?
 4. What resource limit complements the timeout?
 
-## 🔗 Project connection
+## 🔗 Capstone connection
 
-The [Bun task project](../../project/task-bun/) applies the same explicit
-runtime boundaries to durable storage, a CLI, SQLite, and HTTP.
+The [idiomatic Bun adapter](../../capstones/idiomatic/solution/bun/) applies the
+same explicit runtime boundaries to durable logs, a CLI, and HTTP.

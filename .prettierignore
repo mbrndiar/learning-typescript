@@ -1,6 +1,5 @@
 lessons/13_deno_runtime/**/*.ts
 exercises/13_deno_runtime/**/*.ts
-project/task-deno/**/*.ts
 scripts/run-deno-course.ts
 scripts/deno-compile-smoke.ts
 capstones/idiomatic/starter/deno/**/*.ts
