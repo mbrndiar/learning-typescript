@@ -98,7 +98,13 @@ Every module has a matching folder under [`exercises/`](exercises/README.md).
 Starter files contain TODOs and behavioral tests; `solution.ts` or
 `solution.js` contains one reference implementation.
 
-## 🏆 Connected capstone
+## 🏆 Capstones
+
+The Node-only [`comparative-kv` capstone](capstones/comparative/README.md)
+implements the frozen cross-language SQLite contract with `node:sqlite`,
+restricted JSON normalization, global revisions, CAS, migration, and real
+subprocess contention. Its guided starter and five milestone suites are separate
+from the cross-runtime application below.
 
 The [`Task Manager`](project/README.md) grows from a typed CLI into a connected
 application:

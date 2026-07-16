@@ -1,49 +1,55 @@
 # 🗄️ Comparative capstone: Node.js versioned configuration store
 
-The normative contract is [`spec/SPEC.md`](spec/SPEC.md), with executable data
-under [`spec/fixtures/`](spec/fixtures/) and runner rules in
-[`spec/SCENARIOS.md`](spec/SCENARIOS.md). Do not edit the copied specification
-without following its version and manifest process.
+This Node-only target implements the frozen [`comparative-kv` 1.0.0
+contract](spec/SPEC.md). The normative fixtures are under
+[`spec/fixtures/`](spec/fixtures/) and the runner rules are in
+[`spec/SCENARIOS.md`](spec/SCENARIOS.md). The shared specification is copied
+byte-for-byte across language repositories and must not be edited locally.
 
-## 🧱 Scaffold layout
+## 🧱 Layout
 
 ```text
 comparative/
-├── starter/
-│   ├── src/index.ts
-│   └── node/main.ts
+├── starter/              # guided, import-safe scaffold
 ├── solution/
-│   ├── src/index.ts
-│   └── node/main.ts
+│   ├── src/
+│   │   ├── domain.ts     # restricted JSON, keys, expectations
+│   │   ├── errors.ts     # exact categories, details, exit codes
+│   │   ├── cli.ts        # frozen grammar and envelopes
+│   │   └── store.ts      # node:sqlite schema, migration, CAS
+│   └── node/main.ts      # subprocess launcher
 └── tests/
-    ├── contracts/
-    ├── node/
-    └── support/
+    ├── node/m1-*.test.ts … m5-*.test.ts
+    └── support/          # fixture runner, barrier actor, lock helper
 ```
 
-`starter` and `solution` export the same `src/index.ts` and `node/main.ts`
-boundaries. The current `ComparativeApplication.run()` and `main()` functions
-reject with `CapstoneIncompleteError`; they do not parse the KV CLI or open
-SQLite yet. The Node entry points are import-safe and are the stable subprocess
-launcher paths for later conformance tests.
+The solution uses Node 24/26 built-ins, especially `node:sqlite`; it adds no
+runtime dependency. SQLite connections use a 10-second busy timeout, WAL,
+foreign keys, exact v0/v1 schema fingerprints, integrity validation,
+`BEGIN IMMEDIATE` initialization/migration/mutations, and prompt close/cleanup.
 
-## 🎯 Target selection and tests
+The custom JSON parser validates complete RFC 8259 syntax before tree defects,
+retains duplicate members until last-wins normalization, validates exact decimal
+integrality and binary64 finiteness, rejects unpaired surrogates, and enforces
+the 32-container and 65,536-byte limits.
 
-The shared loader reads `CAPSTONE_IMPLEMENTATION`, defaulting to `starter`.
-Current smoke tests import both targets regardless of the selection so boundary
-drift is caught immediately.
+## 🧪 Commands
 
 ```bash
 npm run typecheck:capstones:node
-npm run test:capstone:comparative
 CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:comparative
+npm run test:capstone:comparative:contention
+npm run coverage:comparative
 ```
 
-Keep framework-neutral contracts in `tests/contracts/` and Node wrappers in
-`tests/node/`. Future milestone files belong at stable names such as
-`tests/node/m1-domain.test.ts` through `tests/node/m5-conformance.test.ts`; the
-package command discovers new `*.test.ts` files automatically.
+The five suites correspond directly to the shared milestones: domain/value
+contracts, exact CLI, SQLite initialization/migration, complete revision/CAS
+behavior, and real independent-process conformance. The fixture runner rejects
+unknown fixture operations, captures raw process output, enforces compact
+single-line envelopes, uses repository-local scenario directories, checks
+SQLite integrity, and proves database/WAL sidecars are removable.
 
-When implementation work begins, preserve the public scaffold boundary and add
-behavior behind it milestone by milestone. Do not weaken the frozen fixtures to
-fit an implementation.
+`CAPSTONE_IMPLEMENTATION` defaults to `starter`, so the normal starter smoke test
+remains green while milestone suites are skipped. Set it to `solution` for the
+completed reference. Learners should follow the staged notes in
+[`starter/README.md`](starter/README.md) without changing the shared fixtures.

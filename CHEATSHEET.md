@@ -15,6 +15,8 @@ npm run lint                       # run ESLint
 npm run course:node                # run Node lessons and solutions
 npm run test:node                  # run Node-discovered tests
 npm run test:project               # run capstone tests
+npm run test:capstone:comparative  # run the selected comparative target
+npm run test:capstone:comparative:contention # repeat real SQLite races
 npm run coverage                   # enforce capstone coverage
 npm run check                      # standard Node course check
 npm run check:deno                 # full Deno validation

@@ -4,7 +4,8 @@ import test from "node:test";
 import { selectCapstoneImplementation } from "../../../shared/harness.ts";
 import {
   assertSameComparativeBoundary,
-  runComparativeScaffoldContract,
+  assertSolutionScaffoldContract,
+  runStarterScaffoldContract,
 } from "../contracts/scaffold.ts";
 import {
   loadComparativeTarget,
@@ -21,7 +22,7 @@ test("comparative target selection is explicit and validated", () => {
   assert.throws(() => selectCapstoneImplementation("complete"), /starter or solution/);
 });
 
-test("comparative starter and solution expose matching incomplete scaffolds", async () => {
+test("comparative starter remains guided while solution keeps the same boundary", async () => {
   const [starter, solution] = await Promise.all([
     loadComparativeTarget("starter"),
     loadComparativeTarget("solution"),
@@ -33,14 +34,6 @@ test("comparative starter and solution expose matching incomplete scaffolds", as
     starter.entry,
     solution.entry,
   );
-  await runComparativeScaffoldContract(
-    starter.implementation,
-    starter.module,
-    starter.entry,
-  );
-  await runComparativeScaffoldContract(
-    solution.implementation,
-    solution.module,
-    solution.entry,
-  );
+  await runStarterScaffoldContract(starter.module, starter.entry);
+  assertSolutionScaffoldContract(solution.module, solution.entry);
 });

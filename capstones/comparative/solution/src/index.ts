@@ -1,15 +1,7 @@
-import {
-  CapstoneIncompleteError,
-  type CapstoneImplementation,
-} from "../../../shared/harness.ts";
+import type { CapstoneImplementation } from "../../../shared/harness.ts";
+import { runProcess } from "./cli.ts";
 
-export type JsonValue =
-  | null
-  | boolean
-  | string
-  | number
-  | readonly JsonValue[]
-  | { readonly [key: string]: JsonValue };
+export type { JsonValue } from "./domain.ts";
 
 export interface ComparativeApplication {
   run(arguments_: readonly string[]): Promise<number>;
@@ -20,12 +12,10 @@ export const SPEC_VERSION = "1.0.0";
 
 export function createApplication(): ComparativeApplication {
   return {
-    async run(_arguments) {
-      throw new CapstoneIncompleteError(
-        "comparative",
-        CAPSTONE_IMPLEMENTATION,
-        "the versioned configuration store",
-      );
+    async run(arguments_) {
+      const result = runProcess(arguments_);
+      process.stdout.write(`${JSON.stringify(result.envelope)}\n`);
+      return result.exitCode;
     },
   };
 }

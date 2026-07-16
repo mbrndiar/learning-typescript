@@ -66,20 +66,33 @@ export function assertSameComparativeBoundary(
   );
 }
 
-export async function runComparativeScaffoldContract(
-  implementation: CapstoneImplementation,
+export async function runStarterScaffoldContract(
   module: ComparativeModule,
   entry: ComparativeEntryModule,
 ): Promise<void> {
   assert(
-    module.CAPSTONE_IMPLEMENTATION === implementation,
+    module.CAPSTONE_IMPLEMENTATION === "starter",
     "module must identify its implementation",
   );
   assert(
     module.SPEC_VERSION === "1.0.0",
     "module must identify the frozen spec version",
   );
-  await assertIncomplete(() => module.createApplication().run([]), implementation);
-  await assertIncomplete(() => module.main([]), implementation);
-  await assertIncomplete(() => entry.main([]), implementation);
+  await assertIncomplete(() => module.createApplication().run([]), "starter");
+  await assertIncomplete(() => module.main([]), "starter");
+  await assertIncomplete(() => entry.main([]), "starter");
+}
+
+export function assertSolutionScaffoldContract(
+  module: ComparativeModule,
+  entry: ComparativeEntryModule,
+): void {
+  assert(
+    module.CAPSTONE_IMPLEMENTATION === "solution",
+    "solution module must identify its implementation",
+  );
+  assert(module.SPEC_VERSION === "1.0.0", "solution must implement the frozen spec");
+  assert(typeof module.createApplication().run === "function", "solution app must run");
+  assert(typeof module.main === "function", "solution source entry must run");
+  assert(typeof entry.main === "function", "solution Node entry must run");
 }

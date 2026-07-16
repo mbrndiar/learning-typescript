@@ -55,4 +55,3 @@ const exitCode = await new Promise<number>((resolve, reject) => {
   });
 });
 process.exitCode = exitCode;
-process.exitCode = exitCode;

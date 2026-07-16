@@ -21,6 +21,11 @@ export const SPEC_VERSION = "1.0.0";
 export function createApplication(): ComparativeApplication {
   return {
     async run(_arguments) {
+      // TODO(milestone 1): validate keys, revisions, expectations, and restricted JSON.
+      // TODO(milestone 2): implement the exact four-command CLI and JSON envelopes.
+      // TODO(milestone 3): initialize, validate, and migrate the SQLite schema.
+      // TODO(milestone 4): add global revisions, CAS, and immediate transactions.
+      // TODO(milestone 5): pass the real independent-process contention fixtures.
       throw new CapstoneIncompleteError(
         "comparative",
         CAPSTONE_IMPLEMENTATION,
