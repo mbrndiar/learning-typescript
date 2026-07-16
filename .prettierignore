@@ -3,6 +3,11 @@ exercises/13_deno_runtime/**/*.ts
 project/task-deno/**/*.ts
 scripts/run-deno-course.ts
 scripts/deno-compile-smoke.ts
+capstones/idiomatic/starter/deno/**/*.ts
+capstones/idiomatic/solution/deno/**/*.ts
+capstones/idiomatic/tests/deno/**/*.ts
+capstones/comparative/spec/**
+capstones/idiomatic/SPEC.md
 deno.lock
 bun.lock
 compiled/

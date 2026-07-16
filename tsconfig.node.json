@@ -9,6 +9,7 @@
     "lessons/**/*.ts",
     "exercises/**/*.ts",
     "project/**/*.ts",
+    "capstones/**/*.ts",
     "scripts/**/*.ts"
   ],
   "exclude": [
@@ -18,6 +19,12 @@
     "exercises/14_bun_runtime/**",
     "project/task-deno/**",
     "project/task-bun/**",
+    "capstones/idiomatic/starter/deno/**",
+    "capstones/idiomatic/starter/bun/**",
+    "capstones/idiomatic/solution/deno/**",
+    "capstones/idiomatic/solution/bun/**",
+    "capstones/idiomatic/tests/deno/**",
+    "capstones/idiomatic/tests/bun/**",
     "scripts/*deno*.ts",
     "scripts/*bun*.ts"
   ]

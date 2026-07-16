@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"]
+  },
+  "include": [
+    "capstones/shared/**/*.ts",
+    "capstones/comparative/**/*.ts",
+    "capstones/idiomatic/starter/core/**/*.ts",
+    "capstones/idiomatic/starter/node/**/*.ts",
+    "capstones/idiomatic/solution/core/**/*.ts",
+    "capstones/idiomatic/solution/node/**/*.ts",
+    "capstones/idiomatic/tests/contracts/**/*.ts",
+    "capstones/idiomatic/tests/node/**/*.ts",
+    "scripts/run-capstone-node-tests.ts"
+  ]
+}

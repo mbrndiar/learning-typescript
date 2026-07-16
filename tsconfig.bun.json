@@ -13,6 +13,13 @@
     "project/task-core/**/*.ts",
     "project/task-client/**/*.ts",
     "project/task-bun/**/*.ts",
+    "capstones/shared/**/*.ts",
+    "capstones/idiomatic/starter/core/**/*.ts",
+    "capstones/idiomatic/starter/bun/**/*.ts",
+    "capstones/idiomatic/solution/core/**/*.ts",
+    "capstones/idiomatic/solution/bun/**/*.ts",
+    "capstones/idiomatic/tests/contracts/**/*.ts",
+    "capstones/idiomatic/tests/bun/**/*.ts",
     "scripts/run-bun-course.ts",
     "scripts/bun-build-smoke.ts",
     "scripts/runtime-conformance.ts"
