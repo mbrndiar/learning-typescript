@@ -1,4 +1,4 @@
-// Runs the Bun chapter and the Bun-portable module 15 material under the real
+// Runs the Bun chapter and the Bun-portable module 16 material under the real
 // Bun CLI, using Bun-native APIs (Bun.Glob, Bun.spawn). Each file runs as its
 // own subprocess so one failure aborts the run loudly rather than corrupting
 // shared state.
@@ -62,27 +62,27 @@ async function runFile(file: string): Promise<void> {
   }
 }
 
-// Assemble the file list per selection rules: full lesson 14, only solutions
-// and tests from exercise 14, and the Bun-portable subset of module 15
+// Assemble the file list per selection rules: full lesson 15, only solutions
+// and tests from exercise 15, and the Bun-portable subset of module 16
 // (solutions and portable-check scripts, no exercise starters). import.meta.main
 // keeps the module importable without running.
 export async function runBunCourse(): Promise<void> {
-  const lesson14 = await collectTypeScript("lessons/14_bun_runtime");
-  const exercise14 = (await collectTypeScript("exercises/14_bun_runtime")).filter(
+  const lesson15 = await collectTypeScript("lessons/15_bun_runtime");
+  const exercise15 = (await collectTypeScript("exercises/15_bun_runtime")).filter(
     (file) => file.endsWith("/solution.ts") || file.endsWith(".test.ts"),
   );
-  const lesson15 = (await collectTypeScript("lessons/15_runtime_portability")).filter(
+  const lesson16 = (await collectTypeScript("lessons/16_runtime_portability")).filter(
     isBunPortable,
   );
-  const exercise15 = (
-    await collectTypeScript("exercises/15_runtime_portability")
+  const exercise16 = (
+    await collectTypeScript("exercises/16_runtime_portability")
   ).filter(
     (file) =>
       isBunPortable(file) &&
       (file.endsWith("/solution.ts") || file.endsWith("/portable-check.ts")),
   );
 
-  const files = [...lesson14, ...exercise14, ...lesson15, ...exercise15];
+  const files = [...lesson15, ...exercise15, ...lesson16, ...exercise16];
   if (files.length === 0) {
     throw new Error("no Bun course files were found");
   }

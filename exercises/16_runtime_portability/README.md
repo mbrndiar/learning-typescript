@@ -5,10 +5,10 @@ requested capability, preserving the profile input order. Omitted requirements
 do not filter results.
 
 ```bash
-node --import=tsx --test exercises/15_runtime_portability/solution.test.ts
-node --import=tsx exercises/15_runtime_portability/portable-check.ts
-deno run exercises/15_runtime_portability/portable-check.ts
-bun run exercises/15_runtime_portability/portable-check.ts
+node --import=tsx --test exercises/16_runtime_portability/solution.test.ts
+node --import=tsx exercises/16_runtime_portability/portable-check.ts
+deno run exercises/16_runtime_portability/portable-check.ts
+bun run exercises/16_runtime_portability/portable-check.ts
 ```
 
 The Node test imports `solution.ts`. Temporarily point it at `exercise.ts` while

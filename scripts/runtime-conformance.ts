@@ -10,7 +10,7 @@ import {
 import {
   findCompatibleRuntimes,
   type RuntimeProfile,
-} from "../exercises/15_runtime_portability/solution.ts";
+} from "../exercises/16_runtime_portability/solution.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) {

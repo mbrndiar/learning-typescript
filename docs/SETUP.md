@@ -1,7 +1,7 @@
 # 🛠️ Setting Up JavaScript, TypeScript, and the Runtimes
 
 Node.js is the only requirement at the start. Install Deno and Bun when you
-reach modules 13 and 14 so early lessons stay focused.
+reach modules 14 and 15 so early lessons stay focused.
 
 ## 🟩 1. Install Node.js
 
@@ -44,7 +44,7 @@ node lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
 npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 ```
 
-Modules 1-12 require only Node.js:
+Modules 1-13 require only Node.js:
 
 ```bash
 npm run typecheck:node
@@ -53,7 +53,7 @@ npm run test:node
 npm run coverage
 ```
 
-## 🦕 5. Install Deno for module 13
+## 🦕 5. Install Deno for module 14
 
 Use an official package or installer from <https://docs.deno.com/runtime/getting_started/installation/>.
 The course validates Deno 2.9.3:
@@ -80,7 +80,7 @@ boundary the module is designed to teach. Grant the containing state directory,
 not just a not-yet-created file: the atomic writer must create the directory and
 a temporary sibling before renaming it.
 
-## 🥟 6. Install Bun for module 14
+## 🥟 6. Install Bun for module 15
 
 Use an official package or installer from <https://bun.sh/docs/installation>.
 The course validates Bun 1.3.14:
@@ -206,7 +206,7 @@ Do not delete committed lockfiles to make an error disappear.
 ### ⚠️ The editor reports different types
 
 Use the workspace TypeScript version for Node/Bun files and the Deno language
-server for `lessons/13_deno_runtime`, `exercises/13_deno_runtime`, and
+server for `lessons/14_deno_runtime`, `exercises/14_deno_runtime`, and
 the idiomatic Deno adapter. The authoritative commands are
 `npm run typecheck:node`, `npm run typecheck:capstones:node`,
 `npm run typecheck:bun`, and `deno task typecheck`.

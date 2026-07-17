@@ -1,4 +1,4 @@
-# 🦕 13. Deno Runtime
+# 🦕 14. Deno Runtime
 
 ## 🎯 Learning goals
 
@@ -15,22 +15,22 @@ Run these from the repository root. None requires `-A`.
 
 ```bash
 deno run --config=deno.json \
-  lessons/13_deno_runtime/01_configuration_and_toolchain.ts
+  lessons/14_deno_runtime/01_configuration_and_toolchain.ts
 
-DENO_COURSE_DIR=lessons/13_deno_runtime/.lesson-data \
+DENO_COURSE_DIR=lessons/14_deno_runtime/.lesson-data \
 deno run --config=deno.json \
-  --allow-read=lessons/13_deno_runtime/.lesson-data \
-  --allow-write=lessons/13_deno_runtime/.lesson-data \
+  --allow-read=lessons/14_deno_runtime/.lesson-data \
+  --allow-write=lessons/14_deno_runtime/.lesson-data \
   --allow-env=DENO_COURSE_DIR \
   --allow-run=deno \
-  lessons/13_deno_runtime/02_permissions_and_native_apis.ts
+  lessons/14_deno_runtime/02_permissions_and_native_apis.ts
 
 deno test --config=deno.json \
-  lessons/13_deno_runtime/03_deno_testing.test.ts
+  lessons/14_deno_runtime/03_deno_testing.test.ts
 
 deno run --config=deno.json \
   --allow-net=127.0.0.1 \
-  lessons/13_deno_runtime/04_serve_and_compile.ts
+  lessons/14_deno_runtime/04_serve_and_compile.ts
 ```
 
 Run the complete Deno 2.9.3 track with `deno task check`, or use the equivalent
@@ -72,7 +72,7 @@ are optional but intentionally omitted from this offline track. Per-test `permis
 authority further.
 
 ```bash
-deno test --coverage=.coverage lessons/13_deno_runtime/03_deno_testing.test.ts
+deno test --coverage=.coverage lessons/14_deno_runtime/03_deno_testing.test.ts
 deno coverage .coverage
 ```
 
@@ -111,7 +111,7 @@ rather than the Deno-native recommendation.
 
 ## 🧭 Project links
 
-- Build the [matching permission-planning exercise](../../exercises/13_deno_runtime/).
+- Build the [matching permission-planning exercise](../../exercises/14_deno_runtime/).
 - Study the [idiomatic Deno adapter](../../capstones/idiomatic/solution/deno/).
 - Compare the runtime-neutral [relay core](../../capstones/idiomatic/solution/core/).
 - Run the [Deno contract tests](../../capstones/idiomatic/tests/deno/).

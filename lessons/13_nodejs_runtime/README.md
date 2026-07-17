@@ -1,4 +1,4 @@
-# 🟢 12. Node.js Runtime Deep Dive
+# 🟢 13. Node.js Runtime Deep Dive
 
 ## 🎯 Learning goals
 
@@ -18,10 +18,10 @@
 Run these commands from `learning-typescript`:
 
 ```bash
-node lessons/12_nodejs_runtime/01_modules_and_native_typescript.ts
-npm run lesson -- lessons/12_nodejs_runtime/02_permissions_processes_and_subprocesses.ts
-npm run lesson -- lessons/12_nodejs_runtime/03_buffers_streams_events_and_workers.ts
-node --import=tsx --test lessons/12_nodejs_runtime/04_testing_diagnostics_and_distribution.ts
+node lessons/13_nodejs_runtime/01_modules_and_native_typescript.ts
+npm run lesson -- lessons/13_nodejs_runtime/02_permissions_processes_and_subprocesses.ts
+npm run lesson -- lessons/13_nodejs_runtime/03_buffers_streams_events_and_workers.ts
+node --import=tsx --test lessons/13_nodejs_runtime/04_testing_diagnostics_and_distribution.ts
 npm run typecheck:node
 ```
 
@@ -109,4 +109,4 @@ runtime files, declarations, source maps, exports, and package metadata agree.
 ## 🧪 Practice exercise
 
 Apply these ideas in the
-[matching streaming JSON Lines exercise](../../exercises/12_nodejs_runtime/).
+[matching streaming JSON Lines exercise](../../exercises/13_nodejs_runtime/).

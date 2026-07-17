@@ -12,10 +12,10 @@
     "scripts/**/*.ts"
   ],
   "exclude": [
-    "lessons/13_deno_runtime/**",
-    "lessons/14_bun_runtime/**",
-    "exercises/13_deno_runtime/**",
-    "exercises/14_bun_runtime/**",
+    "lessons/14_deno_runtime/**",
+    "lessons/15_bun_runtime/**",
+    "exercises/14_deno_runtime/**",
+    "exercises/15_bun_runtime/**",
     "capstones/idiomatic/starter/deno/**",
     "capstones/idiomatic/starter/bun/**",
     "capstones/idiomatic/solution/deno/**",

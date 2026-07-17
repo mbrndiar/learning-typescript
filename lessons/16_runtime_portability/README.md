@@ -1,4 +1,4 @@
-# 🌐 15. Cross-Runtime Portability and Migration
+# 🌐 16. Cross-Runtime Portability and Migration
 
 ## 🎯 Learning goals
 
@@ -12,22 +12,22 @@
 
 ```bash
 # Node.js
-npm run lesson -- lessons/15_runtime_portability/01_capability_matrix.ts
-npm run lesson -- lessons/15_runtime_portability/02_shared_task_domain.ts
-npm run lesson -- lessons/15_runtime_portability/03_migration_adapters.ts
-npm run lesson -- lessons/15_runtime_portability/04_runtime_selection.ts
+npm run lesson -- lessons/16_runtime_portability/01_capability_matrix.ts
+npm run lesson -- lessons/16_runtime_portability/02_shared_task_domain.ts
+npm run lesson -- lessons/16_runtime_portability/03_migration_adapters.ts
+npm run lesson -- lessons/16_runtime_portability/04_runtime_selection.ts
 
 # Deno
-deno run lessons/15_runtime_portability/01_capability_matrix.ts
-deno run lessons/15_runtime_portability/02_shared_task_domain.ts
-deno run lessons/15_runtime_portability/03_migration_adapters.ts
-deno run lessons/15_runtime_portability/04_runtime_selection.ts
+deno run lessons/16_runtime_portability/01_capability_matrix.ts
+deno run lessons/16_runtime_portability/02_shared_task_domain.ts
+deno run lessons/16_runtime_portability/03_migration_adapters.ts
+deno run lessons/16_runtime_portability/04_runtime_selection.ts
 
 # Bun
-bun run lessons/15_runtime_portability/01_capability_matrix.ts
-bun run lessons/15_runtime_portability/02_shared_task_domain.ts
-bun run lessons/15_runtime_portability/03_migration_adapters.ts
-bun run lessons/15_runtime_portability/04_runtime_selection.ts
+bun run lessons/16_runtime_portability/01_capability_matrix.ts
+bun run lessons/16_runtime_portability/02_shared_task_domain.ts
+bun run lessons/16_runtime_portability/03_migration_adapters.ts
+bun run lessons/16_runtime_portability/04_runtime_selection.ts
 ```
 
 Run the checked conformance scenario with:
@@ -133,4 +133,4 @@ incompatible Task data into either capstone.
 6. What executable evidence supports this course's portability claim?
 
 Continue with the
-[matching exercise](../../exercises/15_runtime_portability/).
+[matching exercise](../../exercises/16_runtime_portability/).

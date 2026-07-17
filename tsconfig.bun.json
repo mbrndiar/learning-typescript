@@ -6,10 +6,10 @@
     "types": ["bun"]
   },
   "include": [
-    "lessons/14_bun_runtime/**/*.ts",
-    "lessons/15_runtime_portability/**/*.ts",
-    "exercises/14_bun_runtime/**/*.ts",
-    "exercises/15_runtime_portability/**/*.ts",
+    "lessons/15_bun_runtime/**/*.ts",
+    "lessons/16_runtime_portability/**/*.ts",
+    "exercises/15_bun_runtime/**/*.ts",
+    "exercises/16_runtime_portability/**/*.ts",
     "capstones/shared/**/*.ts",
     "capstones/idiomatic/starter/core/**/*.ts",
     "capstones/idiomatic/starter/bun/**/*.ts",

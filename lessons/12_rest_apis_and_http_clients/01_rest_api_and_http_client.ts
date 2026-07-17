@@ -1,7 +1,7 @@
 import { once } from "node:events";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
-// This lesson keeps the HTTP boundary explicit: bytes become unknown JSON,
+// This lesson keeps the REST boundary explicit: bytes become unknown JSON,
 // unknown JSON is validated into domain data, and responses leave as status
 // codes plus JSON.
 interface CreateTask {

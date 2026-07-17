@@ -26,7 +26,7 @@ duplicating domain validation.
 From `learning-typescript`:
 
 ```bash
-node --import=tsx --test exercises/12_nodejs_runtime/solution.test.ts
+node --import=tsx --test exercises/13_nodejs_runtime/solution.test.ts
 npm run typecheck:node
 ```
 

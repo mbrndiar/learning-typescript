@@ -1,4 +1,4 @@
-# 🥟 14. Bun Runtime
+# 🥟 15. Bun Runtime
 
 ## 🎯 Learning goals
 
@@ -14,16 +14,16 @@
 Run each deterministic lesson from the repository root:
 
 ```bash
-bun run lessons/14_bun_runtime/01_packages_and_typescript.ts
-bun run lessons/14_bun_runtime/02_files_streams_and_processes.ts
-bun test lessons/14_bun_runtime/03_testing_and_sqlite.test.ts
-bun run lessons/14_bun_runtime/04_servers_builds_and_executables.ts
+bun run lessons/15_bun_runtime/01_packages_and_typescript.ts
+bun run lessons/15_bun_runtime/02_files_streams_and_processes.ts
+bun test lessons/15_bun_runtime/03_testing_and_sqlite.test.ts
+bun run lessons/15_bun_runtime/04_servers_builds_and_executables.ts
 ```
 
 Run the matching exercise and Bun capstone tests:
 
 ```bash
-bun test exercises/14_bun_runtime/solution.test.ts
+bun test exercises/15_bun_runtime/solution.test.ts
 bun test capstones/idiomatic/tests/bun
 ```
 
@@ -82,7 +82,7 @@ shared mutable fixtures should remain serial. Retries can reduce noise from a
 genuinely transient boundary, but must not hide deterministic defects.
 
 ```bash
-bun test lessons/14_bun_runtime/03_testing_and_sqlite.test.ts
+bun test lessons/15_bun_runtime/03_testing_and_sqlite.test.ts
 bun test --coverage capstones/idiomatic/tests/bun
 ```
 
@@ -126,8 +126,8 @@ artifact is platform-specific unless a compile target is selected explicitly.
 
 ## 🔗 Continue building
 
-- Complete the [matching Bun exercise](../../exercises/14_bun_runtime/).
+- Complete the [matching Bun exercise](../../exercises/15_bun_runtime/).
 - Study the [idiomatic Bun adapter](../../capstones/idiomatic/solution/bun/).
 - Revisit the [runtime-neutral relay core](../../capstones/idiomatic/solution/core/).
 - Run the [Bun contract tests](../../capstones/idiomatic/tests/bun/).
-- Review the [runtime portability lesson](../15_runtime_portability/).
+- Review the [runtime portability lesson](../16_runtime_portability/).

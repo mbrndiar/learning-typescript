@@ -80,7 +80,7 @@ export async function runNativeApiDemo(directory: string): Promise<readonly stri
 
 if (import.meta.main) {
   const directory = Deno.env.get("DENO_COURSE_DIR") ??
-    "lessons/13_deno_runtime/.lesson-data";
+    "lessons/14_deno_runtime/.lesson-data";
   try {
     console.log((await runNativeApiDemo(directory)).join("\n"));
     console.log(JSON.stringify(await permissionStates(directory)));

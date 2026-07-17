@@ -47,7 +47,7 @@ const lessonFiles = (await collectFiles("lessons")).filter((file) => {
   return (
     (extension === ".js" || extension === ".ts") &&
     !file.endsWith(".test.ts") &&
-    !/[/\\](?:13_deno_runtime|14_bun_runtime)[/\\]/.test(file)
+    !/[/\\](?:14_deno_runtime|15_bun_runtime)[/\\]/.test(file)
   );
 });
 
@@ -56,7 +56,7 @@ const lessonFiles = (await collectFiles("lessons")).filter((file) => {
 const solutionFiles = (await collectFiles("exercises")).filter(
   (file) =>
     /[/\\]solution\.(?:js|ts)$/.test(file) &&
-    !/[/\\](?:13_deno_runtime|14_bun_runtime)[/\\]/.test(file),
+    !/[/\\](?:14_deno_runtime|15_bun_runtime)[/\\]/.test(file),
 );
 
 for (const file of [...lessonFiles, ...solutionFiles].sort()) {

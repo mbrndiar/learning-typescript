@@ -74,7 +74,7 @@ Deno.test({
 // Coverage is a two-command flow: collect raw data during tests, then render
 // it separately so reporting stays outside test behavior.
 export const coverageCommands = [
-  "deno test --coverage=.coverage lessons/13_deno_runtime/03_deno_testing.test.ts",
+  "deno test --coverage=.coverage lessons/14_deno_runtime/03_deno_testing.test.ts",
   "deno coverage .coverage",
 ] as const;
 

@@ -18,7 +18,7 @@ return `-A`.
 The committed test imports `solution.ts`. Point it at `exercise.ts` while working.
 
 ```bash
-deno test exercises/13_deno_runtime/solution.test.ts
+deno test exercises/14_deno_runtime/solution.test.ts
 ```
 
 ## 💡 Hint

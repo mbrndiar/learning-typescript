@@ -13,8 +13,8 @@ async function collectTests(directory: string): Promise<string[]> {
     const path = join(directory, entry.name);
     if (
       entry.isDirectory() &&
-      (entry.name === "13_deno_runtime" ||
-        entry.name === "14_bun_runtime" ||
+      (entry.name === "14_deno_runtime" ||
+        entry.name === "15_bun_runtime" ||
         entry.name === "deno" ||
         entry.name === "bun")
     ) {

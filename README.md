@@ -28,8 +28,8 @@ By the end of the course, you will be able to:
 - npm (included with Node.js)
 
 Node.js is the only runtime required initially. Git is needed only if you clone
-the repository instead of downloading it. Install Deno 2.9.3 for module 13 and
-Bun 1.3.14 for module 14; modules 1-12 use Node.js alone.
+the repository instead of downloading it. Install Deno 2.9.3 for module 14 and
+Bun 1.3.14 for module 15; modules 1-13 use Node.js alone.
 
 See [`docs/SETUP.md`](docs/SETUP.md) for installation, editor setup, and
 troubleshooting. If programming syntax is entirely new, begin with
@@ -75,7 +75,7 @@ npm run coverage
 npm run links
 npm run audit:node
 
-# After installing Deno and Bun for modules 13-15
+# After installing Deno and Bun for modules 14-16
 npm run check:deno
 npm run check:bun
 npm run portability
@@ -83,7 +83,7 @@ npm run portability
 
 ## 📐 Conventions
 
-- Modules 1-3 use JavaScript; modules 4-15 use TypeScript by default.
+- Modules 1-3 use JavaScript; modules 4-16 use TypeScript by default.
 - ES modules (`import` and `export`) are the default. CommonJS is covered only
   for interoperability.
 - TypeScript is always checked in strict mode. Avoid `any` and unsafe type
@@ -137,11 +137,12 @@ with either capstone's storage format.
 8. [Testing](lessons/08_testing/)
 9. [Tooling, Debugging, CLI, and Observability](lessons/09_tooling_debugging_cli_observability/)
 10. [Asynchronous JavaScript and Concurrency](lessons/10_async_and_concurrency/)
-11. [HTTP and Application Integration](lessons/11_http_and_application_integration/)
-12. [Node.js Runtime Deep Dive](lessons/12_nodejs_runtime/)
-13. [Deno Runtime Deep Dive](lessons/13_deno_runtime/)
-14. [Bun Runtime Deep Dive](lessons/14_bun_runtime/)
-15. [Cross-Runtime Portability and Migration](lessons/15_runtime_portability/)
+11. [SQL and SQLite](lessons/11_sql_and_sqlite/)
+12. [REST APIs and HTTP Clients](lessons/12_rest_apis_and_http_clients/)
+13. [Node.js Runtime Deep Dive](lessons/13_nodejs_runtime/)
+14. [Deno Runtime Deep Dive](lessons/14_deno_runtime/)
+15. [Bun Runtime Deep Dive](lessons/15_bun_runtime/)
+16. [Cross-Runtime Portability and Migration](lessons/16_runtime_portability/)
 
 ## 🗒️ Cheat sheet and boundaries
 

@@ -38,9 +38,10 @@ generic key/value storage, a database, or a distributed message broker.
 | [Module 8: testing](../../lessons/08_testing/README.md) | Reuse behavioral contracts through Node, Deno, and Bun test wrappers. |
 | [Module 9: tooling, CLI, and observability](../../lessons/09_tooling_debugging_cli_observability/README.md) | Provide stable CLI streams, diagnostics, format/lint/type gates, and executable scripts. |
 | [Module 10: async and concurrency](../../lessons/10_async_and_concurrency/README.md) | Use promises, async iterables, bounded backpressure, `AbortSignal`, and deterministic cleanup. |
-| [Module 11: HTTP and integration](../../lessons/11_http_and_application_integration/README.md) | Implement bounded JSON HTTP requests/responses and graceful service shutdown. |
-| [Modules 12–14](../../lessons/12_nodejs_runtime/README.md) | Implement explicit Node, [Deno](../../lessons/13_deno_runtime/README.md), and [Bun](../../lessons/14_bun_runtime/README.md) process/file/server/test adapters. |
-| [Module 15: runtime portability](../../lessons/15_runtime_portability/README.md) | Prove capability-based portability by running one framework-free contract under all three runtimes. |
+| [Module 11: SQL and SQLite](../../lessons/11_sql_and_sqlite/README.md) | Use database constraints, parameter binding, transactions, and deterministic handle cleanup. |
+| [Module 12: REST APIs and HTTP clients](../../lessons/12_rest_apis_and_http_clients/README.md) | Implement bounded JSON HTTP requests/responses and graceful service shutdown. |
+| [Modules 13–15](../../lessons/13_nodejs_runtime/README.md) | Implement explicit Node, [Deno](../../lessons/14_deno_runtime/README.md), and [Bun](../../lessons/15_bun_runtime/README.md) process/file/server/test adapters. |
+| [Module 16: runtime portability](../../lessons/16_runtime_portability/README.md) | Prove capability-based portability by running one framework-free contract under all three runtimes. |
 
 ## Normative event model
 

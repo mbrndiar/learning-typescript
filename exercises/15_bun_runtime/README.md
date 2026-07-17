@@ -19,7 +19,7 @@ APIs. No `node:child_process` or `node:fs` import is needed.
 The committed tests target the completed solution:
 
 ```bash
-bun test exercises/14_bun_runtime/solution.test.ts
+bun test exercises/15_bun_runtime/solution.test.ts
 ```
 
 To test your starter implementation, temporarily change the import in

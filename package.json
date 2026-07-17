@@ -29,7 +29,7 @@
     "test:capstone:idiomatic:deno": "deno task capstone:test",
     "test:capstone:idiomatic:bun": "bun test capstones/idiomatic/tests/bun",
     "test:capstones:node": "tsx scripts/run-capstone-node-tests.ts all",
-    "test:bun": "bun test lessons/14_bun_runtime exercises/14_bun_runtime capstones/idiomatic/tests/bun",
+    "test:bun": "bun test lessons/15_bun_runtime exercises/15_bun_runtime capstones/idiomatic/tests/bun",
     "build:bun": "bun run scripts/bun-build-smoke.ts",
     "audit:node": "npm audit --audit-level=high",
     "audit:bun": "bun audit",

@@ -78,5 +78,5 @@ test.serial("bun:sqlite remains serial when sharing one connection", () => {
   });
 });
 
-// Run `bun test --coverage lessons/14_bun_runtime/03_testing_and_sqlite.test.ts`
+// Run `bun test --coverage lessons/15_bun_runtime/03_testing_and_sqlite.test.ts`
 // to collect coverage. A percentage measures execution, not assertion quality.
