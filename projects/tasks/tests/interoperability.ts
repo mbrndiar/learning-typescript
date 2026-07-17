@@ -137,15 +137,14 @@ async function waitForReady(child: ChildProcessWithoutNullStreams): Promise<stri
 }
 
 async function stop(child: ChildProcessWithoutNullStreams): Promise<void> {
-  if (child.exitCode !== null) return;
-  child.kill("SIGTERM");
+  if (child.exitCode !== null || child.signalCode !== null) return;
   await new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error("server shutdown deadline exceeded"));
-    }, DEADLINE_MS);
-    child.once("exit", (code, signal) => {
+    let settled = false;
+    const finish = (code: number | null, signal: NodeJS.Signals | null): void => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
+      child.off("error", onError);
       if (code === 0 || signal === "SIGTERM") resolve();
       else {
         reject(
@@ -154,7 +153,35 @@ async function stop(child: ChildProcessWithoutNullStreams): Promise<void> {
           ),
         );
       }
-    });
+    };
+    const onError = (error: Error): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      child.off("exit", finish);
+      reject(error);
+    };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.off("exit", finish);
+      child.off("error", onError);
+      child.kill("SIGKILL");
+      reject(new Error("server shutdown deadline exceeded"));
+    }, DEADLINE_MS);
+    child.once("exit", finish);
+    child.once("error", onError);
+    if (child.exitCode !== null || child.signalCode !== null) {
+      finish(child.exitCode, child.signalCode);
+      return;
+    }
+    if (
+      !child.kill("SIGTERM") &&
+      child.exitCode === null &&
+      child.signalCode === null
+    ) {
+      onError(new Error("could not signal server process"));
+    }
   });
 }
 

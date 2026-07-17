@@ -13,6 +13,14 @@ export function initialMarkdownState(): MarkdownState {
   return Object.freeze({ nextId: 1, tasks: Object.freeze([]) });
 }
 
+export function decodeMarkdownBytes(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch (error) {
+    throw new StorageError("read markdown", "document must contain valid UTF-8", error);
+  }
+}
+
 export function parseMarkdownDocument(source: string): MarkdownState {
   if (!source.endsWith("\n")) {
     throw new StorageError("parse markdown", "document must end with one newline");
@@ -103,5 +111,9 @@ export class SerialExecutor {
       () => undefined,
     );
     return result;
+  }
+
+  drain(): Promise<void> {
+    return this.#tail;
   }
 }

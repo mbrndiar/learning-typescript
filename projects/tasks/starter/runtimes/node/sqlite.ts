@@ -6,6 +6,12 @@ import {
   type UpdateTaskDto,
 } from "../../core/index.ts";
 
+export function enableNodeDefensiveMode(_database: {
+  enableDefensive?: (enabled: boolean) => void;
+}): boolean {
+  throw new IncompleteProjectError("Node SQLite defensive mode");
+}
+
 export class NodeSqliteRepository implements TaskRepository {
   constructor(_path: string) {}
   create(_title: string): Promise<Task> {

@@ -1,30 +1,89 @@
-import { mkdir, rm, writeFile, access } from "node:fs/promises";
+import {
+  access,
+  lstat,
+  mkdir,
+  readFile,
+  rm,
+  stat,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { describe, expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
-import { StorageError } from "../solution/core/index.ts";
-import { BunMarkdownRepository } from "../solution/runtimes/bun/markdown.ts";
-import { BunSqliteRepository } from "../solution/runtimes/bun/sqlite.ts";
-import { startBunServer } from "../solution/runtimes/bun/server.ts";
-import { BunMarkdownRepository as StarterMarkdown } from "../starter/runtimes/bun/markdown.ts";
-import { BunSqliteRepository as StarterSqlite } from "../starter/runtimes/bun/sqlite.ts";
+import * as solutionClient from "../solution/client/fetch.ts";
+import * as solutionCli from "../solution/core/cli.ts";
+import * as solutionCore from "../solution/core/index.ts";
+import * as solutionHttp from "../solution/core/http.ts";
+import * as solutionJson from "../solution/core/json.ts";
+import * as solutionRuntime from "../solution/core/runtime.ts";
+import * as solutionBun from "../solution/runtimes/bun/index.ts";
+import * as solutionBunMarkdown from "../solution/runtimes/bun/markdown.ts";
+import * as starterClient from "../starter/client/fetch.ts";
+import * as starterCli from "../starter/core/cli.ts";
+import * as starterCore from "../starter/core/index.ts";
+import * as starterHttp from "../starter/core/http.ts";
+import * as starterJson from "../starter/core/json.ts";
+import * as starterRuntime from "../starter/core/runtime.ts";
+import * as starterBun from "../starter/runtimes/bun/index.ts";
+import * as starterBunMarkdown from "../starter/runtimes/bun/markdown.ts";
 import {
+  assert,
   assertRejects,
   cliContract,
   domainAndJsonContract,
   fetchClientContract,
   httpDispatchContract,
+  markdownCloseContract,
   markdownCorruptionContract,
+  openApiContract,
   repositoryContract,
   serverContract,
   starterIncompleteContract,
+  type ContractImplementation,
+  type RepositoryHarness,
 } from "./contracts.ts";
 
 const ROOT = "projects/tasks/.test-data/bun";
-const implementation = process.env.TASKS_IMPLEMENTATION ?? "starter";
-if (implementation !== "starter" && implementation !== "solution") {
-  throw new Error("TASKS_IMPLEMENTATION must be starter or solution");
+const selection = process.env.TASKS_IMPLEMENTATION ?? "solution";
+if (selection !== "solution" && selection !== "starter") {
+  throw new Error("TASKS_IMPLEMENTATION must be solution or starter");
 }
-const testSolution = implementation === "solution" ? test : test.skip;
+
+const selectedCore = selection === "starter" ? starterCore : solutionCore;
+const selectedJson = selection === "starter" ? starterJson : solutionJson;
+const selectedClient = selection === "starter" ? starterClient : solutionClient;
+const selectedCli = selection === "starter" ? starterCli : solutionCli;
+const selectedRuntime = selection === "starter" ? starterRuntime : solutionRuntime;
+const SelectedSqlite =
+  selection === "starter"
+    ? starterBun.BunSqliteRepository
+    : solutionBun.BunSqliteRepository;
+const SelectedMarkdown =
+  selection === "starter"
+    ? starterBun.BunMarkdownRepository
+    : solutionBun.BunMarkdownRepository;
+
+const implementation: ContractImplementation = {
+  ...selectedCore,
+  ...selectedJson,
+  ...selectedClient,
+  ...selectedCli,
+  formatServerUrl: selectedRuntime.formatServerUrl,
+  dispatchHttp:
+    selection === "starter"
+      ? (repository, request, logError) =>
+          starterHttp.dispatchHttp(
+            new starterCore.TaskService(repository),
+            request,
+            logError,
+          )
+      : (repository, request, logError) =>
+          solutionHttp.dispatchHttp(
+            new solutionCore.TaskService(repository),
+            request,
+            logError,
+          ),
+};
 
 async function reset(path: string): Promise<void> {
   await mkdir(ROOT, { recursive: true });
@@ -40,53 +99,91 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-describe("shared contracts", () => {
-  testSolution("domain, service, and strict JSON", domainAndJsonContract);
-  testSolution("HTTP dispatch", httpDispatchContract);
-  testSolution("Fetch client", fetchClientContract);
-  testSolution("CLI", cliContract);
+function markdownHarness(path: string): RepositoryHarness {
+  return {
+    name: `${selection} Bun Markdown`,
+    path,
+    create: (value) => new SelectedMarkdown(value),
+    reset: () => reset(path),
+    writeText: (source) => writeFile(path, source, "utf8"),
+    writeBytes: (bytes) => writeFile(path, bytes),
+  };
+}
+
+describe(`${selection} shared contracts`, () => {
+  test("domain, service, and strict JSON", () => domainAndJsonContract(implementation));
+  test("HTTP dispatch", () => httpDispatchContract(implementation));
+  test("Fetch client", () => fetchClientContract(implementation));
+  test("CLI", () => cliContract(implementation));
+  test("canonical OpenAPI identity and parse", async () =>
+    openApiContract(await readFile("projects/tasks/docs/openapi.yaml")));
 });
 
 for (const [name, extension, create] of [
-  ["Bun SQLite", "db", (path: string) => new BunSqliteRepository(path)],
-  ["Bun Markdown", "md", (path: string) => new BunMarkdownRepository(path)],
+  [`${selection} Bun SQLite`, "db", (path: string) => new SelectedSqlite(path)],
+  [`${selection} Bun Markdown`, "md", (path: string) => new SelectedMarkdown(path)],
 ] as const) {
   const path = `${ROOT}/repository-${extension}.${extension}`;
-  testSolution(`${name} repository contract`, () =>
-    repositoryContract({
+  test(`${name} repository contract`, () =>
+    repositoryContract(implementation, {
       name,
       path,
       create,
       reset: () => reset(path),
       writeText: (source) => writeFile(path, source, "utf8"),
-    }),
-  );
+      writeBytes: (bytes) => writeFile(path, bytes),
+    }));
 }
 
-testSolution("Bun Markdown rejects corrupt persisted data", () => {
-  const path = `${ROOT}/corrupt.md`;
-  return markdownCorruptionContract({
-    name: "Bun Markdown",
-    path,
-    create: (value) => new BunMarkdownRepository(value),
-    reset: () => reset(path),
-    writeText: (source) => writeFile(path, source, "utf8"),
-  });
+test(`${selection} Bun Markdown rejects corrupt persisted data`, () =>
+  markdownCorruptionContract(implementation, markdownHarness(`${ROOT}/corrupt.md`)));
+test(`${selection} Bun Markdown drains accepted writes on close`, () =>
+  markdownCloseContract(implementation, markdownHarness(`${ROOT}/close.md`)));
+
+test(`${selection} Bun Markdown publication is exclusive, mode 0600, and symlink-safe`, async () => {
+  const publish =
+    selection === "starter"
+      ? starterBunMarkdown.publishBunMarkdownAtomically
+      : solutionBunMarkdown.publishBunMarkdownAtomically;
+  const target = `${ROOT}/publication.md`;
+  const temporary = `${ROOT}/publication.tmp`;
+  const victim = `${ROOT}/victim.txt`;
+  await reset(target);
+  await rm(temporary, { force: true });
+  await writeFile(victim, "untouched", "utf8");
+  await symlink("victim.txt", temporary);
+  await assertRejects(
+    () => publish(target, "must not follow\n", temporary),
+    implementation.StorageError,
+  );
+  assert((await lstat(temporary)).isSymbolicLink());
+  expect(await readFile(victim, "utf8")).toBe("untouched");
+  await rm(temporary);
+  await publish(target, "published\n", temporary);
+  expect((await stat(target)).mode & 0o777).toBe(0o600);
+  expect(await readFile(target, "utf8")).toBe("published\n");
 });
 
-testSolution("Bun SQLite rejects unsupported schema versions", async () => {
+test(`${selection} Bun SQLite rejects schema versions`, async () => {
   const path = `${ROOT}/schema.db`;
   await reset(path);
-  const database = new Database(path, { create: true, strict: true });
+  const database = new Database(path, {
+    create: true,
+    strict: true,
+    safeIntegers: true,
+  });
   database.exec("PRAGMA user_version = 99");
   database.close();
-  await assertRejects(async () => new BunSqliteRepository(path), StorageError);
+  await assertRejects(
+    async () => new SelectedSqlite(path),
+    implementation.StorageError,
+  );
 });
 
-testSolution("Bun SQLite rejects IDs outside the safe integer range", async () => {
+test(`${selection} Bun SQLite rejects unsafe IDs`, async () => {
   const path = `${ROOT}/unsafe-id.db`;
   await reset(path);
-  const repository = new BunSqliteRepository(path);
+  const repository = new SelectedSqlite(path);
   await repository.close();
   const database = new Database(path, {
     create: true,
@@ -97,33 +194,59 @@ testSolution("Bun SQLite rejects IDs outside the safe integer range", async () =
     .query("INSERT INTO tasks(id, title, completed) VALUES (?, ?, 0)")
     .run(9_007_199_254_740_992n, "Unsafe");
   database.close();
-  const reopened = new BunSqliteRepository(path);
+  const reopened = new SelectedSqlite(path);
   try {
-    await assertRejects(() => reopened.list({}), StorageError);
+    await assertRejects(() => reopened.list({}), implementation.StorageError);
   } finally {
     await reopened.close();
   }
 });
 
 for (const [name, extension, create] of [
-  ["Bun SQLite server", "db", (path: string) => new BunSqliteRepository(path)],
-  ["Bun Markdown server", "md", (path: string) => new BunMarkdownRepository(path)],
+  [`${selection} Bun SQLite server`, "db", (path: string) => new SelectedSqlite(path)],
+  [
+    `${selection} Bun Markdown server`,
+    "md",
+    (path: string) => new SelectedMarkdown(path),
+  ],
 ] as const) {
   const path = `${ROOT}/server-${extension}.${extension}`;
-  testSolution(`${name} loopback contract`, () =>
-    serverContract({
+  test(`${name} loopback contract`, () =>
+    serverContract(implementation, {
       name,
       path,
       createRepository: create,
-      start: (service) => startBunServer({ service, port: 0 }),
+      start:
+        selection === "starter"
+          ? (repository) =>
+              Promise.resolve(
+                starterBun.startBunServer({
+                  service: new starterCore.TaskService(repository),
+                  port: 0,
+                }),
+              )
+          : (repository) =>
+              Promise.resolve(
+                solutionBun.startBunServer({
+                  service: new solutionCore.TaskService(repository),
+                  port: 0,
+                }),
+              ),
       reset: () => reset(path),
-    }),
-  );
+    }));
 }
 
 for (const [name, extension, create] of [
-  ["starter Bun SQLite", "db", (path: string) => new StarterSqlite(path)],
-  ["starter Bun Markdown", "md", (path: string) => new StarterMarkdown(path)],
+  [
+    "starter Bun SQLite",
+    "db",
+    (path: string) => new starterBun.BunSqliteRepository(path),
+  ],
+  [
+    "starter Bun Markdown",
+    "md",
+    (path: string) => new starterBun.BunMarkdownRepository(path),
+  ],
 ] as const) {
   const path = `${ROOT}/${name.replaceAll(" ", "-")}.${extension}`;
   test(`${name} is visibly incomplete without storage effects`, async () => {

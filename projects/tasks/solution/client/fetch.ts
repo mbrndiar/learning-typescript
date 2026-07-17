@@ -1,21 +1,26 @@
 import {
   ApiError,
-  type ApiErrorCode,
   ClientProtocolError,
   ClientTransportError,
-  type CreateTaskDto,
-  type ErrorDetails,
   parseCreateTaskDto,
   parseTask,
   parseTaskList,
   parseUpdateTaskDto,
+  validateTaskId,
+  type ApiErrorCode,
+  type CreateTaskDto,
+  type ErrorDetails,
   type Task,
   type TaskClient,
   type TaskFilter,
   type UpdateTaskDto,
-  validateTaskId,
 } from "../core/index.ts";
-import { MAX_RESPONSE_BYTES, parseResponseJson, readBoundedStream } from "../core/json.ts";
+import {
+  BodyLimitError,
+  MAX_RESPONSE_BYTES,
+  parseResponseJson,
+  readBoundedStream,
+} from "../core/json.ts";
 
 export interface FetchClientOptions {
   readonly baseUrl: string | URL;
@@ -180,7 +185,13 @@ export class FetchTaskClient implements TaskClient {
       try {
         bytes = await readBoundedStream(response.body, this.#maximumResponseBytes);
       } catch (error) {
-        throw new ClientProtocolError("response body exceeds the size limit", error);
+        if (error instanceof BodyLimitError) {
+          throw new ClientProtocolError("response body exceeds the size limit", error);
+        }
+        if (controller.signal.aborted) {
+          throw new ClientTransportError("request timed out", error);
+        }
+        throw new ClientTransportError("response body stream failed", error);
       }
       if (response.status !== expectedStatus) {
         requireJsonContentType(response);
@@ -195,7 +206,11 @@ export class FetchTaskClient implements TaskClient {
       requireJsonContentType(response);
       return parseResponseJson(bytes);
     } catch (error) {
-      if (error instanceof ApiError || error instanceof ClientProtocolError) {
+      if (
+        error instanceof ApiError ||
+        error instanceof ClientProtocolError ||
+        error instanceof ClientTransportError
+      ) {
         throw error;
       }
       if (controller.signal.aborted) {

@@ -10,6 +10,7 @@ import {
   validateTitle,
 } from "../../core/index.ts";
 import {
+  decodeMarkdownBytes,
   initialMarkdownState,
   type MarkdownState,
   parseMarkdownDocument,
@@ -89,6 +90,7 @@ export class DenoMarkdownRepository implements TaskRepository {
   readonly #path: string;
   readonly #serial = new SerialExecutor();
   #closed = false;
+  #closePromise: Promise<void> | undefined;
 
   constructor(path: string) {
     this.#path = path;
@@ -100,7 +102,9 @@ export class DenoMarkdownRepository implements TaskRepository {
 
   async #load(): Promise<MarkdownState> {
     try {
-      return parseMarkdownDocument(await Deno.readTextFile(this.#path));
+      return parseMarkdownDocument(
+        decodeMarkdownBytes(await Deno.readFile(this.#path)),
+      );
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
         const state = initialMarkdownState();
@@ -203,7 +207,11 @@ export class DenoMarkdownRepository implements TaskRepository {
     });
   }
 
-  async close(): Promise<void> {
-    this.#closed = true;
+  close(): Promise<void> {
+    if (this.#closePromise === undefined) {
+      this.#closed = true;
+      this.#closePromise = this.#serial.drain();
+    }
+    return this.#closePromise;
   }
 }

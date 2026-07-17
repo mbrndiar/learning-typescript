@@ -17,6 +17,9 @@ layer.
 The machine-readable HTTP shapes live in
 [`openapi.yaml`](openapi.yaml). This document explains how those shapes,
 persistence rules, clients, and implementation choices fit together.
+OpenAPI describes the portable structural shapes; the semantic rules in this
+specification additionally require safe positive IDs, trimmed control-free
+titles, and the documented `Allow` header values.
 
 ## An end-to-end example
 

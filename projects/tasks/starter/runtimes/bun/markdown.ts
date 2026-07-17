@@ -6,6 +6,14 @@ import {
   type UpdateTaskDto,
 } from "../../core/index.ts";
 
+export function publishBunMarkdownAtomically(
+  _path: string,
+  _source: string,
+  _temporaryOverride?: string,
+): Promise<void> {
+  return Promise.reject(new IncompleteProjectError("Bun atomic Markdown publication"));
+}
+
 export class BunMarkdownRepository implements TaskRepository {
   constructor(_path: string) {}
   create(_title: string): Promise<Task> {

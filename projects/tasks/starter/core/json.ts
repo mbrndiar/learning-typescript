@@ -1,7 +1,16 @@
-import { IncompleteProjectError } from "./index.ts";
+import { IncompleteProjectError, ValidationError } from "./index.ts";
 
 export const MAX_REQUEST_BYTES = 64 * 1024;
 export const MAX_RESPONSE_BYTES = 1024 * 1024;
+export const MAX_JSON_NESTING = 64;
+
+export class BodyLimitError extends ValidationError {
+  constructor(maximumBytes: number, cause?: unknown) {
+    super(`body exceeds ${maximumBytes} bytes`);
+    this.name = "BodyLimitError";
+    if (cause !== undefined) this.cause = cause;
+  }
+}
 
 export function parseStrictJsonBytes(
   _bytes: Uint8Array,

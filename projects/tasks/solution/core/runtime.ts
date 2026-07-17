@@ -51,3 +51,13 @@ export interface RunningServer {
   readonly finished: Promise<void>;
   close(): Promise<void>;
 }
+
+export function formatServerUrl(hostname: string, port: number): string {
+  const host =
+    hostname.startsWith("[") && hostname.endsWith("]")
+      ? hostname
+      : hostname.includes(":")
+        ? `[${hostname}]`
+        : hostname;
+  return `http://${host}:${port}`;
+}

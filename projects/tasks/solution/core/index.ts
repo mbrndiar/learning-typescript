@@ -155,7 +155,9 @@ export function validateTitle(value: unknown): string {
       const codePoint = character.codePointAt(0);
       return (
         codePoint !== undefined &&
-        (codePoint <= 0x1f || (codePoint >= 0x7f && codePoint <= 0x9f))
+        (codePoint <= 0x1f ||
+          (codePoint >= 0x7f && codePoint <= 0x9f) ||
+          (codePoint >= 0xd800 && codePoint <= 0xdfff))
       );
     })
   ) {
@@ -238,6 +240,9 @@ export function parseTask(value: unknown): Task {
     !keys.includes("completed")
   ) {
     throw new ClientProtocolError("response task has an unexpected shape");
+  }
+  if (typeof value.id !== "number") {
+    throw new ClientProtocolError("response task id must be a JSON number");
   }
   let id: number;
   let title: string;

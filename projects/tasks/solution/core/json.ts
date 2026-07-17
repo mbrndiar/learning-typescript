@@ -2,6 +2,15 @@ import { ClientProtocolError, ValidationError } from "./index.ts";
 
 export const MAX_REQUEST_BYTES = 64 * 1024;
 export const MAX_RESPONSE_BYTES = 1024 * 1024;
+export const MAX_JSON_NESTING = 64;
+
+export class BodyLimitError extends ValidationError {
+  constructor(maximumBytes: number, cause?: unknown) {
+    super(`body exceeds ${maximumBytes} bytes`);
+    this.name = "BodyLimitError";
+    if (cause !== undefined) this.cause = cause;
+  }
+}
 
 class StrictJsonParser {
   readonly #source: string;
@@ -13,7 +22,7 @@ class StrictJsonParser {
 
   parse(): unknown {
     this.#skipWhitespace();
-    const value = this.#parseValue();
+    const value = this.#parseValue(0);
     this.#skipWhitespace();
     if (this.#position !== this.#source.length) {
       throw new SyntaxError("unexpected data after JSON value");
@@ -21,10 +30,13 @@ class StrictJsonParser {
     return value;
   }
 
-  #parseValue(): unknown {
+  #parseValue(depth: number): unknown {
+    if (depth > MAX_JSON_NESTING) {
+      throw new SyntaxError(`JSON nesting exceeds ${MAX_JSON_NESTING}`);
+    }
     const character = this.#source[this.#position];
-    if (character === "{") return this.#parseObject();
-    if (character === "[") return this.#parseArray();
+    if (character === "{") return this.#parseObject(depth);
+    if (character === "[") return this.#parseArray(depth);
     if (character === '"') return this.#parseString();
     if (character === "t") return this.#parseLiteral("true", true);
     if (character === "f") return this.#parseLiteral("false", false);
@@ -32,7 +44,7 @@ class StrictJsonParser {
     return this.#parseNumber();
   }
 
-  #parseObject(): Record<string, unknown> {
+  #parseObject(depth: number): Record<string, unknown> {
     this.#position += 1;
     this.#skipWhitespace();
     const result: Record<string, unknown> = Object.create(null);
@@ -53,7 +65,7 @@ class StrictJsonParser {
       this.#skipWhitespace();
       this.#expect(":");
       this.#skipWhitespace();
-      result[key] = this.#parseValue();
+      result[key] = this.#parseValue(depth + 1);
       this.#skipWhitespace();
       const separator = this.#source[this.#position];
       if (separator === "}") {
@@ -65,7 +77,7 @@ class StrictJsonParser {
     }
   }
 
-  #parseArray(): unknown[] {
+  #parseArray(depth: number): unknown[] {
     this.#position += 1;
     this.#skipWhitespace();
     const result: unknown[] = [];
@@ -74,7 +86,7 @@ class StrictJsonParser {
       return result;
     }
     while (true) {
-      result.push(this.#parseValue());
+      result.push(this.#parseValue(depth + 1));
       this.#skipWhitespace();
       const separator = this.#source[this.#position];
       if (separator === "]") {
@@ -198,8 +210,12 @@ export async function readBoundedStream(
       if (result.done) break;
       length += result.value.byteLength;
       if (length > maximumBytes) {
-        await reader.cancel("body too large");
-        throw new ValidationError(`body exceeds ${maximumBytes} bytes`);
+        try {
+          await reader.cancel("body too large");
+        } catch (error) {
+          throw new BodyLimitError(maximumBytes, error);
+        }
+        throw new BodyLimitError(maximumBytes);
       }
       chunks.push(result.value);
     }

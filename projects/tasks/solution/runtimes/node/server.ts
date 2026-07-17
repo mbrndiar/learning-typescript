@@ -8,7 +8,7 @@ import {
 import { LifecycleError, ValidationError, type TaskService } from "../../core/index.ts";
 import { dispatchHttp, type HttpResponse } from "../../core/http.ts";
 import { MAX_REQUEST_BYTES } from "../../core/json.ts";
-import type { RunningServer } from "../../core/runtime.ts";
+import { formatServerUrl, type RunningServer } from "../../core/runtime.ts";
 
 export interface NodeServerOptions {
   readonly service: TaskService;
@@ -147,7 +147,7 @@ export async function startNodeServer(
     server.once("error", reject);
   });
   return Object.freeze({
-    url: `http://${hostname}:${port}`,
+    url: formatServerUrl(hostname, port),
     finished,
     close(): Promise<void> {
       if (closePromise !== undefined) return closePromise;

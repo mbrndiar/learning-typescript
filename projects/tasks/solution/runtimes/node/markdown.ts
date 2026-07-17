@@ -13,6 +13,7 @@ import {
   type UpdateTaskDto,
 } from "../../core/index.ts";
 import {
+  decodeMarkdownBytes,
   initialMarkdownState,
   parseMarkdownDocument,
   serializeMarkdownDocument,
@@ -90,6 +91,7 @@ export class NodeMarkdownRepository implements TaskRepository {
   readonly #path: string;
   readonly #serial = new SerialExecutor();
   #closed = false;
+  #closePromise: Promise<void> | undefined;
 
   constructor(path: string) {
     this.#path = path;
@@ -101,8 +103,7 @@ export class NodeMarkdownRepository implements TaskRepository {
 
   async #load(): Promise<MarkdownState> {
     try {
-      const source = await readFile(this.#path, "utf8");
-      return parseMarkdownDocument(source);
+      return parseMarkdownDocument(decodeMarkdownBytes(await readFile(this.#path)));
     } catch (error) {
       if (errorCode(error) === "ENOENT") {
         const state = initialMarkdownState();
@@ -204,7 +205,11 @@ export class NodeMarkdownRepository implements TaskRepository {
     });
   }
 
-  async close(): Promise<void> {
-    this.#closed = true;
+  close(): Promise<void> {
+    if (this.#closePromise === undefined) {
+      this.#closed = true;
+      this.#closePromise = this.#serial.drain();
+    }
+    return this.#closePromise;
   }
 }

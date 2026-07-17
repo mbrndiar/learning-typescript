@@ -1,4 +1,4 @@
-import { rename } from "node:fs/promises";
+import { open, readFile, rename, unlink } from "node:fs/promises";
 import {
   LifecycleError,
   StorageError,
@@ -11,6 +11,7 @@ import {
   type UpdateTaskDto,
 } from "../../core/index.ts";
 import {
+  decodeMarkdownBytes,
   initialMarkdownState,
   parseMarkdownDocument,
   serializeMarkdownDocument,
@@ -30,26 +31,72 @@ function fileName(path: string): string {
   return path.slice(index + 1);
 }
 
-async function publishAtomically(path: string, source: string): Promise<void> {
+function errorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+  return typeof error.code === "string" ? error.code : undefined;
+}
+
+async function removeTemporary(path: string): Promise<void> {
+  try {
+    await unlink(path);
+  } catch (error) {
+    if (errorCode(error) !== "ENOENT") throw error;
+  }
+}
+
+export async function publishBunMarkdownAtomically(
+  path: string,
+  source: string,
+  temporaryOverride?: string,
+): Promise<void> {
   const parent = parentDirectory(path);
   temporarySequence += 1;
-  const temporary = `${parent}/.${fileName(path)}.${process.pid}.${temporarySequence}.tmp`;
+  const temporary =
+    temporaryOverride ??
+    `${parent}/.${fileName(path)}.${process.pid}.${temporarySequence}.tmp`;
+  let handle;
+  let created = false;
+  let closeAttempted = false;
   try {
-    await Bun.write(temporary, source, { createPath: false });
+    handle = await open(temporary, "wx", 0o600);
+    created = true;
+    await handle.chmod(0o600);
+    await handle.writeFile(source, { encoding: "utf8" });
+    await handle.sync();
+    closeAttempted = true;
+    await handle.close();
+    handle = undefined;
     await rename(temporary, path);
-  } catch (error) {
+    const directory = await open(parent, "r");
     try {
-      await Bun.file(temporary).delete();
-    } catch (cleanupError) {
-      if (await Bun.file(temporary).exists()) {
+      await directory.sync();
+    } finally {
+      await directory.close();
+    }
+  } catch (error) {
+    let failure = error;
+    if (handle !== undefined && !closeAttempted) {
+      closeAttempted = true;
+      try {
+        await handle.close();
+      } catch (closeError) {
+        failure = new AggregateError([error, closeError]);
+      }
+    }
+    if (created) {
+      try {
+        await removeTemporary(temporary);
+      } catch (cleanupError) {
         throw new StorageError(
           "write markdown",
           "write and cleanup both failed",
-          new AggregateError([error, cleanupError]),
+          new AggregateError([failure, cleanupError]),
         );
       }
     }
-    throw new StorageError("write markdown", "atomic publication failed", error);
+    throw new StorageError("write markdown", "atomic publication failed", failure);
   }
 }
 
@@ -57,6 +104,7 @@ export class BunMarkdownRepository implements TaskRepository {
   readonly #path: string;
   readonly #serial = new SerialExecutor();
   #closed = false;
+  #closePromise: Promise<void> | undefined;
 
   constructor(path: string) {
     this.#path = path;
@@ -68,14 +116,16 @@ export class BunMarkdownRepository implements TaskRepository {
 
   async #load(): Promise<MarkdownState> {
     try {
-      const file = Bun.file(this.#path);
-      if (!(await file.exists())) {
+      return parseMarkdownDocument(decodeMarkdownBytes(await readFile(this.#path)));
+    } catch (error) {
+      if (errorCode(error) === "ENOENT") {
         const state = initialMarkdownState();
-        await publishAtomically(this.#path, serializeMarkdownDocument(state));
+        await publishBunMarkdownAtomically(
+          this.#path,
+          serializeMarkdownDocument(state),
+        );
         return state;
       }
-      return parseMarkdownDocument(await file.text());
-    } catch (error) {
       if (error instanceof StorageError) throw error;
       throw new StorageError("read markdown", "could not load document", error);
     }
@@ -94,7 +144,7 @@ export class BunMarkdownRepository implements TaskRepository {
         title,
         completed: false,
       });
-      await publishAtomically(
+      await publishBunMarkdownAtomically(
         this.#path,
         serializeMarkdownDocument({
           nextId: state.nextId + 1,
@@ -147,7 +197,7 @@ export class BunMarkdownRepository implements TaskRepository {
       });
       const tasks = [...state.tasks];
       tasks[index] = task;
-      await publishAtomically(
+      await publishBunMarkdownAtomically(
         this.#path,
         serializeMarkdownDocument({
           nextId: state.nextId,
@@ -165,14 +215,18 @@ export class BunMarkdownRepository implements TaskRepository {
       const state = await this.#load();
       const tasks = state.tasks.filter((task) => task.id !== id);
       if (tasks.length === state.tasks.length) throw new TaskNotFoundError(id);
-      await publishAtomically(
+      await publishBunMarkdownAtomically(
         this.#path,
         serializeMarkdownDocument({ nextId: state.nextId, tasks }),
       );
     });
   }
 
-  async close(): Promise<void> {
-    this.#closed = true;
+  close(): Promise<void> {
+    if (this.#closePromise === undefined) {
+      this.#closed = true;
+      this.#closePromise = this.#serial.drain();
+    }
+    return this.#closePromise;
   }
 }

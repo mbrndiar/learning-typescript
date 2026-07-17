@@ -21,6 +21,11 @@ The contract supports `add`, `list`, `show`, `update`, `complete`, and `remove`.
 It deliberately excludes frameworks, ORMs, authentication, retries, UI, and
 deployment.
 
+OpenAPI supplies the cross-language structural shapes. The SPEC supplements
+those shapes with semantic requirements that OpenAPI does not fully encode:
+JavaScript-safe positive IDs, trimmed control- and surrogate-free titles, and
+exact `Allow` headers.
+
 ## Architecture
 
 `starter/` and `solution/` have matching public trees:
@@ -80,7 +85,7 @@ node --experimental-strip-types \
 
 ```bash
 deno run \
-  --lock=deno.lock \
+  --lock=projects/tasks/deno.lock \
   --allow-net=127.0.0.1 \
   --allow-read=projects/tasks/.test-data/run \
   --allow-write=projects/tasks/.test-data/run \
@@ -88,7 +93,7 @@ deno run \
   --backend markdown --data projects/tasks/.test-data/run/deno.md --port 8000
 
 deno run \
-  --lock=deno.lock \
+  --lock=projects/tasks/deno.lock \
   --allow-net=127.0.0.1 \
   projects/tasks/solution/runtimes/deno/cli-main.ts \
   --base-url http://127.0.0.1:8000 list
@@ -100,23 +105,20 @@ permissions are the three loader environment variables, FFI, and read access to
 the loader cache; a file database also needs scoped data access:
 
 ```bash
-deno_dir="${DENO_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/deno}"
+export DENO_DIR="${DENO_DIR:-$HOME/.cache/deno}"
 deno run \
-  --lock=deno.lock \
-  --allow-net=127.0.0.1,github.com,release-assets.githubusercontent.com \
-  --allow-env=DENO_DIR,XDG_CACHE_HOME,HOME,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL \
+  --lock=projects/tasks/deno.lock \
+  --allow-net=127.0.0.1 \
+  --allow-env=DENO_DIR,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL \
   --allow-ffi \
-  --allow-read="$deno_dir/plug" \
-  --allow-read=projects/tasks/.test-data/run \
-  --allow-write="$deno_dir/plug" \
+  --allow-read="$DENO_DIR/plug,projects/tasks/.test-data/run" \
   --allow-write=projects/tasks/.test-data/run \
   projects/tasks/solution/runtimes/deno/api-main.ts \
   --backend sqlite --data projects/tasks/.test-data/run/deno.db --port 8000
 ```
 
-An uncached native library also needs the scoped GitHub network and
-`$deno_dir/plug` cache-write grants shown above. Root Deno Tasks commands use
-the same narrow grants with the default cache location.
+An uncached first download needs temporary network/cache-write permission; the
+upstream package documents `-A` as the portable bootstrap invocation.
 
 ```bash
 bun projects/tasks/solution/runtimes/bun/api-main.ts \
@@ -131,20 +133,41 @@ backends are independent and do not synchronize data.
 
 ## Direct validation
 
-The root commands select `starter` by default and `solution` in CI:
+These commands need no root script changes:
 
 ```bash
-TASKS_IMPLEMENTATION=solution npm run check:tasks:node
-TASKS_IMPLEMENTATION=solution deno task tasks:check
-TASKS_IMPLEMENTATION=solution npm run check:tasks:bun
-npm run portability:tasks
-npm run test:tasks:interoperability
+node --experimental-strip-types --test projects/tasks/tests/node.test.ts
+deno test -A --lock=projects/tasks/deno.lock projects/tasks/tests/deno.test.ts
+bun test projects/tasks/tests/bun.test.ts
+
+node --experimental-strip-types projects/tasks/tests/interoperability.ts
+
+deno check --lock=projects/tasks/deno.lock \
+  projects/tasks/solution/runtimes/deno/api-main.ts \
+  projects/tasks/solution/runtimes/deno/cli-main.ts \
+  projects/tasks/tests/deno.test.ts
+
+bun build projects/tasks/solution/runtimes/bun/api-main.ts \
+  projects/tasks/solution/runtimes/bun/cli-main.ts \
+  --target=bun --outdir=projects/tasks/.test-data/bun-build
 ```
 
-`deno.lock` is the one frozen root lockfile for the course and this project;
-there is no project-local Deno lockfile. The finite interoperability command
-starts six server/backend cells and nine cross-runtime SQLite client/server
-cells. Start a starter entry point to see the deliberate incomplete failure:
+The wrappers default to `TASKS_IMPLEMENTATION=solution`. A completed learner
+tree runs the same substantive contracts with:
+
+```bash
+TASKS_IMPLEMENTATION=starter \
+  node --experimental-strip-types --test projects/tasks/tests/node.test.ts
+TASKS_IMPLEMENTATION=starter \
+  deno test -A --lock=projects/tasks/deno.lock projects/tasks/tests/deno.test.ts
+TASKS_IMPLEMENTATION=starter bun test projects/tasks/tests/bun.test.ts
+```
+
+The untouched starter intentionally fails those substantive contracts with
+`IncompleteProjectError`; separate checks verify that its constructors and
+operations remain side-effect-free.
+
+Start a starter entry point to see the deliberate incomplete failure:
 
 ```bash
 node --experimental-strip-types \
@@ -154,11 +177,12 @@ node --experimental-strip-types \
 ## Persistence and lifecycle limits
 
 - SQLite uses schema version `1`, `AUTOINCREMENT`, checked Boolean storage,
-  parameterized statements, and short mutation transactions. Node enables
-  defensive mode twice for version compatibility, sets a 5-second busy timeout,
-  and reads statement integers as `bigint`; Bun enables strict and safe-integer
-  modes; Deno enables `int64`, finalizes every statement, and uses immediate
-  native transaction wrappers. Every adapter narrows IDs back to safe numbers.
+  parameterized statements, and short mutation transactions. Node
+  feature-detects defensive mode across supported Node 24+ releases, sets a
+  5-second busy timeout, and reads statement integers as `bigint`; Bun enables
+  strict and safe-integer modes; Deno enables `int64`, finalizes every statement,
+  and uses immediate native transaction wrappers. Every adapter narrows IDs back
+  to safe numbers.
 - Markdown uses exactly
   `<!-- rest-task-api:v1 next-id=N -->`, ordered checklist rows, one final
   newline, a sibling temporary file, close/flush where exposed, and atomic
@@ -169,10 +193,18 @@ node --experimental-strip-types \
 - Servers bind to loopback in examples. They are educational, not production
   deployment guidance.
 
-## Course integration
+## Root integration intentionally deferred
 
-The root configuration runs strict Node and Bun type checks, native runtime
-tests, Deno formatting/linting/checking/docs/audits, an OpenAPI 3.1 parser
-check, a Node coverage gate, and portable/core plus subprocess interoperability
-evidence. The project uses no framework, ORM, or runtime dependency beyond
-Deno's pinned `jsr:@db/sqlite@0.13.0` adapter.
+The project is directly runnable, but the repository owner still needs to:
+
+1. include `projects/tasks` in the Node and Bun TypeScript configurations;
+2. add root format, lint, type-check, test, coverage, and interoperability
+   scripts;
+3. merge the project-local Deno lock entries into the chosen root lock/task
+   workflow;
+4. integrate OpenAPI validation with exact
+   `@readme/openapi-parser@6.3.0`; and
+5. link the project from the renumbered curriculum and root course docs.
+
+Those files are intentionally untouched because they are owned by concurrent
+integration work.

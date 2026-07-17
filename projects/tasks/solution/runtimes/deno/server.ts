@@ -1,7 +1,7 @@
 import { type TaskService, ValidationError } from "../../core/index.ts";
 import { dispatchHttp, type HttpResponse } from "../../core/http.ts";
 import { MAX_REQUEST_BYTES, readBoundedStream } from "../../core/json.ts";
-import type { RunningServer } from "../../core/runtime.ts";
+import { formatServerUrl, type RunningServer } from "../../core/runtime.ts";
 
 export interface DenoServerOptions {
   readonly service: TaskService;
@@ -81,7 +81,7 @@ export async function startDenoServer(
   const port = await ready;
   let closePromise: Promise<void> | undefined;
   return Object.freeze({
-    url: `http://${hostname}:${port}`,
+    url: formatServerUrl(hostname, port),
     finished: server.finished,
     close(): Promise<void> {
       if (closePromise !== undefined) return closePromise;

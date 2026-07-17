@@ -57,10 +57,18 @@ function changes(result: StatementResultingChanges): number {
 
 function openDatabase(path: string): DatabaseSync {
   try {
-    return new DatabaseSync(path, { defensive: true });
+    return new DatabaseSync(path);
   } catch (error) {
     throw new StorageError("open sqlite", "could not open database", error);
   }
+}
+
+export function enableNodeDefensiveMode(database: {
+  enableDefensive?: (enabled: boolean) => void;
+}): boolean {
+  if (typeof database.enableDefensive !== "function") return false;
+  database.enableDefensive(true);
+  return true;
 }
 
 export class NodeSqliteRepository implements TaskRepository {
@@ -70,7 +78,7 @@ export class NodeSqliteRepository implements TaskRepository {
   constructor(path: string) {
     this.#database = openDatabase(path);
     try {
-      this.#database.enableDefensive(true);
+      enableNodeDefensiveMode(this.#database);
       this.#database.exec("PRAGMA busy_timeout = 5000");
       this.#initialize();
     } catch (error) {

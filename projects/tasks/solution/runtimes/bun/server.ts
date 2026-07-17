@@ -1,7 +1,7 @@
-import { ValidationError, type TaskService } from "../../core/index.ts";
+import { LifecycleError, ValidationError, type TaskService } from "../../core/index.ts";
 import { dispatchHttp, type HttpResponse } from "../../core/http.ts";
 import { MAX_REQUEST_BYTES, readBoundedStream } from "../../core/json.ts";
-import type { RunningServer } from "../../core/runtime.ts";
+import { formatServerUrl, type RunningServer } from "../../core/runtime.ts";
 
 export interface BunServerOptions {
   readonly service: TaskService;
@@ -69,9 +69,13 @@ export function startBunServer(options: BunServerOptions): RunningServer {
       }
     },
   });
+  if (server.port === undefined) {
+    void server.stop(true);
+    throw new LifecycleError("Bun server has no TCP port");
+  }
   let closePromise: Promise<void> | undefined;
   return Object.freeze({
-    url: `http://${hostname}:${server.port}`,
+    url: formatServerUrl(hostname, server.port),
     finished,
     close(): Promise<void> {
       if (closePromise !== undefined) return closePromise;
