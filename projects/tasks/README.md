@@ -113,6 +113,9 @@ Set `DENO_DIR` explicitly to use another cache root. A direct SQLite server
 needs FFI, the named loader variables, scoped loopback/GitHub access, and
 read/write access to its selected cache's `plug` directory:
 
+An empty `DENO_DIR` or `XDG_CACHE_HOME` is treated as unset, matching Deno's
+cache resolution.
+
 ```bash
 # POSIX shells
 DENO_DIR=/absolute/path/to/deno-cache deno task tasks:test

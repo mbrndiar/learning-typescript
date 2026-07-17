@@ -1,14 +1,19 @@
-function requiredEnvironment(name: string): string {
+function optionalEnvironment(name: string): string | undefined {
   const value = Deno.env.get(name);
-  if (value === undefined || value.length === 0) {
+  return value === undefined || value.length === 0 ? undefined : value;
+}
+
+function requiredEnvironment(name: string): string {
+  const value = optionalEnvironment(name);
+  if (value === undefined) {
     throw new Error(`set ${name} or DENO_DIR before running Tasks Deno tests`);
   }
   return value;
 }
 
 function defaultDenoDirectory(): string {
-  const explicit = Deno.env.get("DENO_DIR");
-  if (explicit !== undefined && explicit.length > 0) return explicit;
+  const explicit = optionalEnvironment("DENO_DIR");
+  if (explicit !== undefined) return explicit;
 
   if (Deno.build.os === "windows") {
     return `${requiredEnvironment("LOCALAPPDATA")}\\deno`;
@@ -16,7 +21,7 @@ function defaultDenoDirectory(): string {
   if (Deno.build.os === "darwin") {
     return `${requiredEnvironment("HOME")}/Library/Caches/deno`;
   }
-  const cacheDirectory = Deno.env.get("XDG_CACHE_HOME");
+  const cacheDirectory = optionalEnvironment("XDG_CACHE_HOME");
   return `${cacheDirectory ?? `${requiredEnvironment("HOME")}/.cache`}/deno`;
 }
 

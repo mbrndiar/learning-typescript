@@ -10,27 +10,37 @@ const DEADLINE_MS = 10_000;
 type Runtime = "node" | "deno" | "bun";
 type Backend = "sqlite" | "markdown";
 
+function optionalEnvironment(name: string): string | undefined {
+  const value = process.env[name];
+  return value === undefined || value.length === 0 ? undefined : value;
+}
+
 function denoDirectory(): string {
-  if (process.env.DENO_DIR !== undefined) return process.env.DENO_DIR;
+  const explicit = optionalEnvironment("DENO_DIR");
+  if (explicit !== undefined) return explicit;
   if (process.platform === "win32") {
-    if (process.env.LOCALAPPDATA === undefined) {
+    const localAppData = optionalEnvironment("LOCALAPPDATA");
+    if (localAppData === undefined) {
       throw new Error("DENO_DIR or LOCALAPPDATA must be set for Deno SQLite");
     }
-    return join(process.env.LOCALAPPDATA, "deno");
+    return join(localAppData, "deno");
   }
   if (process.platform === "darwin") {
-    if (process.env.HOME === undefined) {
+    const home = optionalEnvironment("HOME");
+    if (home === undefined) {
       throw new Error("DENO_DIR or HOME must be set for Deno SQLite");
     }
-    return join(process.env.HOME, "Library", "Caches", "deno");
+    return join(home, "Library", "Caches", "deno");
   }
-  if (process.env.XDG_CACHE_HOME !== undefined) {
-    return join(process.env.XDG_CACHE_HOME, "deno");
+  const cacheDirectory = optionalEnvironment("XDG_CACHE_HOME");
+  if (cacheDirectory !== undefined) {
+    return join(cacheDirectory, "deno");
   }
-  if (process.env.HOME === undefined) {
+  const home = optionalEnvironment("HOME");
+  if (home === undefined) {
     throw new Error("DENO_DIR, XDG_CACHE_HOME, or HOME must be set for Deno SQLite");
   }
-  return join(process.env.HOME, ".cache", "deno");
+  return join(home, ".cache", "deno");
 }
 
 function serverCommand(runtime: Runtime): readonly [string, ...string[]] {
