@@ -21,6 +21,12 @@ export interface TaskServer {
   close(): Promise<void>;
 }
 
+export interface StartTaskServerOptions {
+  readonly shutdownGracePeriodMs?: number;
+}
+
+const DEFAULT_SHUTDOWN_GRACE_PERIOD_MS = 1_000;
+
 export function parseCreateTask(value: unknown): CreateTask {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new TypeError("request body must be an object");
@@ -57,7 +63,12 @@ function sendJson(response: ServerResponse, status: number, value: unknown): voi
   response.end(`${JSON.stringify(value)}\n`);
 }
 
-export async function startTaskServer(): Promise<TaskServer> {
+export async function startTaskServer(
+  options: StartTaskServerOptions = {},
+): Promise<TaskServer> {
+  const shutdownGracePeriodMs = resolveShutdownGracePeriod(
+    options.shutdownGracePeriodMs,
+  );
   const tasks: Task[] = [];
   let nextId = 1;
   const server = createServer((request, response) => {
@@ -121,27 +132,39 @@ export async function startTaskServer(): Promise<TaskServer> {
     throw new Error("expected a TCP address");
   }
 
-  let closed = false;
+  let closing: Promise<void> | undefined;
   return {
     url: `http://127.0.0.1:${address.port}`,
-    close: async (): Promise<void> => {
-      if (closed) {
-        return;
-      }
-      await closeServer(server);
-      closed = true;
-    },
+    close: (): Promise<void> =>
+      (closing ??= closeServer(server, shutdownGracePeriodMs)),
   };
 }
 
-function closeServer(server: Server): Promise<void> {
+function resolveShutdownGracePeriod(value: number | undefined): number {
+  const gracePeriod = value ?? DEFAULT_SHUTDOWN_GRACE_PERIOD_MS;
+  if (!Number.isSafeInteger(gracePeriod) || gracePeriod < 0) {
+    throw new RangeError("shutdownGracePeriodMs must be a non-negative safe integer");
+  }
+  return gracePeriod;
+}
+
+function closeServer(server: Server, gracePeriodMs: number): Promise<void> {
   return new Promise((resolve, reject) => {
+    // Stop new connections and release idle keep-alive sockets immediately. A
+    // body still being streamed is active, so force it closed at the deadline.
+    const deadline = setTimeout(() => {
+      server.closeAllConnections();
+    }, gracePeriodMs);
+    deadline.unref();
+
     server.close((error) => {
+      clearTimeout(deadline);
       if (error === undefined) {
         resolve();
       } else {
         reject(error);
       }
     });
+    server.closeIdleConnections();
   });
 }
