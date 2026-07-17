@@ -1,0 +1,13 @@
+import { FetchTaskClient } from "../../client/fetch.ts";
+import { runCli } from "../../core/cli.ts";
+
+export function bunCliMain(args: readonly string[]): Promise<number> {
+  return runCli(args, (configuration) => new FetchTaskClient(configuration), {
+    stdout: (line) => console.log(line),
+    stderr: (line) => console.error(line),
+  });
+}
+
+if (import.meta.main) {
+  process.exitCode = await bunCliMain(Bun.argv.slice(2));
+}

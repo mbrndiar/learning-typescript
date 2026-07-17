@@ -1,0 +1,210 @@
+import { open, readFile, rename, unlink } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
+import process from "node:process";
+import {
+  LifecycleError,
+  StorageError,
+  TaskNotFoundError,
+  validateTaskId,
+  validateTitle,
+  type Task,
+  type TaskFilter,
+  type TaskRepository,
+  type UpdateTaskDto,
+} from "../../core/index.ts";
+import {
+  initialMarkdownState,
+  parseMarkdownDocument,
+  serializeMarkdownDocument,
+  SerialExecutor,
+  type MarkdownState,
+} from "../../storage/markdown.ts";
+
+let temporarySequence = 0;
+
+function errorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+  return typeof error.code === "string" ? error.code : undefined;
+}
+
+async function removeTemporary(path: string): Promise<void> {
+  try {
+    await unlink(path);
+  } catch (error) {
+    if (errorCode(error) !== "ENOENT") throw error;
+  }
+}
+
+async function publishAtomically(path: string, source: string): Promise<void> {
+  const parent = dirname(path);
+  temporarySequence += 1;
+  const temporary = join(
+    parent,
+    `.${basename(path)}.${process.pid}.${temporarySequence}.tmp`,
+  );
+  let handle;
+  let closeAttempted = false;
+  try {
+    handle = await open(temporary, "wx", 0o600);
+    await handle.writeFile(source, { encoding: "utf8" });
+    await handle.sync();
+    closeAttempted = true;
+    await handle.close();
+    handle = undefined;
+    await rename(temporary, path);
+    const directory = await open(parent, "r");
+    try {
+      await directory.sync();
+    } finally {
+      await directory.close();
+    }
+  } catch (error) {
+    if (handle !== undefined && !closeAttempted) {
+      closeAttempted = true;
+      try {
+        await handle.close();
+      } catch (closeError) {
+        throw new StorageError(
+          "write markdown",
+          "write and close both failed",
+          new AggregateError([error, closeError]),
+        );
+      }
+    }
+    try {
+      await removeTemporary(temporary);
+    } catch (cleanupError) {
+      throw new StorageError(
+        "write markdown",
+        "write and cleanup both failed",
+        new AggregateError([error, cleanupError]),
+      );
+    }
+    throw new StorageError("write markdown", "atomic publication failed", error);
+  }
+}
+
+export class NodeMarkdownRepository implements TaskRepository {
+  readonly #path: string;
+  readonly #serial = new SerialExecutor();
+  #closed = false;
+
+  constructor(path: string) {
+    this.#path = path;
+  }
+
+  #assertOpen(): void {
+    if (this.#closed) throw new LifecycleError("markdown repository is closed");
+  }
+
+  async #load(): Promise<MarkdownState> {
+    try {
+      const source = await readFile(this.#path, "utf8");
+      return parseMarkdownDocument(source);
+    } catch (error) {
+      if (errorCode(error) === "ENOENT") {
+        const state = initialMarkdownState();
+        await publishAtomically(this.#path, serializeMarkdownDocument(state));
+        return state;
+      }
+      if (error instanceof StorageError) throw error;
+      throw new StorageError("read markdown", "could not load document", error);
+    }
+  }
+
+  create(rawTitle: string): Promise<Task> {
+    this.#assertOpen();
+    const title = validateTitle(rawTitle);
+    return this.#serial.run(async () => {
+      const state = await this.#load();
+      if (!Number.isSafeInteger(state.nextId + 1)) {
+        throw new StorageError("create task", "task id space is exhausted");
+      }
+      const task = Object.freeze({
+        id: state.nextId,
+        title,
+        completed: false,
+      });
+      const next = Object.freeze({
+        nextId: state.nextId + 1,
+        tasks: Object.freeze([...state.tasks, task]),
+      });
+      await publishAtomically(this.#path, serializeMarkdownDocument(next));
+      return task;
+    });
+  }
+
+  list(filter: TaskFilter): Promise<readonly Task[]> {
+    this.#assertOpen();
+    return this.#serial.run(async () => {
+      const state = await this.#load();
+      return Object.freeze(
+        filter.completed === undefined
+          ? [...state.tasks]
+          : state.tasks.filter((task) => task.completed === filter.completed),
+      );
+    });
+  }
+
+  get(rawId: number): Promise<Task> {
+    this.#assertOpen();
+    const id = validateTaskId(rawId);
+    return this.#serial.run(async () => {
+      const state = await this.#load();
+      const task = state.tasks.find((candidate) => candidate.id === id);
+      if (task === undefined) throw new TaskNotFoundError(id);
+      return task;
+    });
+  }
+
+  update(rawId: number, update: UpdateTaskDto): Promise<Task> {
+    this.#assertOpen();
+    const id = validateTaskId(rawId);
+    const title = update.title === undefined ? undefined : validateTitle(update.title);
+    if (title === undefined && update.completed === undefined) {
+      throw new StorageError("update task", "update must not be empty");
+    }
+    return this.#serial.run(async () => {
+      const state = await this.#load();
+      const index = state.tasks.findIndex((task) => task.id === id);
+      const current = state.tasks[index];
+      if (current === undefined) throw new TaskNotFoundError(id);
+      const task = Object.freeze({
+        id,
+        title: title ?? current.title,
+        completed: update.completed ?? current.completed,
+      });
+      const tasks = [...state.tasks];
+      tasks[index] = task;
+      await publishAtomically(
+        this.#path,
+        serializeMarkdownDocument(
+          Object.freeze({ nextId: state.nextId, tasks: Object.freeze(tasks) }),
+        ),
+      );
+      return task;
+    });
+  }
+
+  delete(rawId: number): Promise<void> {
+    this.#assertOpen();
+    const id = validateTaskId(rawId);
+    return this.#serial.run(async () => {
+      const state = await this.#load();
+      const tasks = state.tasks.filter((task) => task.id !== id);
+      if (tasks.length === state.tasks.length) throw new TaskNotFoundError(id);
+      await publishAtomically(
+        this.#path,
+        serializeMarkdownDocument(
+          Object.freeze({ nextId: state.nextId, tasks: Object.freeze(tasks) }),
+        ),
+      );
+    });
+  }
+
+  async close(): Promise<void> {
+    this.#closed = true;
+  }
+}
