@@ -79,11 +79,13 @@ The project has three responsibilities:
 | HTTP clients | Command parsing, safe request construction, response validation, output, exit codes | Direct repository access or server internals |
 
 The core points inward: adapters depend on the core, while the core never
-imports Axum, Actix Web, or Reqwest. Rust modules, structs, enums, and narrow
-traits express these boundaries.
+imports `node:http`, `Deno.serve`, `Bun.serve`, or a runtime SQLite module.
+Read-only TypeScript interfaces, plain data, typed errors, and narrow structural
+ports express these boundaries.
 
-The Reqwest client interoperates with both servers. It is not paired with one
-framework and cannot rely on private Axum or Actix Web behavior.
+One shared Fetch client runs on Node, Deno, and Bun and interoperates with every
+native server. It is not paired with one runtime and cannot rely on private
+Node, Deno, or Bun server behavior.
 
 ## Task model
 
@@ -143,8 +145,9 @@ Both must pass the same repository contract.
 
 ### SQLite repository
 
-The SQLite implementation uses `rusqlite` with bundled SQLite and parameterized
-SQL. It stores tasks in one table with:
+The SQLite adapters use each runtime's maintained native binding—
+`node:sqlite` `DatabaseSync`, `jsr:@db/sqlite@0.13.0`, and `bun:sqlite`—with
+parameterized SQL. They store tasks in one table with:
 
 - an auto-incrementing integer primary key;
 - non-null title text; and
@@ -393,12 +396,12 @@ Observable behavior is shared; internal design is not. An implementation may
 choose names and decomposition that are idiomatic for its language and
 framework. In particular:
 
-- the repository abstraction is a narrow injected Rust trait;
-- domain values use structs with read-only public access;
+- the repository abstraction is a narrow injected TypeScript interface;
+- domain values use plain objects with read-only public fields;
 - route registration and dependency injection should follow the chosen
   framework's conventions;
-- asynchronous framework and client boundaries may coordinate a synchronous
-  repository without changing observable behavior;
+- asynchronous HTTP and client boundaries may coordinate synchronous native
+  SQLite operations without changing observable behavior;
 - SQL helper structure and private schema bootstrap functions are not part of
   the public contract; and
 - test utilities may call an in-process adapter or a real loopback server as
@@ -414,9 +417,11 @@ The project is complete when:
 
 - both repositories pass one shared create/list/get/update/delete contract,
   including persistence restart and corruption cases;
-- Axum and Actix Web pass the same black-box HTTP contract;
-- the Reqwest client passes the shared command/transport contract;
-- a one-client-by-two-server matrix proves Reqwest can call either server;
+- native Node, Deno, and Bun servers pass the same black-box HTTP contract;
+- the shared Fetch client passes the command/transport contract on all three
+  runtimes;
+- a three-runtime-client-by-three-runtime-server SQLite matrix proves every
+  runtime can call every server;
 - IDs remain monotonic after deletion for both repositories;
 - Markdown saves are deterministic and atomically published;
 - malformed JSON, invalid fields, invalid filters and IDs, missing tasks,

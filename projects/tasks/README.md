@@ -10,8 +10,8 @@ portability lessons and before the final capstones.
 
 ## Contract
 
-- [`docs/SPEC.md`](docs/SPEC.md) is copied byte-for-byte from the latest
-  completed portable Tasks project.
+- [`docs/SPEC.md`](docs/SPEC.md) preserves the portable observable behavior
+  while adapting architecture wording to TypeScript, Node, Deno, and Bun.
 - [`docs/openapi.yaml`](docs/openapi.yaml) is the byte-identical OpenAPI 3.1
   contract.
 - [`docs/PLAN.md`](docs/PLAN.md) and [`docs/PROMPT.md`](docs/PROMPT.md) describe
