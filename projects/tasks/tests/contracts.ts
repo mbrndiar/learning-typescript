@@ -166,9 +166,7 @@ export async function assertRejects(
   } catch (error) {
     if (error instanceof errorType) return error;
     fail(
-      `expected ${errorType.name}, received ${
-        error instanceof Error ? error.name : String(error)
-      }`,
+      `expected ${errorType.name}, received ${error instanceof Error ? error.name : String(error)}`,
     );
   }
   return fail(`expected ${errorType.name} to be thrown`);
@@ -278,8 +276,7 @@ export async function domainAndJsonContract(
       ),
     implementation.ValidationError,
   );
-  const atLimit =
-    "[".repeat(implementation.MAX_JSON_NESTING) +
+  const atLimit = "[".repeat(implementation.MAX_JSON_NESTING) +
     "0" +
     "]".repeat(implementation.MAX_JSON_NESTING);
   implementation.parseStrictJsonBytes(
@@ -499,18 +496,19 @@ export async function httpDispatchContract(
   );
   assertEquals(method.status, 405);
   assertEquals(method.headers.allow, "GET, PATCH, DELETE");
-  for (const url of [
-    "/tasks?completed=yes",
-    "/tasks/not-a-number",
-    "/tasks/9007199254740992",
-  ]) {
+  for (
+    const url of [
+      "/tasks?completed=yes",
+      "/tasks/not-a-number",
+      "/tasks/9007199254740992",
+    ]
+  ) {
     assertEquals(
       (await implementation.dispatchHttp(repository, request("GET", url))).status,
       422,
     );
   }
-  const nested =
-    "[".repeat(implementation.MAX_JSON_NESTING + 1) +
+  const nested = "[".repeat(implementation.MAX_JSON_NESTING + 1) +
     "0" +
     "]".repeat(implementation.MAX_JSON_NESTING + 1);
   assertEquals(
@@ -597,11 +595,13 @@ export async function serverContract(
       redirect: "manual",
     });
     assertEquals(duplicate.status, 400);
-    for (const [path, allow] of [
-      ["/health", "GET"],
-      ["/tasks", "GET, POST"],
-      ["/tasks/1", "GET, PATCH, DELETE"],
-    ] as const) {
+    for (
+      const [path, allow] of [
+        ["/health", "GET"],
+        ["/tasks", "GET, POST"],
+        ["/tasks/1", "GET, PATCH, DELETE"],
+      ] as const
+    ) {
       const method = await fetch(`${server.url}${path}`, {
         method: "PUT",
         redirect: "manual",
@@ -697,8 +697,7 @@ export async function fetchClientContract(
   await assertRejects(() => malformed.get(1), implementation.ClientProtocolError);
   const numericString = new implementation.FetchTaskClient({
     baseUrl: "http://127.0.0.1:8000",
-    fetch: async () =>
-      Response.json({ id: "1", title: "Task", completed: false }, { status: 200 }),
+    fetch: async () => Response.json({ id: "1", title: "Task", completed: false }, { status: 200 }),
   });
   await assertRejects(() => numericString.get(1), implementation.ClientProtocolError);
   const mismatchedError = new implementation.FetchTaskClient({

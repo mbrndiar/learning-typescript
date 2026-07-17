@@ -19,11 +19,10 @@ export function parseApiArguments(
   throw new IncompleteProjectError("server argument parsing");
 }
 export function formatServerUrl(hostname: string, port: number): string {
-  const host =
-    hostname.startsWith("[") && hostname.endsWith("]")
-      ? hostname
-      : hostname.includes(":")
-        ? `[${hostname}]`
-        : hostname;
+  const host = hostname.startsWith("[") && hostname.endsWith("]")
+    ? hostname
+    : hostname.includes(":")
+    ? `[${hostname}]`
+    : hostname;
   return `http://${host}:${port}`;
 }

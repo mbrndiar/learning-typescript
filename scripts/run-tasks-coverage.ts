@@ -10,7 +10,6 @@ const child = spawn(
     "--test-coverage-include=projects/tasks/solution/core/*.ts",
     "--test-coverage-include=projects/tasks/solution/storage/markdown.ts",
     "--test-coverage-include=projects/tasks/solution/runtimes/node/*.ts",
-    "--test-coverage-exclude=projects/tasks/solution/core/runtime.ts",
     "--test-coverage-exclude=projects/tasks/solution/index.ts",
     "--test-coverage-exclude=projects/tasks/solution/runtimes/node/api-main.ts",
     "--test-coverage-exclude=projects/tasks/solution/runtimes/node/cli-main.ts",

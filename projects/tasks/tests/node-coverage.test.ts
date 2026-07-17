@@ -8,6 +8,7 @@ import {
   StorageError,
   TaskNotFoundError,
   TaskService,
+  ValidationError,
   type Task,
   type TaskClient,
   type TaskFilter,
@@ -17,6 +18,7 @@ import {
 import { runCli } from "../solution/core/cli.ts";
 import { dispatchHttp } from "../solution/core/http.ts";
 import { parseStrictJsonBytes, readBoundedStream } from "../solution/core/json.ts";
+import { parseApiArguments } from "../solution/core/runtime.ts";
 import {
   SerialExecutor,
   parseMarkdownDocument,
@@ -90,6 +92,49 @@ async function reset(path: string): Promise<void> {
 }
 
 if (solutionTests) {
+  test("Task API arguments validate backends, paths, hosts, and ports", () => {
+    assert.deepEqual(parseApiArguments([], "node"), {
+      backend: "sqlite",
+      dataPath: "tasks-node.db",
+      hostname: "127.0.0.1",
+      port: 8000,
+    });
+    assert.deepEqual(
+      parseApiArguments(
+        [
+          "--backend",
+          "markdown",
+          "--data",
+          "state/tasks.md",
+          "--host",
+          "::1",
+          "--port",
+          "0",
+        ],
+        "deno",
+      ),
+      {
+        backend: "markdown",
+        dataPath: "state/tasks.md",
+        hostname: "::1",
+        port: 0,
+      },
+    );
+    assert.equal(parseApiArguments(["--port", "65535"], "bun").port, 65_535);
+
+    for (const args of [
+      ["--backend"],
+      ["--backend", "memory"],
+      ["--port", "-1"],
+      ["--port", "65536"],
+      ["--port", "1.5"],
+      ["--port", "NaN"],
+      ["--unknown", "value"],
+    ]) {
+      assert.throws(() => parseApiArguments(args, "node"), ValidationError);
+    }
+  });
+
   test("Task CLI covers commands and client error categories", async () => {
     const output: string[] = [];
     const errors: string[] = [];

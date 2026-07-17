@@ -85,7 +85,7 @@ node --experimental-strip-types \
 
 ```bash
 deno run \
-  --lock=projects/tasks/deno.lock \
+  --lock=deno.lock \
   --allow-net=127.0.0.1 \
   --allow-read=projects/tasks/.test-data/run \
   --allow-write=projects/tasks/.test-data/run \
@@ -93,32 +93,53 @@ deno run \
   --backend markdown --data projects/tasks/.test-data/run/deno.md --port 8000
 
 deno run \
-  --lock=projects/tasks/deno.lock \
+  --lock=deno.lock \
   --allow-net=127.0.0.1 \
   projects/tasks/solution/runtimes/deno/cli-main.ts \
   --base-url http://127.0.0.1:8000 list
 ```
 
 Markdown mode needs only loopback network access plus read/write access to the
-data directory. For a cached SQLite native library, the minimum additional
-permissions are the three loader environment variables, FFI, and read access to
-the loader cache; a file database also needs scoped data access:
+data directory. For SQLite, `deno task tasks:test` resolves the loader cache
+from `DENO_DIR` or the platform default:
+
+| Platform | Default Deno cache root                        |
+| -------- | ---------------------------------------------- |
+| Linux    | `$XDG_CACHE_HOME/deno`, or `$HOME/.cache/deno` |
+| macOS    | `$HOME/Library/Caches/deno`                    |
+| Windows  | `%LOCALAPPDATA%\deno`                          |
+
+Set `DENO_DIR` explicitly to use another cache root. A direct SQLite server
+needs FFI, the named loader variables, scoped loopback/GitHub access, and
+read/write access to its selected cache's `plug` directory:
 
 ```bash
-export DENO_DIR="${DENO_DIR:-$HOME/.cache/deno}"
+# POSIX shells
+DENO_DIR=/absolute/path/to/deno-cache deno task tasks:test
+
+# PowerShell
+$env:DENO_DIR = "C:\path\to\deno-cache"
+deno task tasks:test
+```
+
+```bash
+# For example, set this to the platform-appropriate cache root.
+export DENO_DIR=/absolute/path/to/deno-cache
 deno run \
-  --lock=projects/tasks/deno.lock \
-  --allow-net=127.0.0.1 \
-  --allow-env=DENO_DIR,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL \
+  --lock=deno.lock \
+  --allow-net=127.0.0.1,github.com,release-assets.githubusercontent.com \
+  --allow-env=DENO_DIR,XDG_CACHE_HOME,HOME,LOCALAPPDATA,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL \
   --allow-ffi \
-  --allow-read="$DENO_DIR/plug,projects/tasks/.test-data/run" \
+  --allow-read="$DENO_DIR/plug" \
+  --allow-read=projects/tasks/.test-data/run \
+  --allow-write="$DENO_DIR/plug" \
   --allow-write=projects/tasks/.test-data/run \
   projects/tasks/solution/runtimes/deno/api-main.ts \
   --backend sqlite --data projects/tasks/.test-data/run/deno.db --port 8000
 ```
 
-An uncached first download needs temporary network/cache-write permission; the
-upstream package documents `-A` as the portable bootstrap invocation.
+An uncached native library uses the same scoped GitHub and cache-write grants;
+the committed Tasks commands do not require a blanket permission grant.
 
 ```bash
 bun projects/tasks/solution/runtimes/bun/api-main.ts \
@@ -133,39 +154,23 @@ backends are independent and do not synchronize data.
 
 ## Direct validation
 
-These commands need no root script changes:
+The root scripts run the selected implementation (default: `solution`):
 
 ```bash
-node --experimental-strip-types --test projects/tasks/tests/node.test.ts
-deno test -A --lock=projects/tasks/deno.lock projects/tasks/tests/deno.test.ts
-bun test projects/tasks/tests/bun.test.ts
-
-node --experimental-strip-types projects/tasks/tests/interoperability.ts
-
-deno check --lock=projects/tasks/deno.lock \
-  projects/tasks/solution/runtimes/deno/api-main.ts \
-  projects/tasks/solution/runtimes/deno/cli-main.ts \
-  projects/tasks/tests/deno.test.ts
-
-bun build projects/tasks/solution/runtimes/bun/api-main.ts \
-  projects/tasks/solution/runtimes/bun/cli-main.ts \
-  --target=bun --outdir=projects/tasks/.test-data/bun-build
-```
-
-The wrappers default to `TASKS_IMPLEMENTATION=solution`. A completed learner
-tree runs the same substantive contracts with:
-
-```bash
-TASKS_IMPLEMENTATION=starter \
-  node --experimental-strip-types --test projects/tasks/tests/node.test.ts
-TASKS_IMPLEMENTATION=starter \
-  deno test -A --lock=projects/tasks/deno.lock projects/tasks/tests/deno.test.ts
-TASKS_IMPLEMENTATION=starter bun test projects/tasks/tests/bun.test.ts
+TASKS_IMPLEMENTATION=solution npm run check:tasks:node
+TASKS_IMPLEMENTATION=solution deno task tasks:check
+TASKS_IMPLEMENTATION=solution npm run check:tasks:bun
+npm run portability:tasks
+npm run test:tasks:interoperability
 ```
 
 The untouched starter intentionally fails those substantive contracts with
 `IncompleteProjectError`; separate checks verify that its constructors and
 operations remain side-effect-free.
+
+`deno.lock` is the frozen root lockfile for the course and Tasks project. The
+finite interoperability command starts six server/backend cells and nine
+cross-runtime SQLite client/server cells.
 
 Start a starter entry point to see the deliberate incomplete failure:
 
@@ -193,18 +198,10 @@ node --experimental-strip-types \
 - Servers bind to loopback in examples. They are educational, not production
   deployment guidance.
 
-## Root integration intentionally deferred
+## Course integration
 
-The project is directly runnable, but the repository owner still needs to:
-
-1. include `projects/tasks` in the Node and Bun TypeScript configurations;
-2. add root format, lint, type-check, test, coverage, and interoperability
-   scripts;
-3. merge the project-local Deno lock entries into the chosen root lock/task
-   workflow;
-4. integrate OpenAPI validation with exact
-   `@readme/openapi-parser@6.3.0`; and
-5. link the project from the renumbered curriculum and root course docs.
-
-Those files are intentionally untouched because they are owned by concurrent
-integration work.
+The root configuration runs strict Node and Bun type checks, native runtime
+tests, Deno formatting/linting/checking/docs/audits, an OpenAPI 3.1 parser
+check, a Node coverage gate, and portable/core plus subprocess interoperability
+evidence. The project uses no framework, ORM, or runtime dependency beyond
+Deno's pinned `jsr:@db/sqlite@0.13.0` adapter.

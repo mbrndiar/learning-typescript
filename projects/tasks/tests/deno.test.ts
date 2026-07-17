@@ -18,6 +18,7 @@ import { DenoSqliteRepository as StarterSqlite } from "../starter/runtimes/deno/
 import {
   assertRejects,
   cliContract,
+  type ContractImplementation,
   domainAndJsonContract,
   fetchClientContract,
   httpDispatchContract,
@@ -25,10 +26,9 @@ import {
   markdownCorruptionContract,
   openApiContract,
   repositoryContract,
+  type RepositoryHarness,
   serverContract,
   starterIncompleteContract,
-  type ContractImplementation,
-  type RepositoryHarness,
 } from "./contracts.ts";
 
 const ROOT = "projects/tasks/.test-data/deno";
@@ -43,10 +43,9 @@ const selectedClient = selection === "starter" ? starterClient : solutionClient;
 const selectedCli = selection === "starter" ? starterCli : solutionCli;
 const selectedRuntime = selection === "starter" ? starterRuntime : solutionRuntime;
 const SelectedSqlite = selection === "starter" ? StarterSqlite : SolutionSqlite;
-const SelectedMarkdown =
-  selection === "starter"
-    ? starterDeno.DenoMarkdownRepository
-    : solutionDeno.DenoMarkdownRepository;
+const SelectedMarkdown = selection === "starter"
+  ? starterDeno.DenoMarkdownRepository
+  : solutionDeno.DenoMarkdownRepository;
 
 const implementation: ContractImplementation = {
   ...selectedCore,
@@ -54,20 +53,19 @@ const implementation: ContractImplementation = {
   ...selectedClient,
   ...selectedCli,
   formatServerUrl: selectedRuntime.formatServerUrl,
-  dispatchHttp:
-    selection === "starter"
-      ? (repository, request, logError) =>
-          starterHttp.dispatchHttp(
-            new starterCore.TaskService(repository),
-            request,
-            logError,
-          )
-      : (repository, request, logError) =>
-          solutionHttp.dispatchHttp(
-            new solutionCore.TaskService(repository),
-            request,
-            logError,
-          ),
+  dispatchHttp: selection === "starter"
+    ? (repository, request, logError) =>
+      starterHttp.dispatchHttp(
+        new starterCore.TaskService(repository),
+        request,
+        logError,
+      )
+    : (repository, request, logError) =>
+      solutionHttp.dispatchHttp(
+        new solutionCore.TaskService(repository),
+        request,
+        logError,
+      ),
 };
 
 async function reset(path: string): Promise<void> {
@@ -101,23 +99,19 @@ function markdownHarness(path: string): RepositoryHarness {
 }
 
 Deno.test(`${selection}: shared domain, service, and strict JSON`, () =>
-  domainAndJsonContract(implementation),
-);
-Deno.test(`${selection}: shared HTTP dispatch`, () =>
-  httpDispatchContract(implementation),
-);
-Deno.test(`${selection}: shared Fetch client`, () =>
-  fetchClientContract(implementation),
-);
+  domainAndJsonContract(implementation));
+Deno.test(`${selection}: shared HTTP dispatch`, () => httpDispatchContract(implementation));
+Deno.test(`${selection}: shared Fetch client`, () => fetchClientContract(implementation));
 Deno.test(`${selection}: shared CLI`, () => cliContract(implementation));
 Deno.test("canonical OpenAPI identity and parse", async () =>
-  openApiContract(await Deno.readFile("projects/tasks/docs/openapi.yaml")),
-);
+  openApiContract(await Deno.readFile("projects/tasks/docs/openapi.yaml")));
 
-for (const [name, extension, create] of [
-  [`${selection} Deno SQLite`, "db", (path: string) => new SelectedSqlite(path)],
-  [`${selection} Deno Markdown`, "md", (path: string) => new SelectedMarkdown(path)],
-] as const) {
+for (
+  const [name, extension, create] of [
+    [`${selection} Deno SQLite`, "db", (path: string) => new SelectedSqlite(path)],
+    [`${selection} Deno Markdown`, "md", (path: string) => new SelectedMarkdown(path)],
+  ] as const
+) {
   const path = `${ROOT}/repository-${extension}.${extension}`;
   Deno.test(`${name} repository contract`, () =>
     repositoryContract(implementation, {
@@ -127,16 +121,13 @@ for (const [name, extension, create] of [
       reset: () => reset(path),
       writeText: (source) => Deno.writeTextFile(path, source),
       writeBytes: (bytes) => Deno.writeFile(path, bytes),
-    }),
-  );
+    }));
 }
 
 Deno.test(`${selection} Deno Markdown rejects corrupt persisted data`, () =>
-  markdownCorruptionContract(implementation, markdownHarness(`${ROOT}/corrupt.md`)),
-);
+  markdownCorruptionContract(implementation, markdownHarness(`${ROOT}/corrupt.md`)));
 Deno.test(`${selection} Deno Markdown drains accepted writes on close`, () =>
-  markdownCloseContract(implementation, markdownHarness(`${ROOT}/close.md`)),
-);
+  markdownCloseContract(implementation, markdownHarness(`${ROOT}/close.md`)));
 
 Deno.test(`${selection} Deno SQLite rejects schema versions`, async () => {
   const path = `${ROOT}/schema.db`;
@@ -176,45 +167,47 @@ Deno.test(`${selection} Deno SQLite rejects unsafe IDs`, async () => {
   }
 });
 
-for (const [name, extension, create] of [
-  [`${selection} Deno SQLite server`, "db", (path: string) => new SelectedSqlite(path)],
-  [
-    `${selection} Deno Markdown server`,
-    "md",
-    (path: string) => new SelectedMarkdown(path),
-  ],
-] as const) {
+for (
+  const [name, extension, create] of [
+    [`${selection} Deno SQLite server`, "db", (path: string) => new SelectedSqlite(path)],
+    [
+      `${selection} Deno Markdown server`,
+      "md",
+      (path: string) => new SelectedMarkdown(path),
+    ],
+  ] as const
+) {
   const path = `${ROOT}/server-${extension}.${extension}`;
   Deno.test(`${name} loopback contract`, () =>
     serverContract(implementation, {
       name,
       path,
       createRepository: create,
-      start:
-        selection === "starter"
-          ? (repository) =>
-              starterDeno.startDenoServer({
-                service: new starterCore.TaskService(repository),
-                port: 0,
-              })
-          : (repository) =>
-              solutionDeno.startDenoServer({
-                service: new solutionCore.TaskService(repository),
-                port: 0,
-              }),
+      start: selection === "starter"
+        ? (repository) =>
+          starterDeno.startDenoServer({
+            service: new starterCore.TaskService(repository),
+            port: 0,
+          })
+        : (repository) =>
+          solutionDeno.startDenoServer({
+            service: new solutionCore.TaskService(repository),
+            port: 0,
+          }),
       reset: () => reset(path),
-    }),
-  );
+    }));
 }
 
-for (const [name, extension, create] of [
-  ["starter Deno SQLite", "db", (path: string) => new StarterSqlite(path)],
-  [
-    "starter Deno Markdown",
-    "md",
-    (path: string) => new starterDeno.DenoMarkdownRepository(path),
-  ],
-] as const) {
+for (
+  const [name, extension, create] of [
+    ["starter Deno SQLite", "db", (path: string) => new StarterSqlite(path)],
+    [
+      "starter Deno Markdown",
+      "md",
+      (path: string) => new starterDeno.DenoMarkdownRepository(path),
+    ],
+  ] as const
+) {
   const path = `${ROOT}/${name.replaceAll(" ", "-")}.${extension}`;
   Deno.test(`${name} is visibly incomplete without storage effects`, async () => {
     await reset(path);

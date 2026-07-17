@@ -1,5 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdir, rm } from "node:fs/promises";
+import { join } from "node:path";
 import process from "node:process";
 import { FetchTaskClient } from "../solution/client/fetch.ts";
 import { assert, assertEquals } from "./contracts.ts";
@@ -9,15 +10,27 @@ const DEADLINE_MS = 10_000;
 type Runtime = "node" | "deno" | "bun";
 type Backend = "sqlite" | "markdown";
 
-function denoPlugDirectory(): string {
-  if (process.env.DENO_DIR !== undefined) return `${process.env.DENO_DIR}/plug`;
-  const cacheDirectory = process.env.XDG_CACHE_HOME ?? process.env.HOME;
-  if (cacheDirectory === undefined) {
+function denoDirectory(): string {
+  if (process.env.DENO_DIR !== undefined) return process.env.DENO_DIR;
+  if (process.platform === "win32") {
+    if (process.env.LOCALAPPDATA === undefined) {
+      throw new Error("DENO_DIR or LOCALAPPDATA must be set for Deno SQLite");
+    }
+    return join(process.env.LOCALAPPDATA, "deno");
+  }
+  if (process.platform === "darwin") {
+    if (process.env.HOME === undefined) {
+      throw new Error("DENO_DIR or HOME must be set for Deno SQLite");
+    }
+    return join(process.env.HOME, "Library", "Caches", "deno");
+  }
+  if (process.env.XDG_CACHE_HOME !== undefined) {
+    return join(process.env.XDG_CACHE_HOME, "deno");
+  }
+  if (process.env.HOME === undefined) {
     throw new Error("DENO_DIR, XDG_CACHE_HOME, or HOME must be set for Deno SQLite");
   }
-  return process.env.XDG_CACHE_HOME === undefined
-    ? `${cacheDirectory}/.cache/deno/plug`
-    : `${cacheDirectory}/deno/plug`;
+  return join(process.env.HOME, ".cache", "deno");
 }
 
 function serverCommand(runtime: Runtime): readonly [string, ...string[]] {
@@ -34,11 +47,11 @@ function serverCommand(runtime: Runtime): readonly [string, ...string[]] {
       "run",
       "--lock=deno.lock",
       "--allow-net=127.0.0.1,github.com,release-assets.githubusercontent.com",
-      `--allow-read=${denoPlugDirectory()}`,
+      `--allow-read=${join(denoDirectory(), "plug")}`,
       "--allow-read=projects/tasks/.test-data/interoperability",
-      `--allow-write=${denoPlugDirectory()}`,
+      `--allow-write=${join(denoDirectory(), "plug")}`,
       "--allow-write=projects/tasks/.test-data/interoperability",
-      "--allow-env=DENO_DIR,XDG_CACHE_HOME,HOME,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL",
+      "--allow-env=DENO_DIR,XDG_CACHE_HOME,HOME,LOCALAPPDATA,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL",
       "--allow-ffi",
       "projects/tasks/solution/runtimes/deno/api-main.ts",
     ];

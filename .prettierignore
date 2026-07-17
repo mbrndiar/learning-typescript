@@ -16,6 +16,7 @@ projects/tasks/starter/runtimes/deno/**/*.ts
 projects/tasks/tests/contracts.ts
 projects/tasks/tests/deno.test.ts
 scripts/tasks-runtime-conformance.ts
+scripts/run-tasks-deno-tests.ts
 capstones/comparative/spec/**
 capstones/idiomatic/SPEC.md
 deno.lock

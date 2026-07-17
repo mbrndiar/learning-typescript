@@ -84,13 +84,14 @@ boundary the module is designed to teach. Grant the containing state directory,
 not just a not-yet-created file: the atomic writer must create the directory and
 a temporary sibling before renaming it.
 
-The Task project uses `jsr:@db/sqlite@0.13.0`. Its `deno task tasks:test`
-command grants only loopback networking, the project test-data directory, FFI,
-the named SQLite loader variables, and the default
-`$HOME/.cache/deno/plug` cache. If your Deno cache is elsewhere, use the
-scoped SQLite command in the [Task README](../projects/tasks/README.md), with
-separate read/write grants for that cache's `plug` directory and no broad
-permission flag.
+The Task project uses `jsr:@db/sqlite@0.13.0`. Its separate
+`deno task tasks:test` runner grants only its child test process loopback
+networking, project test-data, FFI, named SQLite loader variables, and its
+selected cache's `plug` directory. It honors explicit `DENO_DIR`; otherwise it
+uses the standard Linux (`XDG_CACHE_HOME` or `HOME/.cache`), macOS
+(`HOME/Library/Caches`), or Windows (`LOCALAPPDATA`) location. The ordinary
+`deno task test` lesson and capstone suites retain their original narrow
+permissions: no FFI, public GitHub access, or cache writes.
 
 ## 🥟 6. Install Bun for module 15
 
@@ -204,9 +205,10 @@ npm run test:tasks:interoperability
 The Deno and Bun `check` commands already include their native audit. Audits may
 contact package advisory services and therefore require network access.
 
-`CAPSTONE_IMPLEMENTATION` and `TASKS_IMPLEMENTATION` accept only `starter` or
-`solution`; each defaults to `starter` for guided work. CI sets both to
-`solution`.
+`CAPSTONE_IMPLEMENTATION` accepts `starter` or `solution` and defaults to
+`starter` for guided capstone work. `TASKS_IMPLEMENTATION` accepts the same
+values and defaults to `solution`, because substantive Task contracts select
+their implementation directly. CI sets both to `solution`.
 
 ## ⚠️ Troubleshooting
 

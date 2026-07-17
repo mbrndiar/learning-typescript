@@ -26,7 +26,8 @@
       "projects/tasks/starter/runtimes/deno/**/*.ts",
       "projects/tasks/tests/contracts.ts",
       "projects/tasks/tests/deno.test.ts",
-      "scripts/tasks-runtime-conformance.ts"
+      "scripts/tasks-runtime-conformance.ts",
+      "scripts/run-tasks-deno-tests.ts"
     ],
     "lineWidth": 100,
     "semiColons": true
@@ -54,7 +55,8 @@
       "projects/tasks/starter/runtimes/deno",
       "projects/tasks/tests/contracts.ts",
       "projects/tasks/tests/deno.test.ts",
-      "scripts/tasks-runtime-conformance.ts"
+      "scripts/tasks-runtime-conformance.ts",
+      "scripts/run-tasks-deno-tests.ts"
     ],
     "rules": {
       "tags": ["recommended"],
@@ -65,15 +67,15 @@
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "lint": "deno lint",
-    "typecheck": "deno check lessons/14_deno_runtime/*.ts exercises/14_deno_runtime/*.ts capstones/shared/harness.ts capstones/idiomatic/starter/core/*.ts capstones/idiomatic/starter/deno/*.ts capstones/idiomatic/solution/core/*.ts capstones/idiomatic/solution/deno/*.ts capstones/idiomatic/tests/contracts/*.ts capstones/idiomatic/tests/deno/*.ts scripts/run-deno-course.ts scripts/deno-compile-smoke.ts lessons/16_runtime_portability/*.ts exercises/16_runtime_portability/solution.ts exercises/16_runtime_portability/portable-check.ts scripts/runtime-conformance.ts projects/tasks/solution/client/*.ts projects/tasks/solution/core/*.ts projects/tasks/solution/storage/*.ts projects/tasks/solution/runtimes/deno/*.ts projects/tasks/starter/client/*.ts projects/tasks/starter/core/*.ts projects/tasks/starter/storage/*.ts projects/tasks/starter/runtimes/deno/*.ts projects/tasks/tests/contracts.ts projects/tasks/tests/deno.test.ts scripts/tasks-runtime-conformance.ts",
-    "test": "deno test --allow-read=\"$HOME/.cache/deno/plug\" --allow-read=capstones/idiomatic/tests --allow-read=projects/tasks/.test-data/deno --allow-write=\"$HOME/.cache/deno/plug\" --allow-write=capstones/idiomatic/tests/.test-data --allow-write=projects/tasks/.test-data/deno --allow-net=127.0.0.1,github.com,release-assets.githubusercontent.com --allow-env=CAPSTONE_IMPLEMENTATION,TASKS_IMPLEMENTATION,DENO_DIR,XDG_CACHE_HOME,HOME,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL --allow-ffi lessons/14_deno_runtime/03_deno_testing.test.ts exercises/14_deno_runtime/solution.test.ts capstones/idiomatic/tests/deno projects/tasks/tests/deno.test.ts",
+    "typecheck": "deno check lessons/14_deno_runtime/*.ts exercises/14_deno_runtime/*.ts capstones/shared/harness.ts capstones/idiomatic/starter/core/*.ts capstones/idiomatic/starter/deno/*.ts capstones/idiomatic/solution/core/*.ts capstones/idiomatic/solution/deno/*.ts capstones/idiomatic/tests/contracts/*.ts capstones/idiomatic/tests/deno/*.ts scripts/run-deno-course.ts scripts/deno-compile-smoke.ts lessons/16_runtime_portability/*.ts exercises/16_runtime_portability/solution.ts exercises/16_runtime_portability/portable-check.ts scripts/runtime-conformance.ts projects/tasks/solution/client/*.ts projects/tasks/solution/core/*.ts projects/tasks/solution/storage/*.ts projects/tasks/solution/runtimes/deno/*.ts projects/tasks/starter/client/*.ts projects/tasks/starter/core/*.ts projects/tasks/starter/storage/*.ts projects/tasks/starter/runtimes/deno/*.ts projects/tasks/tests/contracts.ts projects/tasks/tests/deno.test.ts scripts/tasks-runtime-conformance.ts scripts/run-tasks-deno-tests.ts",
+    "test": "deno test --allow-read=capstones/idiomatic/tests --allow-write=capstones/idiomatic/tests/.test-data --allow-net=127.0.0.1 --allow-env=CAPSTONE_IMPLEMENTATION lessons/14_deno_runtime/03_deno_testing.test.ts exercises/14_deno_runtime/solution.test.ts capstones/idiomatic/tests/deno",
     "capstone:test": "deno test --allow-read=capstones/idiomatic/tests --allow-write=capstones/idiomatic/tests/.test-data --allow-net=127.0.0.1 --allow-env=CAPSTONE_IMPLEMENTATION capstones/idiomatic/tests/deno",
     "course": "deno run --allow-read=lessons,exercises --allow-run=deno scripts/run-deno-course.ts",
     "docs": "deno doc capstones/idiomatic/solution/core/index.ts capstones/idiomatic/solution/deno/file-log.ts capstones/idiomatic/solution/deno/runtime.ts projects/tasks/solution/core/index.ts projects/tasks/solution/runtimes/deno/index.ts",
     "audit": "deno audit --lock=deno.lock",
     "compile": "deno run --allow-run=deno --allow-write=compiled scripts/deno-compile-smoke.ts",
-    "tasks:typecheck": "deno check projects/tasks/solution/client/*.ts projects/tasks/solution/core/*.ts projects/tasks/solution/storage/*.ts projects/tasks/solution/runtimes/deno/*.ts projects/tasks/starter/client/*.ts projects/tasks/starter/core/*.ts projects/tasks/starter/storage/*.ts projects/tasks/starter/runtimes/deno/*.ts projects/tasks/tests/contracts.ts projects/tasks/tests/deno.test.ts scripts/tasks-runtime-conformance.ts",
-    "tasks:test": "deno test --allow-read=\"$HOME/.cache/deno/plug\" --allow-read=projects/tasks/.test-data/deno --allow-write=\"$HOME/.cache/deno/plug\" --allow-write=projects/tasks/.test-data/deno --allow-net=127.0.0.1,github.com,release-assets.githubusercontent.com --allow-env=TASKS_IMPLEMENTATION,DENO_DIR,XDG_CACHE_HOME,HOME,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL --allow-ffi projects/tasks/tests/deno.test.ts",
+    "tasks:typecheck": "deno check projects/tasks/solution/client/*.ts projects/tasks/solution/core/*.ts projects/tasks/solution/storage/*.ts projects/tasks/solution/runtimes/deno/*.ts projects/tasks/starter/client/*.ts projects/tasks/starter/core/*.ts projects/tasks/starter/storage/*.ts projects/tasks/starter/runtimes/deno/*.ts projects/tasks/tests/contracts.ts projects/tasks/tests/deno.test.ts scripts/tasks-runtime-conformance.ts scripts/run-tasks-deno-tests.ts",
+    "tasks:test": "deno run --allow-run=deno --allow-env=DENO_DIR,XDG_CACHE_HOME,HOME,LOCALAPPDATA scripts/run-tasks-deno-tests.ts",
     "tasks:docs": "deno doc projects/tasks/solution/core/index.ts projects/tasks/solution/runtimes/deno/index.ts",
     "tasks:audit": "deno audit --lock=deno.lock",
     "tasks:check": "deno task tasks:typecheck && deno task tasks:test && deno task tasks:docs && deno task tasks:audit",

@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 
-const implementation = process.env.TASKS_IMPLEMENTATION ?? "starter";
+const implementation = process.env.TASKS_IMPLEMENTATION ?? "solution";
 if (implementation !== "starter" && implementation !== "solution") {
   throw new Error("TASKS_IMPLEMENTATION must be starter or solution");
 }
