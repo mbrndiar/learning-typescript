@@ -1,22 +1,22 @@
-import { FetchTaskClient, type FetchFunction } from "../solution/client/fetch.ts";
+import { type FetchFunction, FetchTaskClient } from "../solution/client/fetch.ts";
 import { CLI_EXIT, runCli } from "../solution/core/cli.ts";
 import {
   ApiError,
   ClientProtocolError,
   ClientTransportError,
   LifecycleError,
-  StorageError,
-  TaskNotFoundError,
-  TaskService,
-  ValidationError,
   parseCreateTaskDto,
   parseTask,
   parseUpdateTaskDto,
+  StorageError,
   type Task,
   type TaskClient,
   type TaskFilter,
+  TaskNotFoundError,
   type TaskRepository,
+  TaskService,
   type UpdateTaskDto,
+  ValidationError,
 } from "../solution/core/index.ts";
 import { dispatchHttp, type HttpRequest } from "../solution/core/http.ts";
 import { MAX_REQUEST_BYTES, parseStrictJsonBytes } from "../solution/core/json.ts";
@@ -70,9 +70,7 @@ export async function assertRejects(
   } catch (error) {
     if (error instanceof errorType) return error;
     fail(
-      `expected ${errorType.name}, received ${
-        error instanceof Error ? error.name : String(error)
-      }`,
+      `expected ${errorType.name}, received ${error instanceof Error ? error.name : String(error)}`,
     );
   }
   return fail(`expected ${errorType.name} to be thrown`);
@@ -153,8 +151,7 @@ export async function domainAndJsonContract(): Promise<void> {
     SyntaxError,
   );
   await assertRejects(
-    async () =>
-      parseStrictJsonBytes(new Uint8Array(MAX_REQUEST_BYTES + 1), MAX_REQUEST_BYTES),
+    async () => parseStrictJsonBytes(new Uint8Array(MAX_REQUEST_BYTES + 1), MAX_REQUEST_BYTES),
     ValidationError,
   );
   assertEquals(parseTask({ id: 1, title: "Task", completed: false }), {

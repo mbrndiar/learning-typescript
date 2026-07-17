@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"]
+  },
+  "include": [
+    "projects/tasks/solution/client/**/*.ts",
+    "projects/tasks/solution/core/**/*.ts",
+    "projects/tasks/solution/storage/**/*.ts",
+    "projects/tasks/solution/runtimes/node/**/*.ts",
+    "projects/tasks/starter/client/**/*.ts",
+    "projects/tasks/starter/core/**/*.ts",
+    "projects/tasks/starter/storage/**/*.ts",
+    "projects/tasks/starter/runtimes/node/**/*.ts",
+    "projects/tasks/tests/contracts.ts",
+    "projects/tasks/tests/node-coverage.test.ts",
+    "projects/tasks/tests/node.test.ts",
+    "projects/tasks/tests/interoperability.ts",
+    "scripts/run-tasks-node-tests.ts",
+    "scripts/run-tasks-coverage.ts",
+    "scripts/tasks-runtime-conformance.ts",
+    "scripts/validate-tasks-openapi.ts"
+  ]
+}

@@ -5,6 +5,17 @@ scripts/deno-compile-smoke.ts
 capstones/idiomatic/starter/deno/**/*.ts
 capstones/idiomatic/solution/deno/**/*.ts
 capstones/idiomatic/tests/deno/**/*.ts
+projects/tasks/solution/client/**/*.ts
+projects/tasks/solution/core/**/*.ts
+projects/tasks/solution/storage/**/*.ts
+projects/tasks/solution/runtimes/deno/**/*.ts
+projects/tasks/starter/client/**/*.ts
+projects/tasks/starter/core/**/*.ts
+projects/tasks/starter/storage/**/*.ts
+projects/tasks/starter/runtimes/deno/**/*.ts
+projects/tasks/tests/contracts.ts
+projects/tasks/tests/deno.test.ts
+scripts/tasks-runtime-conformance.ts
 capstones/comparative/spec/**
 capstones/idiomatic/SPEC.md
 deno.lock

@@ -74,11 +74,17 @@ npm run test:node
 npm run coverage
 npm run links
 npm run audit:node
+npm run openapi:tasks
 
 # After installing Deno and Bun for modules 14-16
 npm run check:deno
 npm run check:bun
 npm run portability
+
+# After completing module 16
+TASKS_IMPLEMENTATION=solution npm run check:tasks
+npm run portability:tasks
+npm run test:tasks:interoperability
 ```
 
 ## 📐 Conventions
@@ -116,14 +122,21 @@ The course has two completed reference capstones with matching guided starters:
 See the [capstone index](capstones/README.md) for target selection, milestone
 commands, coverage, and conformance checks.
 
+## 🧩 Applied project before the capstones
+
+After module 16, build the compact
+[cross-runtime Task REST API](projects/tasks/README.md). It combines strict
+validation, HTTP/JSON, SQLite, Markdown persistence, native Node/Deno/Bun
+adapters, OpenAPI 3.1 validation, and runtime conformance without adding a
+framework. It is required preparation for the capstones, not a third capstone.
+
 ## 🧭 Historical migration reference
 
-The earlier connected Task application has been removed from the current tree
-after its learning goals moved into the two formal capstones. Its immutable
-pre-removal source and data-compatibility guidance remain available through the
-[old-to-new migration guide](docs/PROJECT_MIGRATION.md). It is historical
-reference material, not a third capstone, and its Task data is not compatible
-with either capstone's storage format.
+The current compact Task project lives at `projects/tasks/`. It is distinct
+from the earlier, removed connected application formerly at `project/`. The
+[migration guide](docs/PROJECT_MIGRATION.md) identifies the historical snapshot,
+explains why its data is not compatible with the new project or capstones, and
+keeps it as reference material rather than a third capstone.
 
 ## 🗺️ Course outline
 
@@ -143,6 +156,9 @@ with either capstone's storage format.
 14. [Deno Runtime Deep Dive](lessons/14_deno_runtime/)
 15. [Bun Runtime Deep Dive](lessons/15_bun_runtime/)
 16. [Cross-Runtime Portability and Migration](lessons/16_runtime_portability/)
+
+Then complete the [Task REST API applied project](projects/tasks/README.md)
+before selecting a [capstone](capstones/README.md).
 
 ## 🗒️ Cheat sheet and boundaries
 

@@ -1,3 +1,3 @@
 export { DenoMarkdownRepository } from "./markdown.ts";
 export { openDenoRepository } from "./repository.ts";
-export { startDenoServer, type DenoServerOptions } from "./server.ts";
+export { type DenoServerOptions, startDenoServer } from "./server.ts";

@@ -37,3 +37,22 @@ Syntax errors, failed tests, and type errors are feedback. Read the first
 actionable message, locate the named file and line, state what rule was broken,
 then make the smallest correction. Avoid changing several unrelated lines at
 once.
+
+## 🧩 Applied project before capstones
+
+After module 16, complete the
+[Task REST API project](../projects/tasks/README.md). It combines strict
+validation, native HTTP/SQLite/Markdown adapters, and one Fetch client across
+Node.js, Deno, and Bun before the final capstones.
+
+```bash
+TASKS_IMPLEMENTATION=solution npm run check:tasks:node
+TASKS_IMPLEMENTATION=solution deno task tasks:check
+TASKS_IMPLEMENTATION=solution npm run check:tasks:bun
+npm run portability:tasks
+npm run test:tasks:interoperability
+```
+
+The last command is finite: it proves six server/backend cells and nine
+cross-runtime SQLite client/server cells. The Deno command uses only the
+permissions named in `deno.json`, never a blanket permission flag.

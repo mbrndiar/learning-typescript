@@ -6,17 +6,6 @@
     "types": ["bun"]
   },
   "include": [
-    "lessons/15_bun_runtime/**/*.ts",
-    "lessons/16_runtime_portability/**/*.ts",
-    "exercises/15_bun_runtime/**/*.ts",
-    "exercises/16_runtime_portability/**/*.ts",
-    "capstones/shared/**/*.ts",
-    "capstones/idiomatic/starter/core/**/*.ts",
-    "capstones/idiomatic/starter/bun/**/*.ts",
-    "capstones/idiomatic/solution/core/**/*.ts",
-    "capstones/idiomatic/solution/bun/**/*.ts",
-    "capstones/idiomatic/tests/contracts/**/*.ts",
-    "capstones/idiomatic/tests/bun/**/*.ts",
     "projects/tasks/solution/client/**/*.ts",
     "projects/tasks/solution/core/**/*.ts",
     "projects/tasks/solution/storage/**/*.ts",
@@ -27,10 +16,6 @@
     "projects/tasks/starter/runtimes/bun/**/*.ts",
     "projects/tasks/tests/contracts.ts",
     "projects/tasks/tests/bun.test.ts",
-    "scripts/run-bun-course.ts",
-    "scripts/bun-build-smoke.ts",
-    "scripts/runtime-conformance.ts",
     "scripts/tasks-runtime-conformance.ts"
-  ],
-  "exclude": ["**/*.deno.test.ts"]
+  ]
 }

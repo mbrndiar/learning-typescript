@@ -1,5 +1,9 @@
 # 🏆 TypeScript capstones
 
+Before selecting a final capstone, complete the compact
+[Task REST API applied project](../projects/tasks/README.md). It is the
+course's required bridge from the runtime modules to the larger targets.
+
 The course has two capstone tracks:
 
 - [`comparative/`](comparative/) implements the frozen cross-language SQLite

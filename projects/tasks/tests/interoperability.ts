@@ -9,6 +9,17 @@ const DEADLINE_MS = 10_000;
 type Runtime = "node" | "deno" | "bun";
 type Backend = "sqlite" | "markdown";
 
+function denoPlugDirectory(): string {
+  if (process.env.DENO_DIR !== undefined) return `${process.env.DENO_DIR}/plug`;
+  const cacheDirectory = process.env.XDG_CACHE_HOME ?? process.env.HOME;
+  if (cacheDirectory === undefined) {
+    throw new Error("DENO_DIR, XDG_CACHE_HOME, or HOME must be set for Deno SQLite");
+  }
+  return process.env.XDG_CACHE_HOME === undefined
+    ? `${cacheDirectory}/.cache/deno/plug`
+    : `${cacheDirectory}/deno/plug`;
+}
+
 function serverCommand(runtime: Runtime): readonly [string, ...string[]] {
   if (runtime === "node") {
     return [
@@ -21,8 +32,14 @@ function serverCommand(runtime: Runtime): readonly [string, ...string[]] {
     return [
       "deno",
       "run",
-      "-A",
-      "--lock=projects/tasks/deno.lock",
+      "--lock=deno.lock",
+      "--allow-net=127.0.0.1,github.com,release-assets.githubusercontent.com",
+      `--allow-read=${denoPlugDirectory()}`,
+      "--allow-read=projects/tasks/.test-data/interoperability",
+      `--allow-write=${denoPlugDirectory()}`,
+      "--allow-write=projects/tasks/.test-data/interoperability",
+      "--allow-env=DENO_DIR,XDG_CACHE_HOME,HOME,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL",
+      "--allow-ffi",
       "projects/tasks/solution/runtimes/deno/api-main.ts",
     ];
   }
@@ -48,7 +65,7 @@ function clientCommand(
       "deno",
       "run",
       "--allow-net=127.0.0.1",
-      "--lock=projects/tasks/deno.lock",
+      "--lock=deno.lock",
       "projects/tasks/solution/runtimes/deno/cli-main.ts",
       ...args,
     ];

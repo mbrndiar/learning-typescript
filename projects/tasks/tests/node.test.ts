@@ -23,6 +23,11 @@ import {
 } from "./contracts.ts";
 
 const ROOT = "projects/tasks/.test-data/node";
+const implementation = process.env.TASKS_IMPLEMENTATION ?? "starter";
+if (implementation !== "starter" && implementation !== "solution") {
+  throw new Error("TASKS_IMPLEMENTATION must be starter or solution");
+}
+const testSolution = implementation === "solution" ? test : test.skip;
 
 async function reset(path: string): Promise<void> {
   await mkdir(ROOT, { recursive: true });
@@ -38,10 +43,10 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-test("shared domain, service, and strict JSON contract", domainAndJsonContract);
-test("shared HTTP dispatch contract", httpDispatchContract);
-test("shared Fetch client contract", fetchClientContract);
-test("shared CLI contract", cliContract);
+testSolution("shared domain, service, and strict JSON contract", domainAndJsonContract);
+testSolution("shared HTTP dispatch contract", httpDispatchContract);
+testSolution("shared Fetch client contract", fetchClientContract);
+testSolution("shared CLI contract", cliContract);
 
 test("starter and solution core exports stay aligned", () => {
   assertEquals(Object.keys(starterCore).sort(), Object.keys(solutionCore).sort());
@@ -52,17 +57,18 @@ for (const [name, extension, create] of [
   ["Node Markdown", "md", (path: string) => new NodeMarkdownRepository(path)],
 ] as const) {
   const path = `${ROOT}/repository-${extension}.${extension}`;
-  test(`${name} repository contract`, () =>
+  testSolution(`${name} repository contract`, () =>
     repositoryContract({
       name,
       path,
       create,
       reset: () => reset(path),
       writeText: (source) => writeFile(path, source, "utf8"),
-    }));
+    }),
+  );
 }
 
-test("Node Markdown rejects corrupt persisted data", () => {
+testSolution("Node Markdown rejects corrupt persisted data", () => {
   const path = `${ROOT}/corrupt.md`;
   return markdownCorruptionContract({
     name: "Node Markdown",
@@ -73,7 +79,7 @@ test("Node Markdown rejects corrupt persisted data", () => {
   });
 });
 
-test("Node SQLite rejects unsupported schema versions", async () => {
+testSolution("Node SQLite rejects unsupported schema versions", async () => {
   const path = `${ROOT}/schema.db`;
   await reset(path);
   const database = new DatabaseSync(path);
@@ -82,7 +88,7 @@ test("Node SQLite rejects unsupported schema versions", async () => {
   await assertRejects(async () => new NodeSqliteRepository(path), StorageError);
 });
 
-test("Node SQLite rejects IDs outside the safe integer range", async () => {
+testSolution("Node SQLite rejects IDs outside the safe integer range", async () => {
   const path = `${ROOT}/unsafe-id.db`;
   await reset(path);
   const repository = new NodeSqliteRepository(path);
@@ -105,14 +111,15 @@ for (const [name, extension, create] of [
   ["Node Markdown server", "md", (path: string) => new NodeMarkdownRepository(path)],
 ] as const) {
   const path = `${ROOT}/server-${extension}.${extension}`;
-  test(`${name} loopback contract`, () =>
+  testSolution(`${name} loopback contract`, () =>
     serverContract({
       name,
       path,
       createRepository: create,
       start: (service) => startNodeServer({ service, port: 0 }),
       reset: () => reset(path),
-    }));
+    }),
+  );
 }
 
 for (const [name, extension, create] of [

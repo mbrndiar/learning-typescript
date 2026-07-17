@@ -1,78 +1,86 @@
-# 🔁 Migrating from the Removed Task Project
+# 🔁 Historical Task Project and the Current Applied Project
 
-The connected Task application was removed after its learning goals were
-superseded by the comparative and idiomatic capstones. Its last repository state
-is preserved at commit
-[`74dfe53d5240c53a0596a35299ae8cfd9a55d51e`][legacy-project], under the
-historical `project/` path. Use that immutable snapshot when auditing an old
-deployment or studying an adapter; no current source imports it.
+This repository has two different Task application histories. Do not treat them
+as the same project.
 
-## Contract boundaries
+- **Historical removed application:** the connected application formerly under
+  `project/`, preserved only in commit
+  [`74dfe53d5240c53a0596a35299ae8cfd9a55d51e`][legacy-project]. It remains
+  useful for auditing an old checkout or deployment.
+- **Current compact applied project:** [`projects/tasks/`](../projects/tasks/README.md).
+  It is a required, portable learning project after module 16 and before the
+  final capstones. It has one strict core, native Node.js/Deno/Bun adapters,
+  SQLite and versioned Markdown repositories, an OpenAPI 3.1 contract, and
+  finite interoperability evidence.
 
-| Historical area                                           | Durable destination or lesson                                                                                                                    |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `project/task-core` domain and injected CLI/storage seams | Reapply the capability pattern in the [idiomatic relay core](../capstones/idiomatic/solution/core/); do not copy Task types.                     |
-| `project/task-manager` Node CLI composition               | Compare with the [idiomatic Node adapter](../capstones/idiomatic/solution/node/).                                                                |
-| `project/task-client` Web `fetch` client                  | Reuse Web request/response and cancellation patterns where an HTTP client is actually required.                                                  |
-| `project/task-api` Node HTTP and SQLite lifecycle         | Compare HTTP lifecycle with the idiomatic Node server and SQLite discipline with the [comparative capstone](../capstones/comparative/README.md). |
-| `project/task-deno` permissions, files, and `Deno.serve`  | Compare with the [idiomatic Deno adapter](../capstones/idiomatic/solution/deno/).                                                                |
-| `project/task-bun` files, `Bun.serve`, and `bun:sqlite`   | Compare with the [idiomatic Bun adapter](../capstones/idiomatic/solution/bun/).                                                                  |
+The current project does not restore the removed application's deployment,
+framework choices, or data-import promise. It is not a third capstone.
 
-The normative destinations are the
-[`comparative-kv` specification](../capstones/comparative/spec/SPEC.md) and the
-[event-relay specification](../capstones/idiomatic/SPEC.md). Historical Task
-behavior must not be added to either contract unless that specification changes
-deliberately.
+## What belongs where
 
-## Data is not automatically migratable
+| Historical concern                                                           | Current learning destination                                            |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Task values, validation, strict JSON, CLI, Fetch, HTTP status/error contract | [Current Tasks core and contract](../projects/tasks/docs/SPEC.md)       |
+| Node `node:sqlite` lifecycle and atomic file updates                         | [Current Tasks Node adapter](../projects/tasks/solution/runtimes/node/) |
+| Deno permissions, `Deno.serve`, and SQLite FFI                               | [Current Tasks Deno adapter](../projects/tasks/solution/runtimes/deno/) |
+| Bun server, files, and `bun:sqlite`                                          | [Current Tasks Bun adapter](../projects/tasks/solution/runtimes/bun/)   |
+| Frozen key/value schema and real contention                                  | [comparative capstone](../capstones/comparative/README.md)              |
+| Portable event stream, cancellation, and runtime adapters                    | [event-relay capstone](../capstones/idiomatic/README.md)                |
 
-- Task JSON documents contain task IDs, titles, and completion state.
-- Task SQLite databases contain Task application tables.
-- Comparative databases implement an exact versioned key/value schema.
-- Relay logs contain a versioned JSON Lines event stream with contiguous relay
-  sequences.
+The Tasks contract is not a license to add Task behavior to either capstone.
+The capstone specifications remain normative and intentionally independent.
 
-No file rename or schema-version bump converts one model into another. If a real
-application still has Task data, define a separate export/import tool with an
-explicit mapping, validation, dry run, backup, idempotency rule, and rollback
-plan. Keep that operational migration outside both capstone contracts.
+## Data and operational migration
 
-## Safe code migration sequence
+Do not rename files or assume a schema bump converts historical data. The
+current Tasks project has no automatic importer for the removed application's
+data. Its SQLite schema and Markdown v1 format are specified for the current
+project; capstone databases and relay logs are different models entirely.
 
-1. Read the exact historical source from the pinned commit, not an unversioned
-   branch.
-2. Identify the behavior being retained: domain rule, capability seam, runtime
-   adapter, test helper, or operational command.
-3. Confirm the destination specification permits that behavior.
-4. Port one seam without importing Task domain or storage types.
-5. Add native tests for file, permission, process, server, database, and shutdown
-   behavior; keep portable contracts runtime-neutral.
-6. Run the focused destination checks, then the complete matrix:
+For a real deployment, keep the old data safe and build a separate migration
+tool with:
 
-   ```bash
-   npm run typecheck:capstones:node
-   CAPSTONE_IMPLEMENTATION=solution npm run test:capstones:node
-   CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:deno
-   CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:bun
-   npm run check
-   npm run coverage
-   npm run audit:node
-   npm run check:deno
-   npm run check:bun
-   npm run portability
-   ```
+1. an explicit source-to-target field mapping;
+2. validation and a dry-run mode;
+3. an immutable backup and a rollback plan;
+4. idempotency rules and a reconciliation report; and
+5. focused tests against copied, non-production fixtures.
 
-7. Update links, setup commands, permission grants, and support claims.
+Keep that operational tool outside the applied-project and capstone contracts.
 
-## Removal record
+## Current verification sequence
 
-The removal deleted the complete connected implementation and its tests, removed
-its Node/Deno/Bun command and coverage entries, and dropped `proper-lockfile` plus
-its type declarations. The current lockfiles and CI matrix cover only lessons,
-exercises, and the two capstones.
+The guided defaults select `starter`; use `solution` for the complete
+reference. The Deno commands use the frozen root `deno.lock` and only the
+scoped grants declared in `deno.json`.
 
-Historical data is not deleted from an existing user checkout or deployment by
-this source removal. Preserve and migrate it explicitly before replacing an old
-Task installation.
+```bash
+TASKS_IMPLEMENTATION=solution npm run check:tasks:node
+TASKS_IMPLEMENTATION=solution deno task tasks:check
+TASKS_IMPLEMENTATION=solution npm run check:tasks:bun
+npm run portability:tasks
+npm run test:tasks:interoperability
+
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstones:node
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:deno
+CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:bun
+npm run coverage
+npm run portability
+```
+
+The Tasks interoperability command deliberately remains separate from the
+portable core smoke: it starts six runtime/server/backend cells and nine
+cross-runtime SQLite client/server cells.
+
+## Historical reference rules
+
+1. Read the exact pinned snapshot, not an unversioned branch.
+2. Identify the behavior being studied before copying a pattern.
+3. Confirm that the current Tasks specification or destination capstone permits
+   that behavior.
+4. Port one narrow seam at a time; do not import the historical domain or
+   persistence types into a capstone.
+5. Update commands, permissions, OpenAPI assertions, links, and tests with any
+   deliberate current-contract change.
 
 [legacy-project]: https://github.com/mbrndiar/learning-typescript/tree/74dfe53d5240c53a0596a35299ae8cfd9a55d51e/project

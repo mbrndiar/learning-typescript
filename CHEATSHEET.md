@@ -19,15 +19,27 @@ npm run test:capstone:comparative  # run the selected comparative target
 npm run test:capstone:comparative:contention # repeat real SQLite races
 npm run coverage:comparative       # enforce comparative coverage
 npm run coverage:idiomatic         # enforce idiomatic-core coverage
-npm run coverage                   # run both Node capstone coverage gates
+npm run typecheck:tasks:node       # strict Tasks Node/source check
+npm run test:tasks:node            # run selected Tasks Node tests
+npm run coverage:tasks             # enforce Tasks shared/Node coverage
+npm run openapi:tasks              # parse and assert Tasks OpenAPI 3.1
+npm run check:tasks:node           # focused Tasks Node aggregate
+npm run coverage                   # run capstone and Tasks coverage gates
 npm run audit:node                 # audit npm dependencies
 npm run check                      # standard Node course check
 npm run check:deno                 # full Deno validation
 npm run check:bun                  # full Bun validation
 npm run build:bun                  # Bun bundle and compile smoke
+npm run check:tasks:bun            # focused Tasks Bun check
+npm run portability:tasks          # Tasks portable-core smoke
+npm run test:tasks:interoperability # finite six-server/nine-client matrix
 
 deno task check                    # same Deno validation natively
 deno task audit                    # audit Deno lockfile dependencies
+deno task tasks:typecheck          # strict Tasks Deno check
+deno task tasks:test               # scoped Tasks Deno tests
+deno task tasks:docs               # Tasks Deno API documentation
+deno task tasks:check              # focused Tasks Deno aggregate
 npm run audit:bun                  # audit Bun lockfile dependencies
 npm run portability               # shared runtime conformance
 ```

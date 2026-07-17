@@ -25,7 +25,7 @@ npm install
 ```
 
 `npm install` uses `package-lock.json` to install the pinned TypeScript, ESLint,
-Prettier, `tsx`, Node types, and Bun types used by the course.
+Prettier, `tsx`, OpenAPI parser, Node types, and Bun types used by the course.
 Use `npm ci` in automation or when reproducing CI from an unchanged lockfile.
 
 ## 🧑‍💻 3. Choose an editor
@@ -53,6 +53,10 @@ npm run test:node
 npm run coverage
 ```
 
+After modules 14-16, the compact Task REST API applied project uses all three
+runtimes. Start at [`projects/tasks/README.md`](../projects/tasks/README.md);
+complete it before choosing a capstone.
+
 ## 🦕 5. Install Deno for module 14
 
 Use an official package or installer from <https://docs.deno.com/runtime/getting_started/installation/>.
@@ -79,6 +83,14 @@ Avoid `-A` while learning. It grants all permissions and hides the capability
 boundary the module is designed to teach. Grant the containing state directory,
 not just a not-yet-created file: the atomic writer must create the directory and
 a temporary sibling before renaming it.
+
+The Task project uses `jsr:@db/sqlite@0.13.0`. Its `deno task tasks:test`
+command grants only loopback networking, the project test-data directory, FFI,
+the named SQLite loader variables, and the default
+`$HOME/.cache/deno/plug` cache. If your Deno cache is elsewhere, use the
+scoped SQLite command in the [Task README](../projects/tasks/README.md), with
+separate read/write grants for that cache's `plug` directory and no broad
+permission flag.
 
 ## 🥟 6. Install Bun for module 15
 
@@ -121,18 +133,22 @@ commands, files, and HTTP.
 - `tsconfig.base.json` owns the strict options shared by the TypeScript compiler
   configurations.
 - `tsconfig.node.json` checks Node-compatible lessons, exercises, both Node
-  capstones, and Node tooling while excluding native Deno and Bun trees.
+  capstones, the Tasks shared/Node trees, and Node tooling while excluding
+  native Deno and Bun globals.
 - `tsconfig.capstones.node.json` is the focused Node capstone check.
-- `tsconfig.bun.json` uses Bun types and bundler-style resolution for Bun and
-  cross-runtime source.
+- `tsconfig.tasks.node.json` and `tsconfig.tasks.bun.json` are focused Tasks
+  checks; `tsconfig.bun.json` additionally includes the Tasks shared/Bun tree
+  with Bun globals only.
 - Root `tsconfig.json` extends the Node configuration for editor discovery.
 - `deno.json` independently owns Deno compiler options, source scopes,
-  permissions, tasks, formatting, and linting.
+  permissions, tasks, formatting, linting, and the frozen root `deno.lock`.
 
-`npm run coverage` runs two Node coverage commands. Both capstones enforce at
-least 85% lines, 85% functions, and 80% branches.
+`npm run coverage` runs three Node coverage commands. Both capstones and the
+Tasks shared/Node adapter gate enforce at least 85% lines, 85% functions, and
+80% branches.
 `coverage:idiomatic` scopes measurement to the portable solution core;
-`coverage:comparative` also exercises its subprocess fixture support. Deno and
+`coverage:comparative` also exercises its subprocess fixture support; and
+`coverage:tasks` excludes only Tasks composition/index declarations. Deno and
 Bun expose native coverage commands for runtime-focused investigation, but the
 repository-wide numeric gate is the Node coverage command.
 
@@ -150,6 +166,8 @@ CAPSTONE_IMPLEMENTATION=solution npm run test:capstones:node
 npm run coverage
 npm run links
 npm run audit:node
+npm run openapi:tasks
+npm run check:tasks:node
 
 # Deno path
 deno task fmt:check
@@ -161,6 +179,11 @@ deno task docs
 deno task audit
 deno task compile
 deno task check
+deno task tasks:typecheck
+deno task tasks:test
+deno task tasks:docs
+deno task tasks:audit
+deno task tasks:check
 # Equivalent package wrapper: npm run check:deno
 
 # Bun path
@@ -168,18 +191,22 @@ npm run typecheck:bun
 npm run build:bun
 npm run audit:bun
 npm run check:bun
+npm run check:tasks:bun
 
 # Portable evidence
 npm run portability
 deno run scripts/runtime-conformance.ts
 bun run scripts/runtime-conformance.ts
+npm run portability:tasks
+npm run test:tasks:interoperability
 ```
 
 The Deno and Bun `check` commands already include their native audit. Audits may
 contact package advisory services and therefore require network access.
 
-`CAPSTONE_IMPLEMENTATION` accepts only `starter` or `solution`; it defaults to
-`starter` for guided work. CI sets it to `solution`.
+`CAPSTONE_IMPLEMENTATION` and `TASKS_IMPLEMENTATION` accept only `starter` or
+`solution`; each defaults to `starter` for guided work. CI sets both to
+`solution`.
 
 ## ⚠️ Troubleshooting
 

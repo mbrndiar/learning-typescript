@@ -1,9 +1,4 @@
-import {
-  StorageError,
-  type Task,
-  validateTaskId,
-  validateTitle,
-} from "../core/index.ts";
+import { StorageError, type Task, validateTaskId, validateTitle } from "../core/index.ts";
 
 export interface MarkdownState {
   readonly nextId: number;

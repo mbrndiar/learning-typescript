@@ -5,6 +5,8 @@ contract](spec/SPEC.md). The normative fixtures are under
 [`spec/fixtures/`](spec/fixtures/) and the runner rules are in
 [`spec/SCENARIOS.md`](spec/SCENARIOS.md). The shared specification is copied
 byte-for-byte across language repositories and must not be edited locally.
+Complete the [Task REST API applied project](../../projects/tasks/README.md)
+first; it is the prerequisite that combines the preceding runtime material.
 
 ## 🧱 Layout
 

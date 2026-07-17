@@ -2,6 +2,7 @@ name: Check course
 
 env:
   CAPSTONE_IMPLEMENTATION: solution
+  TASKS_IMPLEMENTATION: solution
 
 on:
   push:
@@ -44,9 +45,13 @@ jobs:
       - name: Run exercise and capstone tests
         run: npm run test:node
 
-      - name: Measure capstone coverage
+      - name: Measure capstone and Tasks coverage
         if: matrix.node-version == '26.x'
         run: npm run coverage
+
+      - name: Validate Tasks OpenAPI contract
+        if: matrix.node-version == '26.x'
+        run: npm run openapi:tasks
 
       - name: Audit Node.js dependencies
         if: matrix.node-version == '26.x'
@@ -123,3 +128,5 @@ jobs:
           npm run portability
           deno run scripts/runtime-conformance.ts
           bun run scripts/runtime-conformance.ts
+          npm run portability:tasks
+          npm run test:tasks:interoperability

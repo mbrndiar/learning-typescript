@@ -20,6 +20,11 @@ import {
 } from "./contracts.ts";
 
 const ROOT = "projects/tasks/.test-data/bun";
+const implementation = process.env.TASKS_IMPLEMENTATION ?? "starter";
+if (implementation !== "starter" && implementation !== "solution") {
+  throw new Error("TASKS_IMPLEMENTATION must be starter or solution");
+}
+const testSolution = implementation === "solution" ? test : test.skip;
 
 async function reset(path: string): Promise<void> {
   await mkdir(ROOT, { recursive: true });
@@ -36,10 +41,10 @@ async function exists(path: string): Promise<boolean> {
 }
 
 describe("shared contracts", () => {
-  test("domain, service, and strict JSON", domainAndJsonContract);
-  test("HTTP dispatch", httpDispatchContract);
-  test("Fetch client", fetchClientContract);
-  test("CLI", cliContract);
+  testSolution("domain, service, and strict JSON", domainAndJsonContract);
+  testSolution("HTTP dispatch", httpDispatchContract);
+  testSolution("Fetch client", fetchClientContract);
+  testSolution("CLI", cliContract);
 });
 
 for (const [name, extension, create] of [
@@ -47,17 +52,18 @@ for (const [name, extension, create] of [
   ["Bun Markdown", "md", (path: string) => new BunMarkdownRepository(path)],
 ] as const) {
   const path = `${ROOT}/repository-${extension}.${extension}`;
-  test(`${name} repository contract`, () =>
+  testSolution(`${name} repository contract`, () =>
     repositoryContract({
       name,
       path,
       create,
       reset: () => reset(path),
       writeText: (source) => writeFile(path, source, "utf8"),
-    }));
+    }),
+  );
 }
 
-test("Bun Markdown rejects corrupt persisted data", () => {
+testSolution("Bun Markdown rejects corrupt persisted data", () => {
   const path = `${ROOT}/corrupt.md`;
   return markdownCorruptionContract({
     name: "Bun Markdown",
@@ -68,7 +74,7 @@ test("Bun Markdown rejects corrupt persisted data", () => {
   });
 });
 
-test("Bun SQLite rejects unsupported schema versions", async () => {
+testSolution("Bun SQLite rejects unsupported schema versions", async () => {
   const path = `${ROOT}/schema.db`;
   await reset(path);
   const database = new Database(path, { create: true, strict: true });
@@ -77,7 +83,7 @@ test("Bun SQLite rejects unsupported schema versions", async () => {
   await assertRejects(async () => new BunSqliteRepository(path), StorageError);
 });
 
-test("Bun SQLite rejects IDs outside the safe integer range", async () => {
+testSolution("Bun SQLite rejects IDs outside the safe integer range", async () => {
   const path = `${ROOT}/unsafe-id.db`;
   await reset(path);
   const repository = new BunSqliteRepository(path);
@@ -104,14 +110,15 @@ for (const [name, extension, create] of [
   ["Bun Markdown server", "md", (path: string) => new BunMarkdownRepository(path)],
 ] as const) {
   const path = `${ROOT}/server-${extension}.${extension}`;
-  test(`${name} loopback contract`, () =>
+  testSolution(`${name} loopback contract`, () =>
     serverContract({
       name,
       path,
       createRepository: create,
       start: (service) => startBunServer({ service, port: 0 }),
       reset: () => reset(path),
-    }));
+    }),
+  );
 }
 
 for (const [name, extension, create] of [

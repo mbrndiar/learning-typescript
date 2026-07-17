@@ -2,13 +2,13 @@ import { Database } from "jsr:@db/sqlite@0.13.0";
 import {
   LifecycleError,
   StorageError,
-  TaskNotFoundError,
-  validateTaskId,
-  validateTitle,
   type Task,
   type TaskFilter,
+  TaskNotFoundError,
   type TaskRepository,
   type UpdateTaskDto,
+  validateTaskId,
+  validateTitle,
 } from "../../core/index.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -16,12 +16,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function safeInteger(value: unknown, field: string): number {
-  const integer =
-    typeof value === "bigint"
-      ? value >= 0n && value <= BigInt(Number.MAX_SAFE_INTEGER)
-        ? Number(value)
-        : Number.NaN
-      : value;
+  const integer = typeof value === "bigint"
+    ? value >= 0n && value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : Number.NaN
+    : value;
   if (typeof integer !== "number" || !Number.isSafeInteger(integer)) {
     throw new StorageError("read sqlite", `${field} is not a safe integer`);
   }
@@ -89,9 +86,9 @@ export class DenoSqliteRepository implements TaskRepository {
     let outcome:
       | { readonly ok: true; readonly value: T }
       | {
-          readonly ok: false;
-          readonly error: unknown;
-        };
+        readonly ok: false;
+        readonly error: unknown;
+      };
     try {
       outcome = { ok: true, value: operation(statement) };
     } catch (error) {
@@ -175,9 +172,7 @@ export class DenoSqliteRepository implements TaskRepository {
         "tasks schema constraints are incompatible",
       );
     }
-    const rows = this.#statement("PRAGMA table_info(tasks)", (statement) =>
-      statement.all(),
-    );
+    const rows = this.#statement("PRAGMA table_info(tasks)", (statement) => statement.all());
     const expected = [
       ["id", "INTEGER", 0, 1],
       ["title", "TEXT", 1, 0],
@@ -231,16 +226,15 @@ export class DenoSqliteRepository implements TaskRepository {
   async list(filter: TaskFilter): Promise<readonly Task[]> {
     this.#assertOpen();
     try {
-      const rows =
-        filter.completed === undefined
-          ? this.#statement(
-              "SELECT id, title, completed FROM tasks ORDER BY id",
-              (statement) => statement.all(),
-            )
-          : this.#statement(
-              "SELECT id, title, completed FROM tasks WHERE completed = ? ORDER BY id",
-              (statement) => statement.all(filter.completed ? 1 : 0),
-            );
+      const rows = filter.completed === undefined
+        ? this.#statement(
+          "SELECT id, title, completed FROM tasks ORDER BY id",
+          (statement) => statement.all(),
+        )
+        : this.#statement(
+          "SELECT id, title, completed FROM tasks WHERE completed = ? ORDER BY id",
+          (statement) => statement.all(filter.completed ? 1 : 0),
+        );
       return Object.freeze(rows.map(taskFromRow));
     } catch (error) {
       if (error instanceof StorageError) throw error;
@@ -287,13 +281,7 @@ export class DenoSqliteRepository implements TaskRepository {
             (statement) =>
               statement.run(
                 title ?? task.title,
-                update.completed === undefined
-                  ? task.completed
-                    ? 1
-                    : 0
-                  : update.completed
-                    ? 1
-                    : 0,
+                update.completed === undefined ? task.completed ? 1 : 0 : update.completed ? 1 : 0,
                 id,
               ),
           );

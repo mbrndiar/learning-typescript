@@ -18,6 +18,11 @@ import {
 } from "./contracts.ts";
 
 const ROOT = "projects/tasks/.test-data/deno";
+const implementation = Deno.env.get("TASKS_IMPLEMENTATION") ?? "starter";
+if (implementation !== "starter" && implementation !== "solution") {
+  throw new Error("TASKS_IMPLEMENTATION must be starter or solution");
+}
+const testSolution = implementation === "solution" ? Deno.test : Deno.test.ignore;
 
 async function reset(path: string): Promise<void> {
   await Deno.mkdir(ROOT, { recursive: true });
@@ -38,28 +43,29 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-Deno.test("shared domain, service, and strict JSON contract", domainAndJsonContract);
-Deno.test("shared HTTP dispatch contract", httpDispatchContract);
-Deno.test("shared Fetch client contract", fetchClientContract);
-Deno.test("shared CLI contract", cliContract);
+testSolution("shared domain, service, and strict JSON contract", domainAndJsonContract);
+testSolution("shared HTTP dispatch contract", httpDispatchContract);
+testSolution("shared Fetch client contract", fetchClientContract);
+testSolution("shared CLI contract", cliContract);
 
-for (const [name, extension, create] of [
-  ["Deno SQLite", "db", (path: string) => new DenoSqliteRepository(path)],
-  ["Deno Markdown", "md", (path: string) => new DenoMarkdownRepository(path)],
-] as const) {
+for (
+  const [name, extension, create] of [
+    ["Deno SQLite", "db", (path: string) => new DenoSqliteRepository(path)],
+    ["Deno Markdown", "md", (path: string) => new DenoMarkdownRepository(path)],
+  ] as const
+) {
   const path = `${ROOT}/repository-${extension}.${extension}`;
-  Deno.test(`${name} repository contract`, () =>
+  testSolution(`${name} repository contract`, () =>
     repositoryContract({
       name,
       path,
       create,
       reset: () => reset(path),
       writeText: (source) => Deno.writeTextFile(path, source),
-    }),
-  );
+    }));
 }
 
-Deno.test("Deno Markdown rejects corrupt persisted data", () => {
+testSolution("Deno Markdown rejects corrupt persisted data", () => {
   const path = `${ROOT}/corrupt.md`;
   return markdownCorruptionContract({
     name: "Deno Markdown",
@@ -70,7 +76,7 @@ Deno.test("Deno Markdown rejects corrupt persisted data", () => {
   });
 });
 
-Deno.test("Deno SQLite rejects unsupported schema versions", async () => {
+testSolution("Deno SQLite rejects unsupported schema versions", async () => {
   const path = `${ROOT}/schema.db`;
   await reset(path);
   const database = new Database(path);
@@ -79,7 +85,7 @@ Deno.test("Deno SQLite rejects unsupported schema versions", async () => {
   await assertRejects(async () => new DenoSqliteRepository(path), StorageError);
 });
 
-Deno.test("Deno SQLite rejects IDs outside the safe integer range", async () => {
+testSolution("Deno SQLite rejects IDs outside the safe integer range", async () => {
   const path = `${ROOT}/unsafe-id.db`;
   await reset(path);
   const repository = new DenoSqliteRepository(path);
@@ -105,26 +111,29 @@ Deno.test("Deno SQLite rejects IDs outside the safe integer range", async () => 
   }
 });
 
-for (const [name, extension, create] of [
-  ["Deno SQLite server", "db", (path: string) => new DenoSqliteRepository(path)],
-  ["Deno Markdown server", "md", (path: string) => new DenoMarkdownRepository(path)],
-] as const) {
+for (
+  const [name, extension, create] of [
+    ["Deno SQLite server", "db", (path: string) => new DenoSqliteRepository(path)],
+    ["Deno Markdown server", "md", (path: string) => new DenoMarkdownRepository(path)],
+  ] as const
+) {
   const path = `${ROOT}/server-${extension}.${extension}`;
-  Deno.test(`${name} loopback contract`, () =>
+  testSolution(`${name} loopback contract`, () =>
     serverContract({
       name,
       path,
       createRepository: create,
       start: (service) => startDenoServer({ service, port: 0 }),
       reset: () => reset(path),
-    }),
-  );
+    }));
 }
 
-for (const [name, extension, create] of [
-  ["starter Deno SQLite", "db", (path: string) => new StarterSqlite(path)],
-  ["starter Deno Markdown", "md", (path: string) => new StarterMarkdown(path)],
-] as const) {
+for (
+  const [name, extension, create] of [
+    ["starter Deno SQLite", "db", (path: string) => new StarterSqlite(path)],
+    ["starter Deno Markdown", "md", (path: string) => new StarterMarkdown(path)],
+  ] as const
+) {
   const path = `${ROOT}/${name.replaceAll(" ", "-")}.${extension}`;
   Deno.test(`${name} is visibly incomplete without storage effects`, async () => {
     await reset(path);

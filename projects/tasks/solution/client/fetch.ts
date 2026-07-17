@@ -1,25 +1,21 @@
 import {
   ApiError,
+  type ApiErrorCode,
   ClientProtocolError,
   ClientTransportError,
+  type CreateTaskDto,
+  type ErrorDetails,
   parseCreateTaskDto,
   parseTask,
   parseTaskList,
   parseUpdateTaskDto,
-  validateTaskId,
-  type ApiErrorCode,
-  type CreateTaskDto,
-  type ErrorDetails,
   type Task,
   type TaskClient,
   type TaskFilter,
   type UpdateTaskDto,
+  validateTaskId,
 } from "../core/index.ts";
-import {
-  MAX_RESPONSE_BYTES,
-  parseResponseJson,
-  readBoundedStream,
-} from "../core/json.ts";
+import { MAX_RESPONSE_BYTES, parseResponseJson, readBoundedStream } from "../core/json.ts";
 
 export interface FetchClientOptions {
   readonly baseUrl: string | URL;

@@ -33,3 +33,10 @@ must pass.
 14. [Deno runtime](14_deno_runtime/)
 15. [Bun runtime](15_bun_runtime/)
 16. [Runtime portability](16_runtime_portability/)
+
+## 🧩 Applied project
+
+After module 16, use the [Task REST API applied project](../projects/tasks/README.md)
+to combine the SQL, HTTP, testing, and runtime lessons before either final
+capstone. Its guided `starter/` and reference `solution/` trees are selected
+with `TASKS_IMPLEMENTATION`.

@@ -1,6 +1,6 @@
 import {
-  IncompleteProjectError,
   type CreateTaskDto,
+  IncompleteProjectError,
   type Task,
   type TaskClient,
   type TaskFilter,

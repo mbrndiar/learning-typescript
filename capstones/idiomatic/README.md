@@ -5,6 +5,9 @@ validation, replay, bounded delivery, CLI behavior, and HTTP semantics in a
 runtime-neutral core. Thin Node.js, Deno, and Bun adapters own process signals,
 files, stdin, and loopback server APIs.
 
+Complete the [Task REST API applied project](../../projects/tasks/README.md)
+first; it is the prerequisite that combines the preceding runtime material.
+
 ## Features
 
 - strict `unknown` narrowing for metric and alert events;

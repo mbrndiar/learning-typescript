@@ -9,6 +9,18 @@
     "lessons/**/*.ts",
     "exercises/**/*.ts",
     "capstones/**/*.ts",
+    "projects/tasks/solution/client/**/*.ts",
+    "projects/tasks/solution/core/**/*.ts",
+    "projects/tasks/solution/storage/**/*.ts",
+    "projects/tasks/solution/runtimes/node/**/*.ts",
+    "projects/tasks/starter/client/**/*.ts",
+    "projects/tasks/starter/core/**/*.ts",
+    "projects/tasks/starter/storage/**/*.ts",
+    "projects/tasks/starter/runtimes/node/**/*.ts",
+    "projects/tasks/tests/contracts.ts",
+    "projects/tasks/tests/node-coverage.test.ts",
+    "projects/tasks/tests/node.test.ts",
+    "projects/tasks/tests/interoperability.ts",
     "scripts/**/*.ts"
   ],
   "exclude": [
@@ -22,6 +34,12 @@
     "capstones/idiomatic/solution/bun/**",
     "capstones/idiomatic/tests/deno/**",
     "capstones/idiomatic/tests/bun/**",
+    "projects/tasks/solution/runtimes/deno/**",
+    "projects/tasks/solution/runtimes/bun/**",
+    "projects/tasks/starter/runtimes/deno/**",
+    "projects/tasks/starter/runtimes/bun/**",
+    "projects/tasks/tests/deno.test.ts",
+    "projects/tasks/tests/bun.test.ts",
     "scripts/*deno*.ts",
     "scripts/*bun*.ts"
   ]

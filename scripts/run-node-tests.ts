@@ -22,7 +22,11 @@ async function collectTests(directory: string): Promise<string[]> {
     }
     if (entry.isDirectory()) {
       tests.push(...(await collectTests(path)));
-    } else if (entry.name.endsWith(".test.ts")) {
+    } else if (
+      entry.name.endsWith(".test.ts") &&
+      entry.name !== "deno.test.ts" &&
+      entry.name !== "bun.test.ts"
+    ) {
       tests.push(path);
     }
   }
@@ -32,7 +36,9 @@ async function collectTests(directory: string): Promise<string[]> {
 
 const tests = (
   await Promise.all(
-    ["lessons", "exercises", "capstones"].map((directory) => collectTests(directory)),
+    ["lessons", "exercises", "capstones", "projects/tasks"].map((directory) =>
+      collectTests(directory),
+    ),
   )
 )
   .flat()

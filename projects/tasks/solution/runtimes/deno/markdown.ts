@@ -1,20 +1,20 @@
 import {
   LifecycleError,
   StorageError,
-  TaskNotFoundError,
-  validateTaskId,
-  validateTitle,
   type Task,
   type TaskFilter,
+  TaskNotFoundError,
   type TaskRepository,
   type UpdateTaskDto,
+  validateTaskId,
+  validateTitle,
 } from "../../core/index.ts";
 import {
   initialMarkdownState,
-  parseMarkdownDocument,
-  serializeMarkdownDocument,
-  SerialExecutor,
   type MarkdownState,
+  parseMarkdownDocument,
+  SerialExecutor,
+  serializeMarkdownDocument,
 } from "../../storage/markdown.ts";
 
 let temporarySequence = 0;

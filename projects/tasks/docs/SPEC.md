@@ -72,11 +72,11 @@ project.
 
 The project has three responsibilities:
 
-| Responsibility | Owns | Does not own |
-| --- | --- | --- |
-| Shared core | Task rules, service operations, repository abstraction, SQLite and Markdown persistence | HTTP framework objects, client library objects, process configuration |
-| HTTP servers | Routing, request decoding, status selection, response encoding, dependency construction | Domain validation rules or storage-specific business logic |
-| HTTP clients | Command parsing, safe request construction, response validation, output, exit codes | Direct repository access or server internals |
+| Responsibility | Owns                                                                                    | Does not own                                                          |
+| -------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Shared core    | Task rules, service operations, repository abstraction, SQLite and Markdown persistence | HTTP framework objects, client library objects, process configuration |
+| HTTP servers   | Routing, request decoding, status selection, response encoding, dependency construction | Domain validation rules or storage-specific business logic            |
+| HTTP clients   | Command parsing, safe request construction, response validation, output, exit codes     | Direct repository access or server internals                          |
 
 The core points inward: adapters depend on the core, while the core never
 imports `node:http`, `Deno.serve`, `Bun.serve`, or a runtime SQLite module.
@@ -99,11 +99,11 @@ A task response has this shape:
 }
 ```
 
-| Field | Rule |
-| --- | --- |
-| `id` | Positive integer allocated by the repository. IDs start at 1, increase monotonically, and are never reused after deletion. |
-| `title` | String trimmed before storage. After trimming it contains 1–120 Unicode characters, occupies one physical line, and contains no control characters. |
-| `completed` | JSON Boolean. A number, string, or null is not a Boolean. |
+| Field       | Rule                                                                                                                                                |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`        | Positive integer allocated by the repository. IDs start at 1, increase monotonically, and are never reused after deletion.                          |
+| `title`     | String trimmed before storage. After trimming it contains 1–120 Unicode characters, occupies one physical line, and contains no control characters. |
+| `completed` | JSON Boolean. A number, string, or null is not a Boolean.                                                                                           |
 
 Task lists are ordered by ID ascending. JSON request objects reject unknown
 properties so misspellings do not silently change behavior.
@@ -169,6 +169,7 @@ The second repository stores everything in one UTF-8 Markdown file:
 
 ```markdown
 <!-- rest-task-api:v1 next-id=3 -->
+
 # Tasks
 
 - [ ] 1: Learn SQLite
@@ -222,14 +223,14 @@ extensions and should not be used by project clients.
 
 ## HTTP operations
 
-| Method | Path | Request | Success |
-| --- | --- | --- | --- |
-| `GET` | `/health` | None | `200` with `{"status":"ok"}` |
-| `POST` | `/tasks` | `{"title":"..."}` | `201` with the created Task |
-| `GET` | `/tasks` | Optional `completed=true` or `completed=false` query | `200` with a Task array |
-| `GET` | `/tasks/{id}` | None | `200` with one Task |
-| `PATCH` | `/tasks/{id}` | `title`, `completed`, or both | `200` with the updated Task |
-| `DELETE` | `/tasks/{id}` | None | `204` with no body |
+| Method   | Path          | Request                                              | Success                      |
+| -------- | ------------- | ---------------------------------------------------- | ---------------------------- |
+| `GET`    | `/health`     | None                                                 | `200` with `{"status":"ok"}` |
+| `POST`   | `/tasks`      | `{"title":"..."}`                                    | `201` with the created Task  |
+| `GET`    | `/tasks`      | Optional `completed=true` or `completed=false` query | `200` with a Task array      |
+| `GET`    | `/tasks/{id}` | None                                                 | `200` with one Task          |
+| `PATCH`  | `/tasks/{id}` | `title`, `completed`, or both                        | `200` with the updated Task  |
+| `DELETE` | `/tasks/{id}` | None                                                 | `204` with no body           |
 
 ### Health
 
@@ -242,13 +243,13 @@ not a production health-check design.
 The request contains exactly one property:
 
 ```json
-{"title": "  Learn REST  "}
+{ "title": "  Learn REST  " }
 ```
 
 The stored and returned title is trimmed:
 
 ```json
-{"id": 1, "title": "Learn REST", "completed": false}
+{ "id": 1, "title": "Learn REST", "completed": false }
 ```
 
 Missing `title`, a non-string title, an empty title after trimming, a multiline
@@ -264,8 +265,8 @@ The filter is applied by Boolean value and results remain ordered by ID:
 
 ```json
 [
-  {"id": 2, "title": "Write contract tests", "completed": false},
-  {"id": 5, "title": "Compare frameworks", "completed": false}
+  { "id": 2, "title": "Write contract tests", "completed": false },
+  { "id": 5, "title": "Compare frameworks", "completed": false }
 ]
 ```
 
@@ -276,7 +277,7 @@ A valid but absent positive ID produces `404`.
 Patch bodies are partial:
 
 ```json
-{"title": "Read the OpenAPI document", "completed": true}
+{ "title": "Read the OpenAPI document", "completed": true }
 ```
 
 At least one supported property is required. `id` cannot be changed. Unknown
@@ -305,13 +306,13 @@ Every JSON error uses one envelope:
 the problem. Clients classify errors by HTTP status and `code`, not by parsing
 English messages.
 
-| Status | Code | Used for |
-| --- | --- | --- |
-| `400` | `invalid_json` | Missing/unsupported JSON content type, invalid UTF-8, or malformed JSON on a body endpoint |
-| `404` | `not_found` | A missing task or unknown route |
-| `405` | `method_not_allowed` | A method not supported by a known path |
-| `422` | `validation_error` | A valid JSON value or URL component that violates the request or domain rules |
-| `500` | `internal_error` | Unexpected server or persistence failure |
+| Status | Code                 | Used for                                                                                   |
+| ------ | -------------------- | ------------------------------------------------------------------------------------------ |
+| `400`  | `invalid_json`       | Missing/unsupported JSON content type, invalid UTF-8, or malformed JSON on a body endpoint |
+| `404`  | `not_found`          | A missing task or unknown route                                                            |
+| `405`  | `method_not_allowed` | A method not supported by a known path                                                     |
+| `422`  | `validation_error`   | A valid JSON value or URL component that violates the request or domain rules              |
+| `500`  | `internal_error`     | Unexpected server or persistence failure                                                   |
 
 For example, an unknown request property is a semantic error:
 
@@ -378,13 +379,13 @@ JSON property spacing and order are presentation details; parsed values are the
 contract. Normal output goes to stdout. Errors go to stderr as a concise line
 that includes the category and useful message.
 
-| Exit code | Meaning |
-| --- | --- |
-| `0` | Success |
-| `2` | Command usage error, such as a missing argument or non-positive ID |
-| `3` | The server returned a valid documented API error |
-| `4` | The server response had an unexpected status, content type, or JSON shape |
-| `5` | Connection, DNS, TLS, or timeout failure |
+| Exit code | Meaning                                                                   |
+| --------- | ------------------------------------------------------------------------- |
+| `0`       | Success                                                                   |
+| `2`       | Command usage error, such as a missing argument or non-positive ID        |
+| `3`       | The server returned a valid documented API error                          |
+| `4`       | The server response had an unexpected status, content type, or JSON shape |
+| `5`       | Connection, DNS, TLS, or timeout failure                                  |
 
 The client checks status before trusting a success body, validates every decoded
 Task and error field, and does not expose library-specific exceptions as its

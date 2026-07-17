@@ -1,10 +1,10 @@
 import {
-  StorageError,
-  TaskNotFoundError,
-  ValidationError,
   type ApiErrorCode,
   type ErrorDetails,
+  StorageError,
+  TaskNotFoundError,
   type TaskService,
+  ValidationError,
 } from "./index.ts";
 import { encodeJson, MAX_REQUEST_BYTES, parseStrictJsonBytes } from "./json.ts";
 
@@ -150,8 +150,7 @@ export async function dispatchHttp(
       return errorResponse(400, "invalid_json", "request body must be valid JSON");
     }
     if (error instanceof ValidationError) {
-      const details =
-        error.field === undefined ? undefined : Object.freeze({ field: error.field });
+      const details = error.field === undefined ? undefined : Object.freeze({ field: error.field });
       return errorResponse(422, "validation_error", error.message, details);
     }
     if (error instanceof TaskNotFoundError) {
