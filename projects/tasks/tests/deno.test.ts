@@ -79,6 +79,32 @@ Deno.test("Deno SQLite rejects unsupported schema versions", async () => {
   await assertRejects(async () => new DenoSqliteRepository(path), StorageError);
 });
 
+Deno.test("Deno SQLite rejects IDs outside the safe integer range", async () => {
+  const path = `${ROOT}/unsafe-id.db`;
+  await reset(path);
+  const repository = new DenoSqliteRepository(path);
+  await repository.close();
+  const database = new Database(path, { int64: true });
+  const statement = database.prepare(
+    "INSERT INTO tasks(id, title, completed) VALUES (?, ?, 0)",
+  );
+  try {
+    statement.run(9_007_199_254_740_992n, "Unsafe");
+  } finally {
+    try {
+      statement.finalize();
+    } finally {
+      database.close();
+    }
+  }
+  const reopened = new DenoSqliteRepository(path);
+  try {
+    await assertRejects(() => reopened.list({}), StorageError);
+  } finally {
+    await reopened.close();
+  }
+});
+
 for (const [name, extension, create] of [
   ["Deno SQLite server", "db", (path: string) => new DenoSqliteRepository(path)],
   ["Deno Markdown server", "md", (path: string) => new DenoMarkdownRepository(path)],

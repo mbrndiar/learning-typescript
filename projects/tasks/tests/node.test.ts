@@ -82,6 +82,24 @@ test("Node SQLite rejects unsupported schema versions", async () => {
   await assertRejects(async () => new NodeSqliteRepository(path), StorageError);
 });
 
+test("Node SQLite rejects IDs outside the safe integer range", async () => {
+  const path = `${ROOT}/unsafe-id.db`;
+  await reset(path);
+  const repository = new NodeSqliteRepository(path);
+  await repository.close();
+  const database = new DatabaseSync(path);
+  database
+    .prepare("INSERT INTO tasks(id, title, completed) VALUES (?, ?, 0)")
+    .run(9_007_199_254_740_992n, "Unsafe");
+  database.close();
+  const reopened = new NodeSqliteRepository(path);
+  try {
+    await assertRejects(() => reopened.list({}), StorageError);
+  } finally {
+    await reopened.close();
+  }
+});
+
 for (const [name, extension, create] of [
   ["Node SQLite server", "db", (path: string) => new NodeSqliteRepository(path)],
   ["Node Markdown server", "md", (path: string) => new NodeMarkdownRepository(path)],

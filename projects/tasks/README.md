@@ -95,15 +95,25 @@ deno run \
 ```
 
 Markdown mode needs only loopback network access plus read/write access to the
-data directory. SQLite additionally needs `--allow-env` and `--allow-ffi`, and
-the maintained package loader needs access to its platform-specific Deno cache.
-The package documents `-A` as its portable direct invocation:
+data directory. For a cached SQLite native library, the minimum additional
+permissions are the three loader environment variables, FFI, and read access to
+the loader cache; a file database also needs scoped data access:
 
 ```bash
-deno run -A --lock=projects/tasks/deno.lock \
+deno_dir="${DENO_DIR:-$HOME/.cache/deno}"
+deno run \
+  --lock=projects/tasks/deno.lock \
+  --allow-net=127.0.0.1 \
+  --allow-env=DENO_DIR,DENO_SQLITE_PATH,DENO_SQLITE_LOCAL \
+  --allow-ffi \
+  --allow-read="$deno_dir/plug,projects/tasks/.test-data/run" \
+  --allow-write=projects/tasks/.test-data/run \
   projects/tasks/solution/runtimes/deno/api-main.ts \
   --backend sqlite --data projects/tasks/.test-data/run/deno.db --port 8000
 ```
+
+An uncached first download needs temporary network/cache-write permission; the
+upstream package documents `-A` as the portable bootstrap invocation.
 
 ```bash
 bun projects/tasks/solution/runtimes/bun/api-main.ts \
@@ -147,7 +157,11 @@ node --experimental-strip-types \
 ## Persistence and lifecycle limits
 
 - SQLite uses schema version `1`, `AUTOINCREMENT`, checked Boolean storage,
-  parameterized statements, and short mutation transactions.
+  parameterized statements, and short mutation transactions. Node enables
+  defensive mode twice for version compatibility, sets a 5-second busy timeout,
+  and reads statement integers as `bigint`; Bun enables strict and safe-integer
+  modes; Deno enables `int64`, finalizes every statement, and uses immediate
+  native transaction wrappers. Every adapter narrows IDs back to safe numbers.
 - Markdown uses exactly
   `<!-- rest-task-api:v1 next-id=N -->`, ordered checklist rows, one final
   newline, a sibling temporary file, close/flush where exposed, and atomic
@@ -166,8 +180,10 @@ The project is directly runnable, but the repository owner still needs to:
 2. add root format, lint, type-check, test, coverage, and interoperability
    scripts;
 3. merge the project-local Deno lock entries into the chosen root lock/task
-   workflow; and
-4. link the project from the renumbered curriculum and root course docs.
+   workflow;
+4. integrate OpenAPI validation with exact
+   `@readme/openapi-parser@6.3.0`; and
+5. link the project from the renumbered curriculum and root course docs.
 
 Those files are intentionally untouched because they are owned by concurrent
 integration work.

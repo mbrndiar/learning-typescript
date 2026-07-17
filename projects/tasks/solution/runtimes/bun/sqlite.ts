@@ -15,6 +15,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function safeInteger(value: unknown, field: string): number {
+  const integer =
+    typeof value === "bigint"
+      ? value >= 0n && value <= BigInt(Number.MAX_SAFE_INTEGER)
+        ? Number(value)
+        : Number.NaN
+      : value;
+  if (typeof integer !== "number" || !Number.isSafeInteger(integer)) {
+    throw new StorageError("read sqlite", `${field} is not a safe integer`);
+  }
+  return integer;
+}
+
 function taskFromRow(value: unknown): Task {
   if (!isRecord(value)) {
     throw new StorageError("read sqlite", "row is not an object");
@@ -22,20 +35,25 @@ function taskFromRow(value: unknown): Task {
   let id: number;
   let title: string;
   try {
-    id = validateTaskId(value.id);
+    id = validateTaskId(safeInteger(value.id, "id"));
     title = validateTitle(value.title);
   } catch (error) {
     throw new StorageError("read sqlite", "row contains invalid values", error);
   }
-  if (value.completed !== 0 && value.completed !== 1) {
+  const completed = safeInteger(value.completed, "completed");
+  if (completed !== 0 && completed !== 1) {
     throw new StorageError("read sqlite", "completed must be 0 or 1");
   }
-  return Object.freeze({ id, title, completed: value.completed === 1 });
+  return Object.freeze({ id, title, completed: completed === 1 });
 }
 
 function openDatabase(path: string): Database {
   try {
-    return new Database(path, { create: true, strict: true });
+    return new Database(path, {
+      create: true,
+      strict: true,
+      safeIntegers: true,
+    });
   } catch (error) {
     throw new StorageError("open sqlite", "could not open database", error);
   }
@@ -69,10 +87,10 @@ export class BunSqliteRepository implements TaskRepository {
 
   #initialize(): void {
     const row = this.#database.query("PRAGMA user_version").get();
-    if (!isRecord(row) || !Number.isSafeInteger(row.user_version)) {
+    if (!isRecord(row)) {
       throw new StorageError("open sqlite", "invalid schema version result");
     }
-    const version = row.user_version;
+    const version = safeInteger(row.user_version, "schema version");
     if (version === 0) {
       const table = this.#database
         .query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'tasks'")
@@ -138,8 +156,8 @@ export class BunSqliteRepository implements TaskRepository {
         shape === undefined ||
         row.name !== shape[0] ||
         row.type !== shape[1] ||
-        row.notnull !== shape[2] ||
-        row.pk !== shape[3]
+        safeInteger(row.notnull, "notnull") !== shape[2] ||
+        safeInteger(row.pk, "primary key") !== shape[3]
       ) {
         throw new StorageError("open sqlite", "tasks schema is incompatible");
       }
@@ -167,7 +185,7 @@ export class BunSqliteRepository implements TaskRepository {
       const result = this.#database
         .query("INSERT INTO tasks(title, completed) VALUES (?, 0)")
         .run(title);
-      const id = validateTaskId(result.lastInsertRowid);
+      const id = validateTaskId(safeInteger(result.lastInsertRowid, "insert id"));
       const task = taskFromRow(
         this.#database
           .query("SELECT id, title, completed FROM tasks WHERE id = ?")
@@ -274,7 +292,9 @@ export class BunSqliteRepository implements TaskRepository {
     this.#database.exec("BEGIN IMMEDIATE");
     try {
       const result = this.#database.query("DELETE FROM tasks WHERE id = ?").run(id);
-      if (result.changes === 0) throw new TaskNotFoundError(id);
+      if (safeInteger(result.changes, "changes") === 0) {
+        throw new TaskNotFoundError(id);
+      }
       this.#database.exec("COMMIT");
     } catch (error) {
       if (error instanceof TaskNotFoundError) {

@@ -15,6 +15,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function safeInteger(value: unknown, field: string): number {
+  const integer =
+    typeof value === "bigint"
+      ? value >= 0n && value <= BigInt(Number.MAX_SAFE_INTEGER)
+        ? Number(value)
+        : Number.NaN
+      : value;
+  if (typeof integer !== "number" || !Number.isSafeInteger(integer)) {
+    throw new StorageError("read sqlite", `${field} is not a safe integer`);
+  }
+  return integer;
+}
+
 function taskFromRow(value: unknown): Task {
   if (!isRecord(value)) {
     throw new StorageError("read sqlite", "row is not an object");
@@ -22,15 +35,16 @@ function taskFromRow(value: unknown): Task {
   let id: number;
   let title: string;
   try {
-    id = validateTaskId(value.id);
+    id = validateTaskId(safeInteger(value.id, "id"));
     title = validateTitle(value.title);
   } catch (error) {
     throw new StorageError("read sqlite", "row contains invalid values", error);
   }
-  if (value.completed !== 0 && value.completed !== 1) {
+  const completed = safeInteger(value.completed, "completed");
+  if (completed !== 0 && completed !== 1) {
     throw new StorageError("read sqlite", "completed must be 0 or 1");
   }
-  return Object.freeze({ id, title, completed: value.completed === 1 });
+  return Object.freeze({ id, title, completed: completed === 1 });
 }
 
 function openDatabase(path: string): Database {
@@ -67,37 +81,74 @@ export class DenoSqliteRepository implements TaskRepository {
     if (this.#closed) throw new LifecycleError("sqlite repository is closed");
   }
 
+  #statement<T>(
+    sql: string,
+    operation: (statement: ReturnType<Database["prepare"]>) => T,
+  ): T {
+    const statement = this.#database.prepare(sql);
+    let outcome:
+      | { readonly ok: true; readonly value: T }
+      | {
+          readonly ok: false;
+          readonly error: unknown;
+        };
+    try {
+      outcome = { ok: true, value: operation(statement) };
+    } catch (error) {
+      outcome = { ok: false, error };
+    }
+    try {
+      statement.finalize();
+    } catch (finalizeError) {
+      if (!outcome.ok) {
+        throw new StorageError(
+          "finalize sqlite statement",
+          "operation and finalization both failed",
+          new AggregateError([outcome.error, finalizeError]),
+        );
+      }
+      throw new StorageError(
+        "finalize sqlite statement",
+        "statement finalization failed",
+        finalizeError,
+      );
+    }
+    if (!outcome.ok) throw outcome.error;
+    return outcome.value;
+  }
+
   #initialize(): void {
-    const row = this.#database.prepare("PRAGMA user_version").get();
-    if (!isRecord(row) || !Number.isSafeInteger(row.user_version)) {
+    const row = this.#statement("PRAGMA user_version", (statement) => statement.get());
+    if (!isRecord(row)) {
       throw new StorageError("open sqlite", "invalid schema version result");
     }
-    const version = row.user_version;
+    const version = safeInteger(row.user_version, "schema version");
     if (version === 0) {
-      const table = this.#database
-        .prepare(
-          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
-        )
-        .get();
+      const table = this.#statement(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+        (statement) => statement.get(),
+      );
       if (table !== undefined) {
         throw new StorageError(
           "open sqlite",
           "tasks table exists without a schema version",
         );
       }
-      this.#database.exec("BEGIN IMMEDIATE");
       try {
-        this.#database.exec(`
-          CREATE TABLE tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            completed INTEGER NOT NULL CHECK (completed IN (0, 1))
-          );
-          PRAGMA user_version = 1;
-          COMMIT
-        `);
+        this.#database
+          .transaction(() => {
+            this.#database.exec(`
+            CREATE TABLE tasks (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              completed INTEGER NOT NULL CHECK (completed IN (0, 1))
+            )
+          `);
+            this.#database.exec("PRAGMA user_version = 1");
+          })
+          .immediate();
       } catch (error) {
-        this.#rollback("initialize sqlite", error);
+        throw new StorageError("initialize sqlite", "transaction failed", error);
       }
     } else if (version !== 1) {
       throw new StorageError(
@@ -109,9 +160,10 @@ export class DenoSqliteRepository implements TaskRepository {
   }
 
   #validateSchema(): void {
-    const definition = this.#database
-      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'tasks'")
-      .get();
+    const definition = this.#statement(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+      (statement) => statement.get(),
+    );
     if (
       !isRecord(definition) ||
       typeof definition.sql !== "string" ||
@@ -123,7 +175,9 @@ export class DenoSqliteRepository implements TaskRepository {
         "tasks schema constraints are incompatible",
       );
     }
-    const rows = this.#database.prepare("PRAGMA table_info(tasks)").all();
+    const rows = this.#statement("PRAGMA table_info(tasks)", (statement) =>
+      statement.all(),
+    );
     const expected = [
       ["id", "INTEGER", 0, 1],
       ["title", "TEXT", 1, 0],
@@ -140,45 +194,37 @@ export class DenoSqliteRepository implements TaskRepository {
         shape === undefined ||
         row.name !== shape[0] ||
         row.type !== shape[1] ||
-        row.notnull !== shape[2] ||
-        row.pk !== shape[3]
+        safeInteger(row.notnull, "notnull") !== shape[2] ||
+        safeInteger(row.pk, "primary key") !== shape[3]
       ) {
         throw new StorageError("open sqlite", "tasks schema is incompatible");
       }
     }
   }
 
-  #rollback(operation: string, original: unknown): never {
-    try {
-      this.#database.exec("ROLLBACK");
-    } catch (rollbackError) {
-      throw new StorageError(
-        operation,
-        "operation and rollback both failed",
-        new AggregateError([original, rollbackError]),
-      );
-    }
-    throw new StorageError(operation, "transaction failed", original);
-  }
-
   async create(rawTitle: string): Promise<Task> {
     this.#assertOpen();
     const title = validateTitle(rawTitle);
-    this.#database.exec("BEGIN IMMEDIATE");
     try {
-      this.#database
-        .prepare("INSERT INTO tasks(title, completed) VALUES (?, 0)")
-        .run(title);
-      const id = validateTaskId(this.#database.lastInsertRowId);
-      const task = taskFromRow(
-        this.#database
-          .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-          .get(id),
-      );
-      this.#database.exec("COMMIT");
-      return task;
+      return this.#database
+        .transaction(() => {
+          this.#statement(
+            "INSERT INTO tasks(title, completed) VALUES (?, 0)",
+            (statement) => statement.run(title),
+          );
+          const id = validateTaskId(
+            safeInteger(this.#database.lastInsertRowId, "insert id"),
+          );
+          return taskFromRow(
+            this.#statement(
+              "SELECT id, title, completed FROM tasks WHERE id = ?",
+              (statement) => statement.get(id),
+            ),
+          );
+        })
+        .immediate();
     } catch (error) {
-      return this.#rollback("create task", error);
+      throw new StorageError("create task", "transaction failed", error);
     }
   }
 
@@ -187,14 +233,14 @@ export class DenoSqliteRepository implements TaskRepository {
     try {
       const rows =
         filter.completed === undefined
-          ? this.#database
-              .prepare("SELECT id, title, completed FROM tasks ORDER BY id")
-              .all()
-          : this.#database
-              .prepare(
-                "SELECT id, title, completed FROM tasks WHERE completed = ? ORDER BY id",
-              )
-              .all(filter.completed ? 1 : 0);
+          ? this.#statement(
+              "SELECT id, title, completed FROM tasks ORDER BY id",
+              (statement) => statement.all(),
+            )
+          : this.#statement(
+              "SELECT id, title, completed FROM tasks WHERE completed = ? ORDER BY id",
+              (statement) => statement.all(filter.completed ? 1 : 0),
+            );
       return Object.freeze(rows.map(taskFromRow));
     } catch (error) {
       if (error instanceof StorageError) throw error;
@@ -206,9 +252,10 @@ export class DenoSqliteRepository implements TaskRepository {
     this.#assertOpen();
     const id = validateTaskId(rawId);
     try {
-      const row = this.#database
-        .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-        .get(id);
+      const row = this.#statement(
+        "SELECT id, title, completed FROM tasks WHERE id = ?",
+        (statement) => statement.get(id),
+      );
       if (row === undefined) throw new TaskNotFoundError(id);
       return taskFromRow(row);
     } catch (error) {
@@ -226,72 +273,60 @@ export class DenoSqliteRepository implements TaskRepository {
     if (title === undefined && update.completed === undefined) {
       throw new StorageError("update task", "update must not be empty");
     }
-    this.#database.exec("BEGIN IMMEDIATE");
     try {
-      const current = this.#database
-        .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-        .get(id);
-      if (current === undefined) throw new TaskNotFoundError(id);
-      const task = taskFromRow(current);
-      this.#database
-        .prepare("UPDATE tasks SET title = ?, completed = ? WHERE id = ?")
-        .run(
-          title ?? task.title,
-          update.completed === undefined
-            ? task.completed
-              ? 1
-              : 0
-            : update.completed
-              ? 1
-              : 0,
-          id,
-        );
-      const updated = taskFromRow(
-        this.#database
-          .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-          .get(id),
-      );
-      this.#database.exec("COMMIT");
-      return updated;
-    } catch (error) {
-      if (error instanceof TaskNotFoundError) {
-        try {
-          this.#database.exec("ROLLBACK");
-        } catch (rollbackError) {
-          throw new StorageError(
-            "update task",
-            "not-found rollback failed",
-            rollbackError,
+      return this.#database
+        .transaction(() => {
+          const current = this.#statement(
+            "SELECT id, title, completed FROM tasks WHERE id = ?",
+            (statement) => statement.get(id),
           );
-        }
-        throw error;
-      }
-      return this.#rollback("update task", error);
+          if (current === undefined) throw new TaskNotFoundError(id);
+          const task = taskFromRow(current);
+          this.#statement(
+            "UPDATE tasks SET title = ?, completed = ? WHERE id = ?",
+            (statement) =>
+              statement.run(
+                title ?? task.title,
+                update.completed === undefined
+                  ? task.completed
+                    ? 1
+                    : 0
+                  : update.completed
+                    ? 1
+                    : 0,
+                id,
+              ),
+          );
+          return taskFromRow(
+            this.#statement(
+              "SELECT id, title, completed FROM tasks WHERE id = ?",
+              (statement) => statement.get(id),
+            ),
+          );
+        })
+        .immediate();
+    } catch (error) {
+      if (error instanceof TaskNotFoundError) throw error;
+      throw new StorageError("update task", "transaction failed", error);
     }
   }
 
   async delete(rawId: number): Promise<void> {
     this.#assertOpen();
     const id = validateTaskId(rawId);
-    this.#database.exec("BEGIN IMMEDIATE");
     try {
-      const changes = this.#database.prepare("DELETE FROM tasks WHERE id = ?").run(id);
-      if (changes === 0) throw new TaskNotFoundError(id);
-      this.#database.exec("COMMIT");
-    } catch (error) {
-      if (error instanceof TaskNotFoundError) {
-        try {
-          this.#database.exec("ROLLBACK");
-        } catch (rollbackError) {
-          throw new StorageError(
-            "delete task",
-            "not-found rollback failed",
-            rollbackError,
+      this.#database
+        .transaction(() => {
+          const changes = this.#statement(
+            "DELETE FROM tasks WHERE id = ?",
+            (statement) => statement.run(id),
           );
-        }
-        throw error;
-      }
-      this.#rollback("delete task", error);
+          if (changes === 0) throw new TaskNotFoundError(id);
+        })
+        .immediate();
+    } catch (error) {
+      if (error instanceof TaskNotFoundError) throw error;
+      throw new StorageError("delete task", "transaction failed", error);
     }
   }
 

@@ -1,4 +1,8 @@
-import { DatabaseSync, type StatementResultingChanges } from "node:sqlite";
+import {
+  DatabaseSync,
+  type StatementResultingChanges,
+  type StatementSync,
+} from "node:sqlite";
 import {
   LifecycleError,
   StorageError,
@@ -15,6 +19,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function safeInteger(value: unknown, field: string): number {
+  const integer =
+    typeof value === "bigint"
+      ? value >= 0n && value <= BigInt(Number.MAX_SAFE_INTEGER)
+        ? Number(value)
+        : Number.NaN
+      : value;
+  if (typeof integer !== "number" || !Number.isSafeInteger(integer)) {
+    throw new StorageError("read sqlite", `${field} is not a safe integer`);
+  }
+  return integer;
+}
+
 function taskFromRow(value: unknown): Task {
   if (!isRecord(value)) {
     throw new StorageError("read sqlite", "row is not an object");
@@ -22,24 +39,25 @@ function taskFromRow(value: unknown): Task {
   let id: number;
   let title: string;
   try {
-    id = validateTaskId(value.id);
+    id = validateTaskId(safeInteger(value.id, "id"));
     title = validateTitle(value.title);
   } catch (error) {
     throw new StorageError("read sqlite", "row contains invalid values", error);
   }
-  if (value.completed !== 0 && value.completed !== 1) {
+  const completed = safeInteger(value.completed, "completed");
+  if (completed !== 0 && completed !== 1) {
     throw new StorageError("read sqlite", "completed must be 0 or 1");
   }
-  return Object.freeze({ id, title, completed: value.completed === 1 });
+  return Object.freeze({ id, title, completed: completed === 1 });
 }
 
 function changes(result: StatementResultingChanges): number {
-  return Number(result.changes);
+  return safeInteger(result.changes, "changes");
 }
 
 function openDatabase(path: string): DatabaseSync {
   try {
-    return new DatabaseSync(path);
+    return new DatabaseSync(path, { defensive: true });
   } catch (error) {
     throw new StorageError("open sqlite", "could not open database", error);
   }
@@ -52,6 +70,8 @@ export class NodeSqliteRepository implements TaskRepository {
   constructor(path: string) {
     this.#database = openDatabase(path);
     try {
+      this.#database.enableDefensive(true);
+      this.#database.exec("PRAGMA busy_timeout = 5000");
       this.#initialize();
     } catch (error) {
       try {
@@ -71,18 +91,22 @@ export class NodeSqliteRepository implements TaskRepository {
     if (this.#closed) throw new LifecycleError("sqlite repository is closed");
   }
 
+  #prepare(sql: string): StatementSync {
+    const statement = this.#database.prepare(sql);
+    statement.setReadBigInts(true);
+    return statement;
+  }
+
   #initialize(): void {
-    const row = this.#database.prepare("PRAGMA user_version").get();
-    if (!isRecord(row) || !Number.isSafeInteger(row.user_version)) {
+    const row = this.#prepare("PRAGMA user_version").get();
+    if (!isRecord(row)) {
       throw new StorageError("open sqlite", "invalid schema version result");
     }
-    const version = row.user_version;
+    const version = safeInteger(row.user_version, "schema version");
     if (version === 0) {
-      const table = this.#database
-        .prepare(
-          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
-        )
-        .get();
+      const table = this.#prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+      ).get();
       if (table !== undefined) {
         throw new StorageError(
           "open sqlite",
@@ -113,9 +137,9 @@ export class NodeSqliteRepository implements TaskRepository {
   }
 
   #validateSchema(): void {
-    const definition = this.#database
-      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'tasks'")
-      .get();
+    const definition = this.#prepare(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+    ).get();
     if (
       !isRecord(definition) ||
       typeof definition.sql !== "string" ||
@@ -127,7 +151,7 @@ export class NodeSqliteRepository implements TaskRepository {
         "tasks schema constraints are incompatible",
       );
     }
-    const rows = this.#database.prepare("PRAGMA table_info(tasks)").all();
+    const rows = this.#prepare("PRAGMA table_info(tasks)").all();
     const expected = [
       ["id", "INTEGER", 0, 1],
       ["title", "TEXT", 1, 0],
@@ -144,8 +168,8 @@ export class NodeSqliteRepository implements TaskRepository {
         shape === undefined ||
         row.name !== shape[0] ||
         row.type !== shape[1] ||
-        row.notnull !== shape[2] ||
-        row.pk !== shape[3]
+        safeInteger(row.notnull, "notnull") !== shape[2] ||
+        safeInteger(row.pk, "primary key") !== shape[3]
       ) {
         throw new StorageError("open sqlite", "tasks schema is incompatible");
       }
@@ -170,14 +194,12 @@ export class NodeSqliteRepository implements TaskRepository {
     const title = validateTitle(rawTitle);
     this.#database.exec("BEGIN IMMEDIATE");
     try {
-      const result = this.#database
-        .prepare("INSERT INTO tasks(title, completed) VALUES (?, 0)")
-        .run(title);
-      const id = Number(result.lastInsertRowid);
+      const result = this.#prepare(
+        "INSERT INTO tasks(title, completed) VALUES (?, 0)",
+      ).run(title);
+      const id = validateTaskId(safeInteger(result.lastInsertRowid, "insert id"));
       const task = taskFromRow(
-        this.#database
-          .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-          .get(id),
+        this.#prepare("SELECT id, title, completed FROM tasks WHERE id = ?").get(id),
       );
       this.#database.exec("COMMIT");
       return task;
@@ -191,14 +213,10 @@ export class NodeSqliteRepository implements TaskRepository {
     try {
       const rows =
         filter.completed === undefined
-          ? this.#database
-              .prepare("SELECT id, title, completed FROM tasks ORDER BY id")
-              .all()
-          : this.#database
-              .prepare(
-                "SELECT id, title, completed FROM tasks WHERE completed = ? ORDER BY id",
-              )
-              .all(filter.completed ? 1 : 0);
+          ? this.#prepare("SELECT id, title, completed FROM tasks ORDER BY id").all()
+          : this.#prepare(
+              "SELECT id, title, completed FROM tasks WHERE completed = ? ORDER BY id",
+            ).all(filter.completed ? 1 : 0);
       return Object.freeze(rows.map(taskFromRow));
     } catch (error) {
       if (error instanceof StorageError) throw error;
@@ -210,9 +228,9 @@ export class NodeSqliteRepository implements TaskRepository {
     this.#assertOpen();
     const id = validateTaskId(rawId);
     try {
-      const row = this.#database
-        .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-        .get(id);
+      const row = this.#prepare(
+        "SELECT id, title, completed FROM tasks WHERE id = ?",
+      ).get(id);
       if (row === undefined) throw new TaskNotFoundError(id);
       return taskFromRow(row);
     } catch (error) {
@@ -232,28 +250,24 @@ export class NodeSqliteRepository implements TaskRepository {
     }
     this.#database.exec("BEGIN IMMEDIATE");
     try {
-      const current = this.#database
-        .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-        .get(id);
+      const current = this.#prepare(
+        "SELECT id, title, completed FROM tasks WHERE id = ?",
+      ).get(id);
       if (current === undefined) throw new TaskNotFoundError(id);
       const task = taskFromRow(current);
-      this.#database
-        .prepare("UPDATE tasks SET title = ?, completed = ? WHERE id = ?")
-        .run(
-          title ?? task.title,
-          update.completed === undefined
-            ? task.completed
-              ? 1
-              : 0
-            : update.completed
-              ? 1
-              : 0,
-          id,
-        );
+      this.#prepare("UPDATE tasks SET title = ?, completed = ? WHERE id = ?").run(
+        title ?? task.title,
+        update.completed === undefined
+          ? task.completed
+            ? 1
+            : 0
+          : update.completed
+            ? 1
+            : 0,
+        id,
+      );
       const updated = taskFromRow(
-        this.#database
-          .prepare("SELECT id, title, completed FROM tasks WHERE id = ?")
-          .get(id),
+        this.#prepare("SELECT id, title, completed FROM tasks WHERE id = ?").get(id),
       );
       this.#database.exec("COMMIT");
       return updated;
@@ -279,7 +293,7 @@ export class NodeSqliteRepository implements TaskRepository {
     const id = validateTaskId(rawId);
     this.#database.exec("BEGIN IMMEDIATE");
     try {
-      const result = this.#database.prepare("DELETE FROM tasks WHERE id = ?").run(id);
+      const result = this.#prepare("DELETE FROM tasks WHERE id = ?").run(id);
       if (changes(result) === 0) throw new TaskNotFoundError(id);
       this.#database.exec("COMMIT");
     } catch (error) {

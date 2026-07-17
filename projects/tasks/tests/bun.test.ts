@@ -77,6 +77,28 @@ test("Bun SQLite rejects unsupported schema versions", async () => {
   await assertRejects(async () => new BunSqliteRepository(path), StorageError);
 });
 
+test("Bun SQLite rejects IDs outside the safe integer range", async () => {
+  const path = `${ROOT}/unsafe-id.db`;
+  await reset(path);
+  const repository = new BunSqliteRepository(path);
+  await repository.close();
+  const database = new Database(path, {
+    create: true,
+    strict: true,
+    safeIntegers: true,
+  });
+  database
+    .query("INSERT INTO tasks(id, title, completed) VALUES (?, ?, 0)")
+    .run(9_007_199_254_740_992n, "Unsafe");
+  database.close();
+  const reopened = new BunSqliteRepository(path);
+  try {
+    await assertRejects(() => reopened.list({}), StorageError);
+  } finally {
+    await reopened.close();
+  }
+});
+
 for (const [name, extension, create] of [
   ["Bun SQLite server", "db", (path: string) => new BunSqliteRepository(path)],
   ["Bun Markdown server", "md", (path: string) => new BunMarkdownRepository(path)],
