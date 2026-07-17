@@ -108,54 +108,102 @@ function start(
 
 async function waitForReady(child: ChildProcessWithoutNullStreams): Promise<string> {
   return new Promise((resolve, reject) => {
-    let stdout = "";
+    let stdoutBuffer = "";
+    let stdoutPrelude = "";
     let stderr = "";
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error(`server readiness deadline exceeded: ${stderr}`));
-    }, DEADLINE_MS);
-    child.stderr.setEncoding("utf8");
-    child.stderr.on("data", (chunk: string) => {
-      stderr += chunk;
-    });
-    child.stdout.setEncoding("utf8");
-    child.stdout.on("data", (chunk: string) => {
-      stdout += chunk;
-      const newline = stdout.indexOf("\n");
-      if (newline < 0) return;
+    let settled = false;
+
+    const cleanup = (): void => {
       clearTimeout(timer);
-      try {
-        const value = JSON.parse(stdout.slice(0, newline)) as unknown;
-        if (
-          typeof value !== "object" ||
-          value === null ||
-          !("ready" in value) ||
-          value.ready !== true ||
-          !("url" in value) ||
-          typeof value.url !== "string"
-        ) {
-          reject(new Error(`invalid readiness message: ${stdout}`));
+      child.stdout.off("data", onStdout);
+      child.stderr.off("data", onStderr);
+      child.off("exit", onExit);
+      child.off("error", onError);
+    };
+    const fail = (error: Error): void => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+    const succeed = (url: string): void => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(url);
+    };
+    const onStderr = (chunk: string): void => {
+      stderr += chunk;
+    };
+    const onStdout = (chunk: string): void => {
+      stdoutBuffer += chunk;
+
+      while (true) {
+        const newline = stdoutBuffer.indexOf("\n");
+        if (newline < 0) {
+          if (stdoutBuffer.length > 16_384) {
+            fail(new Error("server produced excessive output before readiness"));
+          }
           return;
         }
-        resolve(value.url);
-      } catch (error) {
-        reject(error);
+
+        const line = stdoutBuffer.slice(0, newline).replace(/\r$/, "");
+        stdoutBuffer = stdoutBuffer.slice(newline + 1);
+        if (line.length === 0) continue;
+
+        let value: unknown;
+        try {
+          value = JSON.parse(line);
+        } catch {
+          stdoutPrelude += `${line}\n`;
+          if (stdoutPrelude.length > 16_384) {
+            fail(new Error("server produced excessive output before readiness"));
+          }
+          continue;
+        }
+
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          "ready" in value &&
+          value.ready === true &&
+          "url" in value &&
+          typeof value.url === "string"
+        ) {
+          succeed(value.url);
+          return;
+        }
+
+        stdoutPrelude += `${line}\n`;
       }
-    });
-    child.once("exit", (code, signal) => {
-      clearTimeout(timer);
-      reject(
+    };
+    const onExit = (code: number | null, signal: NodeJS.Signals | null): void => {
+      fail(
         new Error(
           `server exited before readiness (code=${String(code)}, signal=${String(
             signal,
-          )}): ${stderr}`,
+          )}): ${stderr}${stdoutPrelude}${stdoutBuffer}`,
         ),
       );
-    });
-    child.once("error", (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
+    };
+    const onError = (error: Error): void => {
+      fail(error);
+    };
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      fail(
+        new Error(
+          `server readiness deadline exceeded: ${stderr}${stdoutPrelude}${stdoutBuffer}`,
+        ),
+      );
+    }, DEADLINE_MS);
+
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", onStderr);
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", onStdout);
+    child.once("exit", onExit);
+    child.once("error", onError);
   });
 }
 
