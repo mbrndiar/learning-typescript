@@ -7,7 +7,7 @@ const implementation =
   selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
     ? await import("./exercise.ts")
     : await import("./solution.ts");
-const { normalizeTimestamp, parseTasks } = implementation;
+const { formatTimestampInZone, normalizeTimestamp, parseTasks } = implementation;
 
 test("parseTasks validates and normalizes tasks", () => {
   // Whitespace in the fixture shows validation can also normalize trusted
@@ -38,4 +38,23 @@ test("normalizeTimestamp validates calendar fields and emits canonical UTC", () 
   assert.throws(() => normalizeTimestamp("2026-02-29T00:00:00Z"), /calendar/);
   assert.throws(() => normalizeTimestamp("2026-01-01T24:00:00Z"), /calendar/);
   assert.throws(() => normalizeTimestamp("July 16, 2026"), /RFC 3339/);
+});
+
+test("formatTimestampInZone applies IANA daylight-saving rules", () => {
+  assert.equal(
+    formatTimestampInZone("2026-07-16T08:01:00Z", "UTC"),
+    "2026-07-16 08:01:00 GMT+00:00",
+  );
+  assert.equal(
+    formatTimestampInZone("2026-07-16T08:01:00Z", "Europe/Prague"),
+    "2026-07-16 10:01:00 GMT+02:00",
+  );
+  assert.equal(
+    formatTimestampInZone("2026-01-16T08:01:00Z", "Europe/Prague"),
+    "2026-01-16 09:01:00 GMT+01:00",
+  );
+  assert.throws(
+    () => formatTimestampInZone("2026-07-16T08:01:00Z", "Not/AZone"),
+    RangeError,
+  );
 });

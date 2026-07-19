@@ -4,10 +4,10 @@
 
 - treat caught errors and decoded JSON as `unknown`;
 - validate untrusted values before assigning domain types;
-- use `node:fs/promises`, `URL`, and `node:path` safely;
+- read and write explicit file content, inspect directories, and build paths safely;
 - clean up resources with `try`/`finally`; and
 - distinguish built-in modules, local modules, and npm packages;
-- normalize validated RFC 3339 timestamps and choose the correct clock.
+- normalize RFC 3339 timestamps, format IANA zones, and choose the correct clock.
 
 ## ▶️ Run the lessons
 
@@ -24,6 +24,41 @@ to fail.
 
 Use `node:` specifiers for Node built-ins. They make the dependency source
 explicit and are also understood by compatibility layers in Deno and Bun.
+
+## 📁 Paths, directories, and file contents
+
+A path is a name that locates an entry; it is not the file's content. A directory
+contains named entries, and each entry can be a regular file, another directory,
+or another filesystem type. Build paths with `node:path` instead of hard-coded
+separators, and inspect entry types before assuming they contain readable file
+bytes.
+
+Create an application-owned directory before writing, then enumerate it
+deterministically:
+
+```typescript
+await mkdir(dataDirectory, { recursive: true });
+const entries = await readdir(dataDirectory, { withFileTypes: true });
+const fileNames = entries
+  .filter((entry) => entry.isFile())
+  .map((entry) => entry.name)
+  .sort();
+```
+
+A file read without an encoding returns bytes. Decode untrusted bytes explicitly
+when malformed input must fail instead of becoming a replacement character:
+
+```typescript
+const bytes = await readFile(file);
+const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+const value: unknown = JSON.parse(text);
+```
+
+Own only the paths your operation creates. A temporary root from `mkdtemp` makes
+recursive cleanup safe because the operation owns that entire subtree. Do not
+recursively remove a caller-supplied or unresolved path. When paths are
+untrusted, decide explicitly whether symlinks and traversal outside the selected
+root are permitted; `join` alone is not an authorization boundary.
 
 ## 🕒 Instants, calendar time, and durations
 
@@ -57,9 +92,11 @@ the original timestamp.
 - writing `const task = JSON.parse(text) as Task` without validation;
 - catching an error and assuming it has a `.message` property;
 - building paths by concatenating `/` or `\`;
-- forgetting to close or remove resources in failure paths; and
+- treating every directory entry as a regular file;
+- decoding malformed bytes with replacement semantics when the contract must fail;
+- forgetting to close or remove resources in failure paths;
 - accepting an impossible calendar date because `Date.parse` returned a number;
-- measuring a duration by subtracting wall-clock timestamps; and
+- measuring a duration by subtracting wall-clock timestamps; or
 - installing a package before checking whether the runtime already provides the
   required API.
 
@@ -69,9 +106,11 @@ the original timestamp.
 2. When should a caught value be narrowed with `instanceof Error`?
 3. Why is a file URL often safer than a working-directory-relative path?
 4. What does the `node:` prefix communicate?
-5. Which cleanup belongs in a `finally` block?
-6. What information is lost when an offset timestamp becomes a `Date`?
-7. Why is a monotonic clock a better duration source than `Date.now()`?
+5. Why is a directory entry different from file content?
+6. When should UTF-8 decoding use `{ fatal: true }`?
+7. Which cleanup belongs in a `finally` block?
+8. What information is lost when an offset timestamp becomes a `Date`?
+9. Why is a monotonic clock a better duration source than `Date.now()`?
 
 Continue with the
 [matching exercise](../../exercises/07_errors_files_json_and_packages/).

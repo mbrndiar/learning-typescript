@@ -85,13 +85,17 @@ const large = 9_007_199_254_740_992n;
 ```typescript
 const instant = new Date(Date.parse("2026-07-16T10:01:00+02:00"));
 const canonicalUtc = instant.toISOString();
+const local = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Prague",
+}).format(instant);
 const started = performance.now();
 const elapsedMilliseconds = performance.now() - started;
 ```
 
 Validate RFC 3339 syntax and calendar ranges before `Date.parse`. `Date` stores an
 instant, not the input zone. Use an explicit IANA `timeZone` when formatting for
-people and a monotonic clock for elapsed durations.
+people and a monotonic clock for elapsed durations. Inject the clock into tests
+instead of asserting real timing thresholds.
 
 ## 🧩 Control flow and functions
 
@@ -273,19 +277,28 @@ if (typeof value !== "object" || value === null) {
 Validate command arguments, environment variables, files, JSON, database rows,
 and HTTP bodies at the boundary.
 
-## 📁 Files and paths
+## 📁 Files, directories, and paths
 
 ```typescript
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const file = join("data", "tasks.json");
+const directory = join("data", "tasks");
+await mkdir(directory, { recursive: true });
+const file = join(directory, "tasks.json");
 await writeFile(file, `${JSON.stringify(tasks, null, 2)}\n`, "utf8");
-const text = await readFile(file, "utf8");
+const bytes = await readFile(file);
+const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+const names = (await readdir(directory, { withFileTypes: true }))
+  .filter((entry) => entry.isFile())
+  .map((entry) => entry.name)
+  .sort();
 ```
 
-Use `try`/`finally` for cleanup and write to a temporary file before renaming
-when a partially written file would be dangerous.
+A path identifies an entry; a directory entry is not file content. Use
+`try`/`finally` for cleanup, recursively remove only an owned temporary root, and
+write to a temporary file before renaming when a partially written file would be
+dangerous.
 
 Atomic replacement prevents torn documents, not lost updates. The Node capstone
 adds cross-process locking. Its Deno and Bun file adapters serialize writes only

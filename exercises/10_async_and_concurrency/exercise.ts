@@ -8,3 +8,17 @@ export async function mapWithLimit<T, R>(
 ): Promise<R[]> {
   throw new Error("TODO: implement bounded mapping");
 }
+
+export interface MeasuredResult<T> {
+  readonly value: T;
+  readonly elapsedMilliseconds: number;
+}
+
+// CONTRACT: measure one async operation with a monotonic clock. Preserve the
+// operation's rejection and reject invalid or decreasing clock readings.
+export async function measureDuration<T>(
+  _operation: () => Promise<T>,
+  _now: () => number = () => performance.now(),
+): Promise<MeasuredResult<T>> {
+  throw new Error("TODO: measure the async operation");
+}

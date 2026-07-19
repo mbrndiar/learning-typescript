@@ -17,10 +17,12 @@ By the end of the course, you will be able to:
 
 - read, write, run, debug, and test modern JavaScript and TypeScript;
 - explain the difference between the language, the type checker, and a runtime;
-- choose safe numeric representations and normalize validated external timestamps;
+- choose safe numeric representations;
+- read, write, validate, and list content in application-owned files and directories;
+- normalize timestamps, format IANA time zones, and measure monotonic durations;
 - model data with strict types, unions, generics, classes, and composition;
 - validate untrusted values at command-line, file, JSON, and HTTP boundaries;
-- use npm, ES modules, files, processes, structured logs, and SQLite;
+- use npm, ES modules, processes, structured logs, and SQLite;
 - write deterministic tests with `node:test`, `Deno.test`, and `bun:test`;
 - reason about promises, the event loop, cancellation, streams, and workers;
 - build HTTP/JSON clients and servers with graceful shutdown;

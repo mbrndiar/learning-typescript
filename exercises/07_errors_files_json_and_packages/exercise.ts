@@ -16,3 +16,9 @@ export function parseTasks(_value: unknown): Task[] {
 export function normalizeTimestamp(_value: unknown): string {
   throw new Error("TODO: validate and normalize the timestamp boundary");
 }
+
+// CONTRACT: normalize the timestamp, then format its calendar fields in the
+// requested IANA time zone with a numeric GMT offset.
+export function formatTimestampInZone(_value: unknown, _timeZone: string): string {
+  throw new Error("TODO: format the timestamp in the requested IANA time zone");
+}

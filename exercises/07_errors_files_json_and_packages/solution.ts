@@ -85,3 +85,34 @@ export function normalizeTimestamp(value: unknown): string {
   }
   return new Date(milliseconds).toISOString();
 }
+
+export function formatTimestampInZone(value: unknown, timeZone: string): string {
+  const canonical = normalizeTimestamp(value);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    timeZoneName: "longOffset",
+  }).formatToParts(new Date(canonical));
+
+  function part(
+    type: "year" | "month" | "day" | "hour" | "minute" | "second" | "timeZoneName",
+  ): string {
+    const value = parts.find((candidate) => candidate.type === type)?.value;
+    if (value === undefined) {
+      throw new RangeError(`formatter did not provide ${type}`);
+    }
+    return value;
+  }
+
+  const offset = part("timeZoneName");
+  const normalizedOffset = offset === "GMT" ? "GMT+00:00" : offset;
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part(
+    "minute",
+  )}:${part("second")} ${normalizedOffset}`;
+}

@@ -29,12 +29,18 @@ after its first failure and wait for already-started operations to settle before
 rejecting. Otherwise the caller can observe failure while hidden side effects are
 still running.
 
+Async duration is another lifecycle observation. Use a monotonic clock such as
+`performance.now()` around awaited work; wall-clock time can jump because of
+clock synchronization or manual changes. Inject the clock in deterministic tests
+instead of asserting that real work finished within a fragile threshold.
+
 ## ⚠️ Common mistakes
 
 - forgetting to `await` a promise;
 - using `forEach(async () => ...)` and assuming it waits;
 - starting thousands of requests with one unbounded `Promise.all`;
 - returning on the first worker rejection while sibling side effects continue;
+- measuring elapsed async work with `Date.now()` or timing thresholds in tests;
 - catching and discarding an `AbortError`; and
 - moving I/O work to a worker thread when asynchronous APIs already avoid
   blocking the event loop.
@@ -46,7 +52,8 @@ still running.
 3. Why is cancellation cooperative?
 4. What resource does a concurrency limit protect?
 5. Why should a failed worker pool quiesce before its promise rejects?
-6. Which work is a good candidate for a worker thread?
+6. Why should duration tests inject a monotonic clock?
+7. Which work is a good candidate for a worker thread?
 
 Continue with the
 [matching exercise](../../exercises/10_async_and_concurrency/).

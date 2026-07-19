@@ -53,3 +53,25 @@ export async function mapWithLimit<T, R>(
   }
   return results;
 }
+
+export interface MeasuredResult<T> {
+  readonly value: T;
+  readonly elapsedMilliseconds: number;
+}
+
+export async function measureDuration<T>(
+  operation: () => Promise<T>,
+  now: () => number = () => performance.now(),
+): Promise<MeasuredResult<T>> {
+  const started = now();
+  if (!Number.isFinite(started)) {
+    throw new RangeError("monotonic clock must return a finite number");
+  }
+  const value = await operation();
+  const finished = now();
+  const elapsedMilliseconds = finished - started;
+  if (!Number.isFinite(finished) || elapsedMilliseconds < 0) {
+    throw new RangeError("monotonic clock must not move backwards");
+  }
+  return { value, elapsedMilliseconds };
+}

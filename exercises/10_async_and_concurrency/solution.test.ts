@@ -7,7 +7,7 @@ const implementation =
   selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
     ? await import("./exercise.ts")
     : await import("./solution.ts");
-const { mapWithLimit } = implementation;
+const { mapWithLimit, measureDuration } = implementation;
 
 test("mapWithLimit preserves order and bounds concurrency", async () => {
   let active = 0;
@@ -83,4 +83,46 @@ test("mapWithLimit stops claiming work and quiesces before rejecting", async () 
   await assert.rejects(mapping, /failed/);
   assert.deepEqual(started, [1, 2]);
   assert.deepEqual(finished, [2]);
+});
+
+test("measureDuration uses an injected monotonic clock deterministically", async () => {
+  const readings = [10, 17.5];
+  const now = (): number => {
+    const reading = readings.shift();
+    if (reading === undefined) throw new Error("no clock reading remains");
+    return reading;
+  };
+
+  assert.deepEqual(await measureDuration(async () => "ready", now), {
+    value: "ready",
+    elapsedMilliseconds: 7.5,
+  });
+});
+
+test("measureDuration preserves operation failures and rejects invalid clocks", async () => {
+  const failure = new Error("operation failed");
+  let calls = 0;
+  await assert.rejects(
+    measureDuration(
+      async () => {
+        throw failure;
+      },
+      () => {
+        calls += 1;
+        return 10;
+      },
+    ),
+    (error: unknown) => error === failure,
+  );
+  assert.equal(calls, 1);
+  await assert.rejects(
+    measureDuration(
+      async () => "done",
+      (() => {
+        const readings = [10, 9];
+        return () => readings.shift() ?? Number.NaN;
+      })(),
+    ),
+    /must not move backwards/,
+  );
 });
