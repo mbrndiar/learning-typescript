@@ -8,7 +8,7 @@ import {
 import { loadBunIdiomaticTarget, selectedBunImplementation } from "./implementation.ts";
 
 test("Bun idiomatic target selection is explicit and validated", () => {
-  expect(selectCapstoneImplementation(undefined)).toBe("starter");
+  expect(selectCapstoneImplementation(undefined)).toBe("solution");
   expect(selectCapstoneImplementation("solution")).toBe("solution");
   expect(selectedBunImplementation()).toBe(
     selectCapstoneImplementation(Bun.env.CAPSTONE_IMPLEMENTATION),
@@ -22,22 +22,7 @@ test("Bun imports both idiomatic targets through one shared contract", async () 
     loadBunIdiomaticTarget("solution"),
   ]);
 
-  assertSameIdiomaticBoundary(
-    starter.core,
-    solution.core,
-    starter.adapter,
-    solution.adapter,
-  );
-  await runIdiomaticScaffoldContract(
-    starter.implementation,
-    "bun",
-    starter.core,
-    starter.adapter,
-  );
-  await runIdiomaticScaffoldContract(
-    solution.implementation,
-    "bun",
-    solution.core,
-    solution.adapter,
-  );
+  assertSameIdiomaticBoundary(starter, solution);
+  runIdiomaticScaffoldContract(starter, "bun");
+  runIdiomaticScaffoldContract(solution, "bun");
 });

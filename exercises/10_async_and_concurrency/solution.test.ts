@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { mapWithLimit } from "./solution.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { mapWithLimit } = implementation;
 
 test("mapWithLimit preserves order and bounds concurrency", async () => {
   let active = 0;
@@ -41,4 +47,40 @@ test("mapWithLimit transforms an undefined element", async () => {
 
   assert.deepEqual(result, ["missing"]);
   assert.equal(calls, 1);
+});
+
+test("mapWithLimit stops claiming work and quiesces before rejecting", async () => {
+  const started: number[] = [];
+  const finished: number[] = [];
+  let releaseSecond: (() => void) | undefined;
+  const second = new Promise<void>((resolve) => {
+    releaseSecond = resolve;
+  });
+
+  const mapping = mapWithLimit([1, 2, 3, 4], 2, async (value) => {
+    started.push(value);
+    if (value === 1) {
+      await Promise.resolve();
+      throw new Error("failed");
+    }
+    await second;
+    finished.push(value);
+    if (value === 2) {
+      throw new Error("later failure");
+    }
+    return value;
+  });
+
+  await Promise.resolve();
+  assert.deepEqual(started, [1, 2]);
+  let rejected = false;
+  void mapping.catch(() => {
+    rejected = true;
+  });
+  await Promise.resolve();
+  assert.equal(rejected, false);
+  releaseSecond?.();
+  await assert.rejects(mapping, /failed/);
+  assert.deepEqual(started, [1, 2]);
+  assert.deepEqual(finished, [2]);
 });

@@ -8,7 +8,7 @@ Deno.test({
   name: "Deno idiomatic target selection reads only its named environment variable",
   permissions: { env: ["CAPSTONE_IMPLEMENTATION"] },
   fn: () => {
-    const expected = Deno.env.get("CAPSTONE_IMPLEMENTATION") ?? "starter";
+    const expected = Deno.env.get("CAPSTONE_IMPLEMENTATION") ?? "solution";
     if (selectedDenoImplementation() !== expected) {
       throw new Error("Deno capstone target selection returned an unexpected target");
     }
@@ -25,22 +25,10 @@ Deno.test({
     ]);
 
     assertSameIdiomaticBoundary(
-      starter.core,
-      solution.core,
-      starter.adapter,
-      solution.adapter,
+      starter,
+      solution,
     );
-    await runIdiomaticScaffoldContract(
-      starter.implementation,
-      "deno",
-      starter.core,
-      starter.adapter,
-    );
-    await runIdiomaticScaffoldContract(
-      solution.implementation,
-      "deno",
-      solution.core,
-      solution.adapter,
-    );
+    runIdiomaticScaffoldContract(starter, "deno");
+    runIdiomaticScaffoldContract(solution, "deno");
   },
 });

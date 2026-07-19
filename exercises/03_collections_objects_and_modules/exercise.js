@@ -1,10 +1,10 @@
 // Contract: turn a list of items into a catalog with three views -- a Map
-// keyed by id (holding shallow copies so callers cannot mutate the inputs),
+// keyed by id (copying each item and its nested tags array),
 // the list of unique tags across all items, and the summed stock.
 export function buildCatalog(items) {
   // TODO: Accumulate stock, copied items, and unique tags.
   return {
-    byId: new Map(items.map((item) => [item.id, { ...item }])),
+    byId: new Map(items.map((item) => [item.id, { ...item, tags: [...item.tags] }])),
     tags: [],
     totalStock: 0,
   };

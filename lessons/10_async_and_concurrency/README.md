@@ -24,11 +24,17 @@ Cancellation is cooperative. A signal communicates that work should stop, but
 the operation must listen to it and release timers, streams, sockets, or other
 resources.
 
+Failure has a lifecycle too. A bounded worker pool should stop claiming new work
+after its first failure and wait for already-started operations to settle before
+rejecting. Otherwise the caller can observe failure while hidden side effects are
+still running.
+
 ## ⚠️ Common mistakes
 
 - forgetting to `await` a promise;
 - using `forEach(async () => ...)` and assuming it waits;
 - starting thousands of requests with one unbounded `Promise.all`;
+- returning on the first worker rejection while sibling side effects continue;
 - catching and discarding an `AbortError`; and
 - moving I/O work to a worker thread when asynchronous APIs already avoid
   blocking the event loop.
@@ -39,7 +45,8 @@ resources.
 2. When do promise callbacks run relative to synchronous code?
 3. Why is cancellation cooperative?
 4. What resource does a concurrency limit protect?
-5. Which work is a good candidate for a worker thread?
+5. Why should a failed worker pool quiesce before its promise rejects?
+6. Which work is a good candidate for a worker thread?
 
 Continue with the
 [matching exercise](../../exercises/10_async_and_concurrency/).

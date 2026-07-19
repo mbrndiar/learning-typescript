@@ -5,7 +5,7 @@ export type CapstoneTrack = "comparative" | "idiomatic";
 
 export function selectCapstoneImplementation(
   value: string | undefined,
-  fallback: CapstoneImplementation = "starter",
+  fallback: CapstoneImplementation = "solution",
 ): CapstoneImplementation {
   if (value === undefined || value === "") {
     return fallback;

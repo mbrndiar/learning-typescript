@@ -190,6 +190,7 @@ test(`${selection} Bun SQLite rejects unsafe IDs`, async () => {
     strict: true,
     safeIntegers: true,
   });
+
   database
     .query("INSERT INTO tasks(id, title, completed) VALUES (?, ?, 0)")
     .run(9_007_199_254_740_992n, "Unsafe");
@@ -201,6 +202,30 @@ test(`${selection} Bun SQLite rejects unsafe IDs`, async () => {
     await reopened.close();
   }
 });
+
+if (selection === "solution") {
+  test("solution Bun SQLite normalizes transaction-acquisition failures", async () => {
+    const path = `${ROOT}/locked.db`;
+    await reset(path);
+    const repository = new SelectedSqlite(path);
+    const lock = new Database(path, {
+      create: true,
+      strict: true,
+      safeIntegers: true,
+    });
+    lock.exec("BEGIN IMMEDIATE");
+    try {
+      await assertRejects(
+        () => repository.create("Blocked"),
+        implementation.StorageError,
+      );
+    } finally {
+      lock.exec("ROLLBACK");
+      lock.close();
+      await repository.close();
+    }
+  });
+}
 
 for (const [name, extension, create] of [
   [`${selection} Bun SQLite server`, "db", (path: string) => new SelectedSqlite(path)],

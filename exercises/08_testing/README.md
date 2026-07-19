@@ -5,8 +5,9 @@ predicate. Study the solution tests, then implement the same contract in
 `exercise.ts`.
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --import=tsx --test exercises/08_testing/solution.test.ts
 node --import=tsx --test exercises/08_testing/solution.test.ts
 ```
 
-The committed test imports `solution.ts`. Temporarily point it at `exercise.ts`
-while implementing your retry policy.
+The first command selects your starter; the second selects the reference solution.

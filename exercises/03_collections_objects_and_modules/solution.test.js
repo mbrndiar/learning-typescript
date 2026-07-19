@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildCatalog, getCatalogItem } from "./solution.js";
+const target = globalThis.process.env.EXERCISE_IMPLEMENTATION ?? "solution";
+if (target !== "exercise" && target !== "solution") {
+  throw new TypeError("EXERCISE_IMPLEMENTATION must be exercise or solution");
+}
+const { buildCatalog, getCatalogItem } =
+  target === "exercise" ? await import("./exercise.js") : await import("./solution.js");
 
 const items = [
   { id: "p1", name: "Pen", stock: 3, tags: ["writing", "school"] },
@@ -18,6 +23,9 @@ test("builds keyed, unique, and accumulated catalog data", () => {
   // distinct object, proving buildCatalog copied the item instead of storing a
   // reference back to the caller's array.
   assert.notEqual(catalog.byId.get("p1"), items[0]);
+  assert.notEqual(catalog.byId.get("p1").tags, items[0].tags);
+  catalog.byId.get("p1").tags.push("catalog-only");
+  assert.deepEqual(items[0].tags, ["writing", "school"]);
 });
 
 test("gets a known item and rejects an unknown ID", () => {

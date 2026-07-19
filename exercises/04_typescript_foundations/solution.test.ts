@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { formatReading, readTemperature, toFahrenheit } from "./solution.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { formatReading, readTemperature, toFahrenheit } = implementation;
 
 test("converts Celsius to Fahrenheit", () => {
   assert.equal(toFahrenheit(0), 32);

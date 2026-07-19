@@ -1,7 +1,7 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-import { VersionedEventLog, type LogStorage } from "../core/index.ts";
+import { relayFailure, VersionedEventLog, type LogStorage } from "../core/index.ts";
 
 function hasCode(error: unknown, code: string): boolean {
   return (
@@ -12,12 +12,20 @@ function hasCode(error: unknown, code: string): boolean {
   );
 }
 
+function decodeLogText(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw relayFailure("log_corrupt", "event log is not valid UTF-8");
+  }
+}
+
 export class NodeLogStorage implements LogStorage {
   constructor(private readonly path: string) {}
 
   async readText(): Promise<string | undefined> {
     try {
-      return await readFile(this.path, "utf8");
+      return decodeLogText(await readFile(this.path));
     } catch (error: unknown) {
       if (hasCode(error, "ENOENT")) {
         return undefined;

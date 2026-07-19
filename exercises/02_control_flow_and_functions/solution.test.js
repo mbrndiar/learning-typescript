@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { classifyScore, createCounter, sumTo } from "./solution.js";
+const target = globalThis.process.env.EXERCISE_IMPLEMENTATION ?? "solution";
+if (target !== "exercise" && target !== "solution") {
+  throw new TypeError("EXERCISE_IMPLEMENTATION must be exercise or solution");
+}
+const { classifyScore, createCounter, sumTo } =
+  target === "exercise" ? await import("./exercise.js") : await import("./solution.js");
 
 // Checks the exact boundary values (69/70, 89/90) because off-by-one errors in
 // the >= thresholds are the most likely mistake.

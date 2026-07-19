@@ -18,8 +18,7 @@ export type SetExpectation =
   | { readonly kind: "exact"; readonly revision: number };
 
 export type DeleteExpectation =
-  | { readonly kind: "any" }
-  | { readonly kind: "exact"; readonly revision: number };
+  { readonly kind: "any" } | { readonly kind: "exact"; readonly revision: number };
 
 type RawValue =
   | { readonly kind: "null" }

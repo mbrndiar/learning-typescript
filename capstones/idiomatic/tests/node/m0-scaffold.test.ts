@@ -12,7 +12,7 @@ import {
 } from "./implementation.ts";
 
 test("Node idiomatic target selection is explicit and validated", () => {
-  assert.equal(selectCapstoneImplementation(undefined), "starter");
+  assert.equal(selectCapstoneImplementation(undefined), "solution");
   assert.equal(selectCapstoneImplementation("solution"), "solution");
   assert.equal(
     selectedNodeImplementation(),
@@ -27,22 +27,7 @@ test("Node imports both idiomatic targets through one shared contract", async ()
     loadNodeIdiomaticTarget("solution"),
   ]);
 
-  assertSameIdiomaticBoundary(
-    starter.core,
-    solution.core,
-    starter.adapter,
-    solution.adapter,
-  );
-  await runIdiomaticScaffoldContract(
-    starter.implementation,
-    "node",
-    starter.core,
-    starter.adapter,
-  );
-  await runIdiomaticScaffoldContract(
-    solution.implementation,
-    "node",
-    solution.core,
-    solution.adapter,
-  );
+  assertSameIdiomaticBoundary(starter, solution);
+  runIdiomaticScaffoldContract(starter, "node");
+  runIdiomaticScaffoldContract(solution, "node");
 });

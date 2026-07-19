@@ -50,9 +50,9 @@ Keep that operational tool outside the applied-project and capstone contracts.
 
 ## Current verification sequence
 
-The guided defaults select `starter`; use `solution` for the complete
-reference. The Deno commands use the frozen root `deno.lock` and only the
-scoped grants declared in `deno.json`.
+Validation defaults select `solution`; use `starter` explicitly for guided
+milestone feedback. The Deno commands use the frozen root `deno.lock` and only
+the scoped grants declared in `deno.json`.
 
 ```bash
 TASKS_IMPLEMENTATION=solution npm run check:tasks:node

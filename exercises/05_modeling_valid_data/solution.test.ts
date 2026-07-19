@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { describeDelivery, summarizeOrder, type Order } from "./solution.ts";
+import type { Order } from "./exercise.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { describeDelivery, summarizeOrder } = implementation;
 
 test("describes each discriminated delivery state", () => {
   // One example per union member keeps the runtime examples aligned with the

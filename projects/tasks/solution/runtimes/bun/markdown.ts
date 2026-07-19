@@ -78,7 +78,6 @@ export async function publishBunMarkdownAtomically(
   } catch (error) {
     let failure = error;
     if (handle !== undefined && !closeAttempted) {
-      closeAttempted = true;
       try {
         await handle.close();
       } catch (closeError) {

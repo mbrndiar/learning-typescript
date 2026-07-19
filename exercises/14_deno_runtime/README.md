@@ -10,16 +10,22 @@ return `-A`.
 
 - preserve deterministic flag order;
 - validate that HTTP ports are integers from 0 through 65535;
+- reject empty, comma-delimited, control-containing, or malformed permission
+  targets before building a flag;
 - grant no unrelated environment, subprocess, FFI, or system permissions; and
 - keep the function runtime-neutral so it needs no permissions to test.
 
 ## ▶️ Run
 
-The committed test imports `solution.ts`. Point it at `exercise.ts` while working.
-
 ```bash
-deno test exercises/14_deno_runtime/solution.test.ts
+EXERCISE_IMPLEMENTATION=exercise \
+  deno test --allow-env=EXERCISE_IMPLEMENTATION \
+  exercises/14_deno_runtime/solution.test.ts
+deno test --allow-env=EXERCISE_IMPLEMENTATION \
+  exercises/14_deno_runtime/solution.test.ts
 ```
+
+The first command selects your starter; the second selects the reference solution.
 
 ## 💡 Hint
 

@@ -23,6 +23,13 @@ export interface HttpResponse {
 
 export type ErrorLogger = (error: unknown) => void;
 
+class RequestDecodeError extends SyntaxError {
+  constructor(message: string, cause?: unknown) {
+    super(message, cause === undefined ? undefined : { cause });
+    this.name = "RequestDecodeError";
+  }
+}
+
 function response(
   status: number,
   value?: unknown,
@@ -75,13 +82,20 @@ function requireJson(headers: HttpRequest["headers"]): void {
   const raw = headers["content-type"];
   const mediaType = raw?.split(";", 1)[0]?.trim().toLowerCase();
   if (mediaType !== "application/json") {
-    throw new SyntaxError("request body must use application/json");
+    throw new RequestDecodeError("request body must use application/json");
   }
 }
 
 function parseBody(request: HttpRequest): unknown {
   requireJson(request.headers);
-  return parseStrictJsonBytes(request.body, MAX_REQUEST_BYTES);
+  try {
+    return parseStrictJsonBytes(request.body, MAX_REQUEST_BYTES);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new RequestDecodeError("request body must be valid JSON", error);
+    }
+    throw error;
+  }
 }
 
 function parseCompletedQuery(url: URL): boolean | undefined {
@@ -146,7 +160,7 @@ export async function dispatchHttp(
   try {
     return await dispatchKnown(service, request);
   } catch (error) {
-    if (error instanceof SyntaxError) {
+    if (error instanceof RequestDecodeError) {
       return errorResponse(400, "invalid_json", "request body must be valid JSON");
     }
     if (error instanceof ValidationError) {

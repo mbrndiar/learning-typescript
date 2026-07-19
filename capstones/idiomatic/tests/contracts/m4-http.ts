@@ -1,11 +1,4 @@
-import {
-  createRelayHttpHandler,
-  deferred,
-  EventRelay,
-  InMemoryEventLog,
-  type RelayHttpHandler,
-  type ServeOptions,
-} from "../../solution/core/index.ts";
+import type { IdiomaticCoreModule, RelayHttpHandler, ServeOptions } from "./api.ts";
 import { assert, deepEqual, equal, validAlert } from "./testing.ts";
 
 export type ServeRelay = (
@@ -14,11 +7,14 @@ export type ServeRelay = (
   signal: AbortSignal,
 ) => Promise<void>;
 
-export async function runM4HttpContract(serve: ServeRelay): Promise<void> {
-  const relay = new EventRelay(new InMemoryEventLog(1), [], 2);
+export async function runM4HttpContract(
+  core: IdiomaticCoreModule,
+  serve: ServeRelay,
+): Promise<void> {
+  const relay = new core.EventRelay(new core.InMemoryEventLog(1), [], 2);
   const controller = new AbortController();
-  const listening = deferred<number>();
-  const handler = createRelayHttpHandler(relay);
+  const listening = core.deferred<number>();
+  const handler = core.createRelayHttpHandler(relay);
   const running = serve(
     {
       host: "127.0.0.1",

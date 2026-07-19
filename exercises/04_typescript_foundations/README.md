@@ -14,11 +14,12 @@ Migrate a small temperature formatter to strict TypeScript.
 
 Do not use `any` or a type assertion. Narrow `unknown` with runtime checks.
 
-## ▶️ Run the reference tests
+## ▶️ Run the feedback
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --import=tsx --test exercises/04_typescript_foundations/solution.test.ts
 node --import=tsx --test exercises/04_typescript_foundations/solution.test.ts
 ```
 
-Temporarily point the test import at `exercise.ts` to run the same examples
-against your implementation.
+The first command selects your starter; the second selects the reference solution.

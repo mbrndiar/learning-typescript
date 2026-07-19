@@ -26,11 +26,15 @@ export function findCompatibleRuntimes(
   return profiles
     .filter(
       (profile) =>
-        (!requirements.defaultDenyPermissions || profile.defaultDenyPermissions) &&
-        (!requirements.referenceNodeCompatibility ||
-          profile.nodeCompatibility === "reference") &&
-        (!requirements.nativeBundler || profile.nativeBundler) &&
-        (!requirements.nativeSqlite || profile.nativeSqlite),
+        (requirements.defaultDenyPermissions === undefined ||
+          profile.defaultDenyPermissions === requirements.defaultDenyPermissions) &&
+        (requirements.referenceNodeCompatibility === undefined ||
+          (profile.nodeCompatibility === "reference") ===
+            requirements.referenceNodeCompatibility) &&
+        (requirements.nativeBundler === undefined ||
+          profile.nativeBundler === requirements.nativeBundler) &&
+        (requirements.nativeSqlite === undefined ||
+          profile.nativeSqlite === requirements.nativeSqlite),
     )
     .map((profile) => profile.name);
 }

@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { findCompatibleRuntimes, type RuntimeProfile } from "./solution.ts";
+import type { RuntimeProfile } from "./exercise.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { findCompatibleRuntimes } = implementation;
 
 // The fixture gives each runtime a different mix of capabilities, so the
 // selector must intersect requirements instead of matching one headline trait.
@@ -55,4 +62,15 @@ test("findCompatibleRuntimes preserves input order and handles no requirements",
     findCompatibleRuntimes(profiles, { referenceNodeCompatibility: true }),
     ["Node.js"],
   );
+  assert.deepEqual(
+    findCompatibleRuntimes(profiles, {
+      referenceNodeCompatibility: false,
+      nativeBundler: true,
+      nativeSqlite: false,
+    }),
+    ["Deno"],
+  );
+  assert.deepEqual(findCompatibleRuntimes(profiles, { nativeBundler: false }), [
+    "Node.js",
+  ]);
 });

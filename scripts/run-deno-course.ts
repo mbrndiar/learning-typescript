@@ -123,6 +123,8 @@ export async function runDenoCourse(): Promise<void> {
     {
       path: "exercises/14_deno_runtime/solution.test.ts",
       mode: "test",
+      permissions: ["--allow-env=EXERCISE_IMPLEMENTATION"],
+      env: { EXERCISE_IMPLEMENTATION: "solution" },
     },
     ...(await collectPortableModule16()),
   ];

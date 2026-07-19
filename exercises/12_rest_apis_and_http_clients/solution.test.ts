@@ -3,7 +3,14 @@ import { once } from "node:events";
 import { connect, type Socket } from "node:net";
 import test from "node:test";
 
-import { parseCreateTask, startTaskServer, type Task } from "./solution.ts";
+import type { Task } from "./exercise.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { parseCreateTask, startTaskServer } = implementation;
 
 async function openIncompleteRequest(url: string): Promise<Socket> {
   const { port } = new URL(url);

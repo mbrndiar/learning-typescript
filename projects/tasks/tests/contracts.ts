@@ -561,6 +561,26 @@ export async function httpDispatchContract(
     },
   });
   assertEquals(logged.length, 1);
+  const syntaxFailure: TaskRepository = {
+    ...storageFailure,
+    async list() {
+      throw new SyntaxError("repository implementation defect");
+    },
+  };
+  const syntaxLogged: unknown[] = [];
+  const unexpectedSyntax = await implementation.dispatchHttp(
+    syntaxFailure,
+    request("GET", "/tasks"),
+    (error) => syntaxLogged.push(error),
+  );
+  assertEquals(unexpectedSyntax.status, 500);
+  assertEquals(decodeBody(unexpectedSyntax), {
+    error: {
+      code: "internal_error",
+      message: "the server could not complete the request",
+    },
+  });
+  assertEquals(syntaxLogged.length, 1);
 }
 
 export async function serverContract(

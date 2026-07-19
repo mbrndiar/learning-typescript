@@ -1,8 +1,8 @@
-import {
-  CapstoneIncompleteError,
-  type CapstoneImplementation,
-} from "../../../shared/harness.ts";
-import type { ComparativeApplication } from "../../starter/src/index.ts";
+import type { CapstoneImplementation } from "../../../shared/harness.ts";
+
+export interface ComparativeApplication {
+  run(arguments_: readonly string[]): Promise<number>;
+}
 
 export interface ComparativeModule {
   readonly CAPSTONE_IMPLEMENTATION: CapstoneImplementation;
@@ -25,31 +25,6 @@ function exportedNames(module: object): string {
   return Object.keys(module).sort().join(",");
 }
 
-async function assertIncomplete(
-  operation: () => Promise<number>,
-  implementation: CapstoneImplementation,
-): Promise<void> {
-  try {
-    await operation();
-  } catch (error: unknown) {
-    assert(
-      error instanceof CapstoneIncompleteError,
-      "operation must expose scaffold status",
-    );
-    assert(
-      error.code === "CAPSTONE_INCOMPLETE",
-      "incomplete error code must remain stable",
-    );
-    assert(error.track === "comparative", "error must identify the comparative track");
-    assert(
-      error.implementation === implementation,
-      "error must identify the selected implementation",
-    );
-    return;
-  }
-  throw new Error("unfinished comparative operation unexpectedly succeeded");
-}
-
 export function assertSameComparativeBoundary(
   starter: ComparativeModule,
   solution: ComparativeModule,
@@ -66,33 +41,27 @@ export function assertSameComparativeBoundary(
   );
 }
 
-export async function runStarterScaffoldContract(
+export function runComparativeScaffoldContract(
+  implementation: CapstoneImplementation,
   module: ComparativeModule,
   entry: ComparativeEntryModule,
-): Promise<void> {
+): void {
   assert(
-    module.CAPSTONE_IMPLEMENTATION === "starter",
+    module.CAPSTONE_IMPLEMENTATION === implementation,
     "module must identify its implementation",
   );
   assert(
     module.SPEC_VERSION === "1.0.0",
     "module must identify the frozen spec version",
   );
-  await assertIncomplete(() => module.createApplication().run([]), "starter");
-  await assertIncomplete(() => module.main([]), "starter");
-  await assertIncomplete(() => entry.main([]), "starter");
-}
-
-export function assertSolutionScaffoldContract(
-  module: ComparativeModule,
-  entry: ComparativeEntryModule,
-): void {
   assert(
-    module.CAPSTONE_IMPLEMENTATION === "solution",
-    "solution module must identify its implementation",
+    typeof module.createApplication === "function",
+    "module must expose createApplication",
   );
-  assert(module.SPEC_VERSION === "1.0.0", "solution must implement the frozen spec");
-  assert(typeof module.createApplication().run === "function", "solution app must run");
-  assert(typeof module.main === "function", "solution source entry must run");
-  assert(typeof entry.main === "function", "solution Node entry must run");
+  assert(typeof module.main === "function", "module must expose main");
+  assert(typeof entry.main === "function", "entry module must expose main");
+  assert(
+    typeof module.createApplication().run === "function",
+    "application must expose run",
+  );
 }

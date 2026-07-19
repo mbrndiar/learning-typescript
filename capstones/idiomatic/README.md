@@ -18,9 +18,10 @@ first; it is the prerequisite that combines the preceding runtime material.
 - filtered replay and a 64 KiB-bounded loopback HTTP API;
 - graceful cancellation and deterministic resource cleanup.
 
-The guided `starter/` exports the same public boundary and uses explicit
-`TODO(m1-domain)` through `TODO(m4-http)` failures. The complete implementation
-lives in `solution/`. Neither core imports runtime-specific modules or globals.
+The guided `starter/` and `solution/` expose matching core and per-runtime
+module boundaries. The starter begins with explicit `TODO(m1-domain)` through
+`TODO(m4-http)` failures; the complete implementation lives in `solution/`.
+Neither core imports runtime-specific modules or globals.
 
 ## Run the relay
 
@@ -66,6 +67,17 @@ Framework-free contracts in `tests/contracts/` are wrapped by each runtime:
 5. `m5-conformance` — shared fixtures and equivalent observable semantics.
 
 ```bash
+# M0 stays green for either target and checks import-safe boundary parity.
+node --import=tsx --test capstones/idiomatic/tests/node/m0-scaffold.test.ts
+
+# M1–M5 always exercise the selected target.
+CAPSTONE_IMPLEMENTATION=starter node --import=tsx --test \
+  capstones/idiomatic/tests/node/m1-domain.test.ts
+CAPSTONE_IMPLEMENTATION=starter deno test --allow-env=CAPSTONE_IMPLEMENTATION \
+  capstones/idiomatic/tests/deno/m1-domain.test.ts
+CAPSTONE_IMPLEMENTATION=starter bun test capstones/idiomatic/tests/bun/m1-domain.test.ts
+
+# Use solution to verify the completed reference across every milestone.
 CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:node
 CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:deno
 CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:bun
@@ -75,3 +87,8 @@ npm run portability
 
 `coverage:idiomatic` measures the portable solution core and enforces at least
 85% lines, 85% functions, and 80% branches.
+
+For Node, replace `m1-domain` with an individual `m2-async`, `m3-adapter`,
+`m4-http`, or `m5-conformance` test when working through a milestone. An
+unfinished selected starter is expected to fail red; M0 remains green after
+each implementation step.

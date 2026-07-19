@@ -21,10 +21,12 @@ Expected delivery text:
 - `Shipped with tracking TRACK-1`
 - `Delivered to Ada` or `Delivered`
 
-## ▶️ Run the reference tests
+## ▶️ Run the feedback
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --import=tsx --test exercises/05_modeling_valid_data/solution.test.ts
 node --import=tsx --test exercises/05_modeling_valid_data/solution.test.ts
 ```
 
-Change the test import to `exercise.ts` only while checking your own work.
+The first command selects your starter; the second selects the reference solution.

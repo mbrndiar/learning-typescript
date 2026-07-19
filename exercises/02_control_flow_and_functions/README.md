@@ -13,11 +13,12 @@ Complete three small functions in `exercise.js`.
 
 Keep mutation local to the counter closure.
 
-## ▶️ Run the reference tests
+## ▶️ Run the feedback
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --test exercises/02_control_flow_and_functions/solution.test.js
 node --test exercises/02_control_flow_and_functions/solution.test.js
 ```
 
-To test your work, temporarily import `exercise.js` from the test file and restore
-the solution import afterward.
+The first command selects your starter; the second selects the reference solution.

@@ -8,6 +8,11 @@ interface CreateTask {
   readonly title: string;
 }
 
+interface Task extends CreateTask {
+  readonly id: number;
+  readonly done: boolean;
+}
+
 // readJson consumes the request stream under a small size limit. It returns
 // unknown because decoding JSON does not prove the value matches our domain
 // shape; validation happens at the next boundary.
@@ -35,11 +40,33 @@ function parseCreateTask(value: unknown): CreateTask {
   if (typeof value !== "object" || value === null) {
     throw new TypeError("body must be an object");
   }
+
   const title = (value as Record<string, unknown>).title;
   if (typeof title !== "string" || title.trim() === "") {
     throw new TypeError("title must be non-empty");
   }
   return { title: title.trim() };
+}
+
+function parseTask(value: unknown): Task {
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("response task must be an object");
+  }
+  const record = value as Record<string, unknown>;
+  const id = record.id;
+  if (
+    typeof id !== "number" ||
+    !Number.isSafeInteger(id) ||
+    typeof record.title !== "string" ||
+    typeof record.done !== "boolean"
+  ) {
+    throw new TypeError("response task has an invalid shape");
+  }
+  return {
+    id,
+    title: record.title,
+    done: record.done,
+  };
 }
 
 // Headers and status must be chosen before the body is ended; after bytes are
@@ -105,9 +132,14 @@ try {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ title: "Learn HTTP boundaries" }),
+    signal: AbortSignal.timeout(1_000),
   });
-
-  console.log(response.status, await response.json());
+  if (!response.ok) {
+    throw new Error(`task request failed with HTTP ${response.status}`);
+  }
+  const decoded: unknown = await response.json();
+  const created = parseTask(decoded);
+  console.log(response.status, created);
 } finally {
   // Closing the server is part of the lifecycle: without it, the open socket
   // keeps the Node.js process alive after the demonstration request finishes.

@@ -1,4 +1,4 @@
-import type { ClosableEventLog } from "../../solution/core/index.ts";
+import type { ClosableEventLog } from "./api.ts";
 import {
   collect,
   deepEqual,
@@ -12,6 +12,7 @@ export interface FileContract {
   readonly root: string;
   createLog(path: string, capacity?: number): ClosableEventLog;
   writeText(path: string, text: string): Promise<void>;
+  writeBytes(path: string, bytes: Uint8Array): Promise<void>;
   readText(path: string): Promise<string>;
   reset(): Promise<void>;
 }
@@ -137,6 +138,16 @@ export async function runM3AdapterContract(files: FileContract): Promise<void> {
       );
       await corruptLog.close();
     }
+
+    const invalidUtf8Path = `${files.root}/invalid-utf8.jsonl`;
+    await files.writeBytes(invalidUtf8Path, new Uint8Array([0xff]));
+    const invalidUtf8 = files.createLog(invalidUtf8Path);
+    await rejects(
+      () => collect(invalidUtf8.replay({})),
+      "log_corrupt",
+      "invalid UTF-8 must fail closed",
+    );
+    await invalidUtf8.close();
   } finally {
     await files.reset();
   }

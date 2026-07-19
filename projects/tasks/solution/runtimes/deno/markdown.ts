@@ -64,7 +64,6 @@ async function publishAtomically(path: string, source: string): Promise<void> {
   } catch (error) {
     let failure = error;
     if (file !== undefined && !closeAttempted) {
-      closeAttempted = true;
       try {
         file.close();
       } catch (closeError) {

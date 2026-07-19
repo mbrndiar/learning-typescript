@@ -26,13 +26,14 @@ duplicating domain validation.
 From `learning-typescript`:
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --import=tsx --test exercises/13_nodejs_runtime/solution.test.ts
 node --import=tsx --test exercises/13_nodejs_runtime/solution.test.ts
 npm run typecheck:node
 ```
 
-The committed tests import `solution.ts`. Temporarily change that import to
-`exercise.ts` while working, then restore it before comparing your implementation
-with the solution.
+The first test command selects your starter; the second selects the reference
+solution.
 
 ## 💡 Hints
 

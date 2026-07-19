@@ -3,7 +3,13 @@ import { Readable, Writable } from "node:stream";
 import test from "node:test";
 
 import type { Task } from "./task.ts";
-import { exportTasks, importTasks } from "./solution.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { exportTasks, importTasks } = implementation;
 
 // A tiny highWaterMark and delayed callback exercise backpressure without
 // depending on a large fixture or real disk.

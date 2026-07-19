@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { openTaskRepository } from "./solution.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { openTaskRepository } = implementation;
 
 test("SQLite repository binds, normalizes, and returns task rows", () => {
   const repository = openTaskRepository();

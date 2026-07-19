@@ -6,6 +6,7 @@
 - Use `const` for stable bindings and `let` for changing bindings.
 - Recognize primitive values and use arithmetic, comparison, and logical operators.
 - Build strings, convert values deliberately, and compare with strict equality.
+- Explain floating-point approximation, safe integers, and when `bigint` is needed.
 
 ## 🧱 Programs, bindings, and values
 
@@ -26,6 +27,28 @@ JavaScript sometimes converts values automatically, but explicit conversions are
 easier to understand. Use `Number(value)`, `String(value)`, or `Boolean(value)`.
 Prefer `===` and `!==` so comparison does not perform surprising conversions.
 
+## 🔢 The numeric model
+
+JavaScript's `number` is an IEEE 754 binary64 floating-point value. One type
+represents integers and fractions, but many decimal fractions are only
+approximations in binary:
+
+```javascript
+0.1 + 0.2 === 0.3; // false
+Number.isSafeInteger(9_007_199_254_740_991); // true
+```
+
+Integers are exact only from `Number.MIN_SAFE_INTEGER` through
+`Number.MAX_SAFE_INTEGER` (±(2^53 - 1)). Validate IDs, counters, and database
+integers with `Number.isSafeInteger` before relying on exact arithmetic. Represent
+money as integer minor units such as cents while it remains in that safe range,
+then format it only at the display boundary.
+
+`bigint` represents arbitrarily large integers exactly (`9_007_199_254_740_992n`),
+but arithmetic cannot mix it directly with `number`, it does not represent
+fractions, and it is not accepted by `JSON.stringify`. Choose the representation
+at the I/O boundary rather than converting after precision has already been lost.
+
 ## ▶️ Run the examples
 
 From the repository root:
@@ -43,6 +66,7 @@ Before each run, predict every displayed line.
 - Putting numeric text such as `"5"` into arithmetic without converting it.
 - Using `==` when strict equality (`===`) communicates the intent.
 - Forgetting that `+` joins strings when either operand is a string.
+- Using binary floating-point for money or assuming every integer is exact.
 - Expecting `typeof null` to say `"null"`; this historical quirk returns
   `"object"`.
 
@@ -53,6 +77,9 @@ Before each run, predict every displayed line.
 3. What type of value does a comparison produce?
 4. Why is `Number("5") + 1` different from `"5" + 1`?
 5. Why should new code normally prefer `===` to `==`?
+6. Why are integer cents safer than repeated decimal arithmetic for money?
+7. What boundary separates safe `number` integers from values that need `bigint`
+   or another representation?
 
 ## 🧠 Exercise
 

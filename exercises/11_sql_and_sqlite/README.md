@@ -5,8 +5,9 @@ in-memory database, a parameterized insert, a deterministic ordered query, and
 an explicit `close` method.
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --import=tsx --test exercises/11_sql_and_sqlite/solution.test.ts
 node --import=tsx --test exercises/11_sql_and_sqlite/solution.test.ts
 ```
 
-The committed test imports `solution.ts`. Temporarily point it at `exercise.ts`
-to test your implementation.
+The first command selects your starter; the second selects the reference solution.

@@ -28,6 +28,19 @@ npm install
 Prettier, `tsx`, OpenAPI parser, Node types, and Bun types used by the course.
 Use `npm ci` in automation or when reproducing CI from an unchanged lockfile.
 
+The course pins TypeScript 6.0.3. TypeScript 7.0 is stable and current, but its
+initial native release deliberately ships without the compiler API used by tools
+such as `typescript-eslint`. The TypeScript team documents 6.0 as the bridge to
+7.0 and recommends the 6.x compatibility package for those integrations. This
+course therefore teaches stable language and configuration practices on 6.0
+rather than making a newly released toolchain split the learner's checker and
+linter. Re-evaluate this boundary when the TypeScript 7 compiler API and its
+dependent tooling are stable together:
+
+- <https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/>
+- <https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/>
+- <https://typescript-eslint.io/users/dependency-versions/>
+
 ## 🧑‍💻 3. Choose an editor
 
 - Visual Studio Code with the built-in TypeScript language service
@@ -169,6 +182,7 @@ npm run links
 npm run audit:node
 npm run openapi:tasks
 npm run check:tasks:node
+npm run check:node
 
 # Deno path
 deno task fmt:check
@@ -205,10 +219,10 @@ npm run test:tasks:interoperability
 The Deno and Bun `check` commands already include their native audit. Audits may
 contact package advisory services and therefore require network access.
 
-`CAPSTONE_IMPLEMENTATION` accepts `starter` or `solution` and defaults to
-`starter` for guided capstone work. `TASKS_IMPLEMENTATION` accepts the same
-values and defaults to `solution`, because substantive Task contracts select
-their implementation directly. CI sets both to `solution`.
+`CAPSTONE_IMPLEMENTATION` and `TASKS_IMPLEMENTATION` accept `starter` or
+`solution` and default to `solution`, so aggregate validation checks completed
+references. Select `starter` explicitly for guided milestone feedback. CI sets
+both to `solution`.
 
 ## ⚠️ Troubleshooting
 

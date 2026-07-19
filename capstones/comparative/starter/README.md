@@ -13,6 +13,12 @@ launcher in [`node/main.ts`](node/main.ts). Replace the typed
 5. Run the independent-process fixture suite, including barriers, busy waits,
    races, integrity checks, and sidecar cleanup.
 
-Run a selected starter milestone as a red/green exercise by temporarily removing
-its skip in `tests/node/mN-*.test.ts`. The completed reference remains under
-`solution/`; do not copy it wholesale if the goal is deliberate practice.
+M0 remains green while the shared milestone tests select this starter directly:
+
+```bash
+CAPSTONE_IMPLEMENTATION=starter node --import=tsx --test \
+  capstones/comparative/tests/node/m1-domain.test.ts
+```
+
+Replace `m1-domain` with the next milestone as you progress. An unfinished
+milestone fails red; the completed reference remains under `solution/`.

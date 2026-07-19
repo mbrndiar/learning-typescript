@@ -1,10 +1,4 @@
-import {
-  eventMatches,
-  InMemoryEventLog,
-  normalizeReplayQuery,
-  parseEvent,
-  type IncomingEvent,
-} from "../../solution/core/index.ts";
+import type { IdiomaticCoreModule, IncomingEvent } from "./api.ts";
 import {
   assert,
   collect,
@@ -15,8 +9,8 @@ import {
   validMetric,
 } from "./testing.ts";
 
-export async function runM1DomainContract(): Promise<void> {
-  const metric = parseEvent(validMetric());
+export async function runM1DomainContract(core: IdiomaticCoreModule): Promise<void> {
+  const metric = core.parseEvent(validMetric());
   assert(metric.ok, "valid metric must parse");
   deepEqual(
     metric.event,
@@ -32,7 +26,7 @@ export async function runM1DomainContract(): Promise<void> {
     "metric normalization must be deterministic",
   );
 
-  const alert = parseEvent(validAlert());
+  const alert = core.parseEvent(validAlert());
   assert(alert.ok, "valid alert must parse");
   assert(alert.event.kind === "alert", "alert variant must be preserved");
   equal(
@@ -42,7 +36,7 @@ export async function runM1DomainContract(): Promise<void> {
   );
   equal(alert.event.message, "catalog request timed out", "message must trim");
 
-  const unicode = parseEvent({
+  const unicode = core.parseEvent({
     ...validAlert("unicode"),
     source: "cafe\u0301",
     message: "e\u0301 remains decomposed",
@@ -50,7 +44,7 @@ export async function runM1DomainContract(): Promise<void> {
   assert(unicode.ok, "Unicode event must parse");
   equal(unicode.event.source, "cafe\u0301", "Unicode must not normalize");
 
-  const negativeZero = parseEvent({ ...validMetric("zero"), value: -0 });
+  const negativeZero = core.parseEvent({ ...validMetric("zero"), value: -0 });
   assert(negativeZero.ok, "-0 metric must parse");
   assert(negativeZero.event.kind === "metric", "metric variant must be preserved");
   assert(!Object.is(negativeZero.event.value, -0), "-0 must normalize to 0");
@@ -90,7 +84,7 @@ export async function runM1DomainContract(): Promise<void> {
     [{ ...validAlert(), message: " \n " }, "message"],
     [{ ...validAlert(), message: "message\n" }, "message"],
   ] as const) {
-    const parsed = parseEvent(value);
+    const parsed = core.parseEvent(value);
     assert(!parsed.ok, `invalid value at ${path} must fail`);
     equal(parsed.error.path ?? "", path, "error path must identify the boundary");
   }
@@ -102,26 +96,26 @@ export async function runM1DomainContract(): Promise<void> {
     },
   });
   equal(
-    parseEvent(accessorEvent).ok,
+    core.parseEvent(accessorEvent).ok,
     false,
     "accessor properties must fail without executing user code",
   );
   const symbolEvent = { ...validMetric("symbol") };
   Object.defineProperty(symbolEvent, Symbol("extra"), { value: true });
   equal(
-    parseEvent(symbolEvent).ok,
+    core.parseEvent(symbolEvent).ok,
     false,
     "symbol properties must be rejected as unknown",
   );
   const revoked = Proxy.revocable({}, {});
   revoked.revoke();
   equal(
-    parseEvent(revoked.proxy).ok,
+    core.parseEvent(revoked.proxy).ok,
     false,
     "uninspectable proxies must return a parse failure rather than throw",
   );
 
-  const log = new InMemoryEventLog(2);
+  const log = new core.InMemoryEventLog(2);
   const first = await log.append(metric.event);
   const second = await log.append(alert.event);
   equal(first.sequence, 1, "first sequence must be one");
@@ -132,19 +126,19 @@ export async function runM1DomainContract(): Promise<void> {
     "replay filters must combine with AND",
   );
   equal(
-    eventMatches(second, { after: 1, kind: "alert" }),
+    core.eventMatches(second, { after: 1, kind: "alert" }),
     true,
     "eventMatches must apply normalized replay criteria",
   );
   deepEqual(
-    normalizeReplayQuery({}),
+    core.normalizeReplayQuery({}),
     { after: 0, limit: 100 },
     "replay query defaults must be deterministic",
   );
   for (const query of [{ after: -1 }, { limit: 0 }, { limit: 1_001 }, { source: "" }]) {
     let rejected = false;
     try {
-      normalizeReplayQuery(query);
+      core.normalizeReplayQuery(query);
     } catch {
       rejected = true;
     }

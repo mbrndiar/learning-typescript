@@ -1,8 +1,22 @@
 // Smoke test for `deno compile`: builds a self-contained relay executable with
 // least-privilege permissions and removes generated output in finally.
-const relayOutput = Deno.build.os === "windows" ? "compiled/relay-deno.exe" : "compiled/relay-deno";
-
-await Deno.mkdir("compiled", { recursive: true });
+const scratchRoot = ".test-data";
+let ownsScratchRoot = false;
+try {
+  await Deno.mkdir(scratchRoot);
+  ownsScratchRoot = true;
+} catch (error: unknown) {
+  if (!(error instanceof Deno.errors.AlreadyExists)) {
+    throw error;
+  }
+}
+const outputDirectory = await Deno.makeTempDir({
+  dir: scratchRoot,
+  prefix: "deno-compile-",
+});
+const relayOutput = `${outputDirectory}/${
+  Deno.build.os === "windows" ? "relay-deno.exe" : "relay-deno"
+}`;
 
 try {
   const relayStatus = await new Deno.Command(Deno.execPath(), {
@@ -24,16 +38,8 @@ try {
   }
   console.log("Deno relay executable compile smoke passed");
 } finally {
-  for (const path of [relayOutput]) {
-    await Deno.remove(path).catch((error: unknown) => {
-      if (!(error instanceof Deno.errors.NotFound)) {
-        throw error;
-      }
-    });
+  await Deno.remove(outputDirectory, { recursive: true });
+  if (ownsScratchRoot) {
+    await Deno.remove(scratchRoot);
   }
-  await Deno.remove("compiled").catch((error: unknown) => {
-    if (!(error instanceof Deno.errors.NotFound)) {
-      throw error;
-    }
-  });
 }

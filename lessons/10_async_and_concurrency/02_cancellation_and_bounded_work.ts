@@ -37,24 +37,41 @@ async function mapWithLimit<T, R>(
   const results = new Array<R>(values.length);
   const pending = values.map((value, index) => ({ index, value }));
   let nextPosition = 0;
+  let failed = false;
+  let firstFailure: unknown;
 
   // A fixed worker pool shares one cursor, so at most `limit` transforms run
   // at once even if the input list is much larger.
   async function worker(): Promise<void> {
     while (true) {
+      if (failed) {
+        return;
+      }
       const entry = pending[nextPosition];
       if (entry === undefined) {
         return;
       }
       nextPosition += 1;
-      results[entry.index] = await transform(entry.value);
+      try {
+        results[entry.index] = await transform(entry.value);
+      } catch (error: unknown) {
+        if (!failed) {
+          failed = true;
+          firstFailure = error;
+        }
+        return;
+      }
     }
   }
 
   const workerCount = Math.min(limit, values.length);
-  // Promise.all is right for an all-or-nothing mapping: the first rejection
-  // rejects the returned promise, while every worker promise is still observed.
+  // Workers capture the first failure instead of rejecting early. Promise.all
+  // therefore waits for already-started transforms to settle, while the shared
+  // stop state prevents workers from claiming more input.
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  if (failed) {
+    throw firstFailure;
+  }
   return results;
 }
 

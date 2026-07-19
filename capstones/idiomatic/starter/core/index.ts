@@ -10,6 +10,7 @@ import type {
   RelayError,
   RelayErrorCode,
   RelayHttpHandler,
+  RelayHttpTarget,
   RelayRuntimeAdapter,
   ReplayQuery,
   RuntimeCapabilities,
@@ -229,7 +230,7 @@ function incompleteIterable<T>(feature: string): AsyncIterable<T> {
   };
 }
 
-export function createRelayHttpHandler(_relay: EventRelay): RelayHttpHandler {
+export function createRelayHttpHandler(_relay: RelayHttpTarget): RelayHttpHandler {
   return () => Promise.reject(incomplete("TODO(m4-http): handle a relay HTTP request"));
 }
 

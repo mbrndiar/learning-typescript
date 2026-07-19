@@ -3,9 +3,16 @@
 // the relay CLI once, then deletes generated artifacts in finally.
 export {};
 
-const relayExecutable =
-  process.platform === "win32" ? "compiled/relay-bun.exe" : "compiled/relay-bun";
-const relayLog = "compiled/events.jsonl";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const outputDirectory = await mkdtemp(join(tmpdir(), "learning-typescript-bun-"));
+const relayExecutable = join(
+  outputDirectory,
+  process.platform === "win32" ? "relay-bun.exe" : "relay-bun",
+);
+const relayLog = join(outputDirectory, "events.jsonl");
 
 const relayBuild = await Bun.build({
   entrypoints: ["capstones/idiomatic/solution/bun/main.ts"],
@@ -16,8 +23,6 @@ const relayBuild = await Bun.build({
 if (!relayBuild.success || relayBuild.outputs.length !== 1) {
   throw new AggregateError(relayBuild.logs, "Bun relay build smoke failed");
 }
-
-await Bun.$`mkdir -p compiled`.quiet();
 
 try {
   const relayCompile = Bun.spawn({
@@ -74,11 +79,5 @@ try {
     `Bun relay bundle and executable smoke passed (${relayBuild.outputs[0]!.size} bytes)`,
   );
 } finally {
-  for (const path of [relayExecutable, relayLog]) {
-    const file = Bun.file(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-  }
-  await Bun.$`rmdir compiled`.quiet().nothrow();
+  await rm(outputDirectory, { recursive: true, force: true });
 }

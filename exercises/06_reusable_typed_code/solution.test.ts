@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  findById,
-  NoteService,
-  toPreviews,
-  type Note,
-  type NoteRepository,
-} from "./solution.ts";
+import type { Note, NoteRepository } from "./exercise.ts";
+import { selectExerciseTarget } from "../test-target.ts";
+
+const implementation =
+  selectExerciseTarget(process.env.EXERCISE_IMPLEMENTATION) === "exercise"
+    ? await import("./exercise.ts")
+    : await import("./solution.ts");
+const { findById, NoteService, toPreviews } = implementation;
 
 test("generic lookup preserves the entity type", () => {
   const notes: Note[] = [

@@ -26,7 +26,8 @@ npm run openapi:tasks              # parse and assert Tasks OpenAPI 3.1
 npm run check:tasks:node           # focused Tasks Node aggregate
 npm run coverage                   # run capstone and Tasks coverage gates
 npm run audit:node                 # audit npm dependencies
-npm run check                      # standard Node course check
+npm run check                      # alias for the complete Node CI-equivalent check
+npm run check:node                 # format through audit/openapi Node gate
 npm run check:deno                 # full Deno validation
 npm run check:bun                  # full Bun validation
 npm run build:bun                  # Bun bundle and compile smoke
@@ -66,6 +67,31 @@ const enabled = Boolean(count);
 
 `null` is an intentional empty value; `undefined` usually means missing or not
 assigned. `typeof null` is the historical value `"object"`.
+
+`number` uses binary64, so decimal fractions can be approximate. Integers are
+exact only through `Number.MAX_SAFE_INTEGER`; validate with
+`Number.isSafeInteger`. Use integer cents for money and `bigint` for larger exact
+integers, remembering that `bigint` cannot mix with `number` or serialize to JSON
+without an explicit representation.
+
+```typescript
+const preciseCents = 1_299;
+const approximate = 0.1 + 0.2;
+const large = 9_007_199_254_740_992n;
+```
+
+## 🕒 Dates, timestamps, and durations
+
+```typescript
+const instant = new Date(Date.parse("2026-07-16T10:01:00+02:00"));
+const canonicalUtc = instant.toISOString();
+const started = performance.now();
+const elapsedMilliseconds = performance.now() - started;
+```
+
+Validate RFC 3339 syntax and calendar ranges before `Date.parse`. `Date` stores an
+instant, not the input zone. Use an explicit IANA `timeZone` when formatting for
+people and a monotonic clock for elapsed durations.
 
 ## 🧩 Control flow and functions
 

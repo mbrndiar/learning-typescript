@@ -6,12 +6,18 @@ JavaScript foundation, then uses strict TypeScript with Node.js as the primary
 runtime. A four-module runtime track then explores Node.js, Deno, Bun, and
 cross-runtime migration in depth.
 
+The course is intended for self-directed beginners and experienced developers
+who are new to TypeScript. No prior JavaScript or TypeScript is required:
+Modules 1-3 teach the JavaScript prerequisites used later. Learners entirely new
+to programming should use the linked beginner guide alongside those modules.
+
 ## 🎯 What you will learn
 
 By the end of the course, you will be able to:
 
 - read, write, run, debug, and test modern JavaScript and TypeScript;
 - explain the difference between the language, the type checker, and a runtime;
+- choose safe numeric representations and normalize validated external timestamps;
 - model data with strict types, unions, generics, classes, and composition;
 - validate untrusted values at command-line, file, JSON, and HTTP boundaries;
 - use npm, ES modules, files, processes, structured logs, and SQLite;
@@ -24,12 +30,25 @@ By the end of the course, you will be able to:
 
 ## ✅ Initial requirements
 
+- Ability to install software, open the repository in an editor, navigate files,
+  and run commands in a terminal. Programming syntax is taught rather than
+  required.
 - Node.js 24 LTS or Node.js 26 Current
 - npm (included with Node.js)
+- The installed course toolchain pins TypeScript 6.0.3, the stable compatibility
+  bridge used by the current ESLint integration while TypeScript 7 tooling
+  completes its compiler-API transition.
 
 Node.js is the only runtime required initially. Git is needed only if you clone
 the repository instead of downloading it. Install Deno 2.9.3 for module 14 and
 Bun 1.3.14 for module 15; modules 1-13 use Node.js alone.
+
+GitHub Actions validates the full course on Ubuntu x64. The documented runtimes
+also publish macOS and Windows builds, but this repository does not claim an
+automated OS matrix; platform-specific shell syntax, file modes, and executable
+names may differ. Commands that prefix an environment variable use POSIX shell
+syntax. In PowerShell, set the variable first with
+`$env:NAME = "value"`.
 
 See [`docs/SETUP.md`](docs/SETUP.md) for installation, editor setup, and
 troubleshooting. If programming syntax is entirely new, begin with
@@ -75,6 +94,7 @@ npm run coverage
 npm run links
 npm run audit:node
 npm run openapi:tasks
+npm run check:node
 
 # After installing Deno and Bun for modules 14-16
 npm run check:deno

@@ -1,14 +1,24 @@
-import { mkdir } from "node:fs/promises";
+import { appendFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 
-import { VersionedEventLog, type LogStorage } from "../core/index.ts";
+import { relayFailure, VersionedEventLog, type LogStorage } from "../core/index.ts";
+
+function decodeLogText(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw relayFailure("log_corrupt", "event log is not valid UTF-8");
+  }
+}
 
 export class BunLogStorage implements LogStorage {
   constructor(private readonly path: string) {}
 
   async readText(): Promise<string | undefined> {
     const file = Bun.file(this.path);
-    return (await file.exists()) ? file.text() : undefined;
+    return (await file.exists())
+      ? decodeLogText(new Uint8Array(await file.arrayBuffer()))
+      : undefined;
   }
 
   async createText(text: string): Promise<void> {
@@ -19,9 +29,8 @@ export class BunLogStorage implements LogStorage {
     await Bun.write(this.path, text);
   }
 
-  async appendText(text: string): Promise<void> {
-    const file = Bun.file(this.path);
-    await Bun.write(this.path, `${await file.text()}${text}`);
+  appendText(text: string): Promise<void> {
+    return appendFile(this.path, text, { encoding: "utf8", flag: "a" });
   }
 
   close(): Promise<void> {

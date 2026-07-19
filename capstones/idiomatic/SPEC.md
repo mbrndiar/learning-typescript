@@ -325,8 +325,8 @@ Acceptance:
 
 - each adapter passes the same create/append/reopen/replay/corruption contract;
 - handles close after success, error, and abort;
-- a partial final line and non-contiguous sequence fail closed;
-- the starter still format-checks/type-checks with explicit TODO failures;
+- partial final lines, malformed UTF-8, and non-contiguous sequences fail closed;
+- the starter remains import-safe and type-checks throughout implementation;
 - runtime-native `m3-adapter` suites pass.
 
 ### Milestone 4 — HTTP relay
@@ -382,10 +382,13 @@ capstones/idiomatic/
 
 Starter and solution expose identical module paths and exports. The starter has
 complete types, parsers' signatures, capability interfaces, CLI options, and
-explicit scoped TODO errors. A framework-free contract module receives
-factories and is wrapped by `node:test`, `Deno.test`, and `bun:test`. Node is
-the primary whole-tree typecheck; Deno/Bun own their adapter checks. Later
-tooling changes must include the new trees without weakening current gates.
+explicit scoped TODO errors. `CAPSTONE_IMPLEMENTATION` selects the target for
+every M1–M5 contract; M0 imports both targets to verify metadata, import safety,
+and public-boundary parity without requiring a TODO to persist. A framework-free
+contract module receives selected factories and is wrapped by `node:test`,
+`Deno.test`, and `bun:test`. Node is the primary whole-tree typecheck; Deno/Bun
+own their adapter checks. Later tooling changes must include the new trees
+without weakening current gates.
 
 ## Deterministic fixtures and seams
 

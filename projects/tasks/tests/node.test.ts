@@ -183,6 +183,28 @@ test(`${selection} Node SQLite rejects unsafe IDs`, async () => {
   }
 });
 
+test(
+  "solution Node SQLite normalizes transaction-acquisition failures",
+  { skip: selection !== "solution", timeout: 10_000 },
+  async () => {
+    const path = `${ROOT}/locked.db`;
+    await reset(path);
+    const repository = new SelectedSqlite(path);
+    const lock = new DatabaseSync(path);
+    lock.exec("BEGIN IMMEDIATE");
+    try {
+      await assertRejects(
+        () => repository.create("Blocked"),
+        implementation.StorageError,
+      );
+    } finally {
+      lock.exec("ROLLBACK");
+      lock.close();
+      await repository.close();
+    }
+  },
+);
+
 for (const [name, extension, create] of [
   [`${selection} Node SQLite server`, "db", (path: string) => new SelectedSqlite(path)],
   [

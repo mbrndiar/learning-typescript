@@ -1,5 +1,5 @@
-import { DenoFileEventLog } from "../../solution/deno/file-log.ts";
 import { runM3AdapterContract } from "../contracts/m3-adapter.ts";
+import { loadDenoIdiomaticTarget, selectedDenoImplementation } from "./implementation.ts";
 
 const root = "capstones/idiomatic/tests/.test-data/deno";
 
@@ -8,14 +8,20 @@ Deno.test({
   permissions: {
     read: ["capstones/idiomatic/tests/.test-data/deno"],
     write: ["capstones/idiomatic/tests/.test-data/deno"],
+    env: ["CAPSTONE_IMPLEMENTATION"],
   },
   async fn() {
+    const target = await loadDenoIdiomaticTarget(selectedDenoImplementation());
     await runM3AdapterContract({
       root,
-      createLog: (path, capacity) => new DenoFileEventLog(path, capacity),
+      createLog: target.createFileLog,
       async writeText(path, text) {
         await Deno.mkdir(root, { recursive: true });
         await Deno.writeTextFile(path, text);
+      },
+      async writeBytes(path, bytes) {
+        await Deno.mkdir(root, { recursive: true });
+        await Deno.writeFile(path, bytes);
       },
       readText: Deno.readTextFile,
       async reset() {
@@ -31,11 +37,10 @@ Deno.test({
 
 Deno.test({
   name: "m3-adapter: Deno does not widen missing file permissions",
-  permissions: "none",
+  permissions: { env: ["CAPSTONE_IMPLEMENTATION"] },
   async fn() {
-    const log = new DenoFileEventLog(
-      "capstones/idiomatic/tests/fixtures/corrupt-bad-header.jsonl",
-    );
+    const target = await loadDenoIdiomaticTarget(selectedDenoImplementation());
+    const log = target.createFileLog("capstones/idiomatic/tests/fixtures/corrupt-bad-header.jsonl");
     try {
       for await (const _event of log.replay({})) {
         // A denied read must fail before an event can be produced.

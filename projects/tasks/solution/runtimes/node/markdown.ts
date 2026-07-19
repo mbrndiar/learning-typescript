@@ -63,7 +63,6 @@ async function publishAtomically(path: string, source: string): Promise<void> {
     }
   } catch (error) {
     if (handle !== undefined && !closeAttempted) {
-      closeAttempted = true;
       try {
         await handle.close();
       } catch (closeError) {

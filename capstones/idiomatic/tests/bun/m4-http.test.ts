@@ -1,6 +1,9 @@
 import { test } from "bun:test";
 
-import { serveBunRelay } from "../../solution/bun/runtime.ts";
 import { runM4HttpContract } from "../contracts/m4-http.ts";
+import { loadBunIdiomaticTarget, selectedBunImplementation } from "./implementation.ts";
 
-test("m4-http: Bun loopback relay service", () => runM4HttpContract(serveBunRelay));
+test("m4-http: Bun loopback relay service", async () => {
+  const target = await loadBunIdiomaticTarget(selectedBunImplementation());
+  await runM4HttpContract(target.core, target.serve);
+});

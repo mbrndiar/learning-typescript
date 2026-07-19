@@ -1,8 +1,10 @@
-// Reference solution: converts the text quantity to a number so `*` performs
-// arithmetic (not string joining) and formats currency with toFixed(2).
-export function buildPurchaseSummary(itemName, unitPrice, quantityText) {
+// Integer cents keep the calculation exact; division happens only at the
+// display boundary where two decimal places are required.
+export function buildPurchaseSummary(itemName, unitPriceCents, quantityText) {
   const quantity = Number(quantityText);
-  const total = unitPrice * quantity;
+  const totalCents = unitPriceCents * quantity;
+  const unitPrice = unitPriceCents / 100;
+  const total = totalCents / 100;
 
   return `${quantity} × ${itemName} at $${unitPrice.toFixed(2)} = $${total.toFixed(2)}`;
 }

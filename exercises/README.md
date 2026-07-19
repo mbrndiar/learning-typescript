@@ -13,7 +13,15 @@ one reference solution.
 
 Starter implementations may contain placeholders and failing tests. CI checks
 that starter files parse and type-check where practical, while solution tests
-must pass.
+must pass. Test files select the starter without editing committed imports:
+
+```bash
+EXERCISE_IMPLEMENTATION=exercise node --import=tsx --test path/to/solution.test.ts
+```
+
+Omit `EXERCISE_IMPLEMENTATION` to run the same contract against the reference
+solution. JavaScript, Deno, and Bun exercises show their runtime-specific form in
+the matching README.
 
 ## 🗺️ Modules
 

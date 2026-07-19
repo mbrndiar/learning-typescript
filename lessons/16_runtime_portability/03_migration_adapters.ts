@@ -26,7 +26,7 @@ async function exportConfiguration(
   destination: string,
 ): Promise<void> {
   const text = await runtime.files.readText(source);
-  await runtime.files.writeText(destination, text.trimEnd() + "\n");
+  await runtime.files.writeText(destination, text.replace(/[\r\n]+$/u, "") + "\n");
   const exitCode = await runtime.commands.run("echo", [
     `exported with ${runtime.files.name}`,
   ]);
@@ -38,7 +38,7 @@ async function exportConfiguration(
 // The in-memory adapters are deliberately boring: they prove the boundary is
 // behavioral. Real adapters can change later while this application function
 // keeps the same contract.
-const memory = new Map([["config.json", '{"runtime":"portable"}']]);
+const memory = new Map([["config.json", '{"runtime":"portable"}  \r\n\r\n']]);
 const demonstration: ApplicationRuntime = {
   files: {
     name: "injected file adapter",
@@ -63,7 +63,13 @@ const demonstration: ApplicationRuntime = {
 };
 
 await exportConfiguration(demonstration, "config.json", "exported.json");
-console.log(memory.get("exported.json"));
+const exported = memory.get("exported.json");
+if (exported !== '{"runtime":"portable"}  \n') {
+  throw new Error(
+    "adapter must preserve trailing spaces while normalizing line endings",
+  );
+}
+console.log(exported);
 
 export { exportConfiguration };
 export type { ApplicationRuntime, RuntimeCommands, RuntimeFiles };

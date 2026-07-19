@@ -197,10 +197,18 @@ export class NodeSqliteRepository implements TaskRepository {
     throw new StorageError(operation, "transaction failed", original);
   }
 
+  #begin(operation: string): void {
+    try {
+      this.#database.exec("BEGIN IMMEDIATE");
+    } catch (error) {
+      throw new StorageError(operation, "could not begin transaction", error);
+    }
+  }
+
   async create(rawTitle: string): Promise<Task> {
     this.#assertOpen();
     const title = validateTitle(rawTitle);
-    this.#database.exec("BEGIN IMMEDIATE");
+    this.#begin("create task");
     try {
       const result = this.#prepare(
         "INSERT INTO tasks(title, completed) VALUES (?, 0)",
@@ -256,7 +264,7 @@ export class NodeSqliteRepository implements TaskRepository {
     if (title === undefined && update.completed === undefined) {
       throw new StorageError("update task", "update must not be empty");
     }
-    this.#database.exec("BEGIN IMMEDIATE");
+    this.#begin("update task");
     try {
       const current = this.#prepare(
         "SELECT id, title, completed FROM tasks WHERE id = ?",
@@ -299,7 +307,7 @@ export class NodeSqliteRepository implements TaskRepository {
   async delete(rawId: number): Promise<void> {
     this.#assertOpen();
     const id = validateTaskId(rawId);
-    this.#database.exec("BEGIN IMMEDIATE");
+    this.#begin("delete task");
     try {
       const result = this.#prepare("DELETE FROM tasks WHERE id = ?").run(id);
       if (changes(result) === 0) throw new TaskNotFoundError(id);

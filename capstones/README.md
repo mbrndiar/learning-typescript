@@ -26,10 +26,10 @@ CAPSTONE_IMPLEMENTATION=solution npm run test:capstone:idiomatic:node
 ```
 
 The value must be `starter` or `solution`; omitting it selects `starter`.
-Boundary smoke tests explicitly import both idiomatic targets, assert the
-starter's intentional `CAPSTONE_INCOMPLETE`/`not_implemented` behavior, and
-verify that the solution accepts a complete event. CI sets
-`CAPSTONE_IMPLEMENTATION=solution`.
+Every M1–M5 suite exercises that selected target. M0 imports both targets and
+checks metadata, module paths, and public-boundary parity without requiring an
+implementation to remain unfinished. An incomplete selected starter therefore
+fails its milestone red while M0 stays green; CI selects `solution`.
 
 ## ✅ Validation matrix
 

@@ -1,24 +1,20 @@
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
+import { createHash } from "node:crypto";
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
-import {
-  MAX_CONTAINER_DEPTH,
-  MAX_SAFE_REVISION,
-  MAX_VALUE_BYTES,
-  parseRestrictedJson,
-  validateKey,
-  type JsonValue,
-} from "../../solution/src/domain.ts";
-import { KvError } from "../../solution/src/errors.ts";
-import { BUSY_TIMEOUT_MS } from "../../solution/src/store.ts";
 import { selectedComparativeImplementation } from "./implementation.ts";
 
 const SPEC_VERSION = "1.0.0";
+const MAX_SAFE_REVISION = 9_007_199_254_740_991;
+const MAX_VALUE_BYTES = 65_536;
+const MAX_CONTAINER_DEPTH = 32;
+const BUSY_TIMEOUT_MS = 10_000;
+const keyPattern = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/u;
 const PROCESS_TIMEOUT_MS = 15_000;
 const PARALLEL_TIMEOUT_MS = 30_000;
 const SCRATCH_ROOT = fileURLToPath(new URL("../../.test-data/", import.meta.url));
@@ -67,12 +63,9 @@ interface LockHandle {
   readonly releasePath: string;
 }
 
-export function solutionTestsEnabled(): boolean {
-  return selectedComparativeImplementation() === "solution";
-}
-
-export async function assertDomainFixtures(): Promise<void> {
+export async function assertFrozenFixtureIntegrity(): Promise<void> {
   await assertSpecVersions();
+  await assertFrozenManifest();
   const contract = await fixture("fixtures/contract.json");
   assertAllowedKeys(contract, [
     "kind",
@@ -96,6 +89,7 @@ export async function assertDomainFixtures(): Promise<void> {
   assert.equal(field(contract, "value_input_max_utf8_bytes"), MAX_VALUE_BYTES);
   assert.equal(field(contract, "max_container_depth"), MAX_CONTAINER_DEPTH);
   assert.equal(field(contract, "busy_timeout_ms"), BUSY_TIMEOUT_MS);
+  assert.equal(field(contract, "key_pattern"), "[A-Za-z0-9][A-Za-z0-9._/-]{0,127}");
   assert.deepEqual(field(contract, "commands"), ["set", "get", "delete", "list"]);
   assert.deepEqual(field(contract, "set_expectations"), [
     "any",
@@ -115,19 +109,11 @@ export async function assertDomainFixtures(): Promise<void> {
   assertAllowedKeys(keys, ["kind", "spec_version", "accepted", "rejected", "ordering"]);
   for (const case_ of records(field(keys, "accepted"))) {
     assertAllowedKeys(case_, ["id", "key", "key_generator"]);
-    const key = generatedKey(case_);
-    assert.equal(validateKey(key), key);
+    assert.match(generatedKey(case_), keyPattern);
   }
   for (const case_ of records(field(keys, "rejected"))) {
     assertAllowedKeys(case_, ["id", "key", "key_generator"]);
-    assert.throws(
-      () => validateKey(generatedKey(case_)),
-      (error: unknown) =>
-        error instanceof KvError &&
-        error.exitCode === 2 &&
-        error.category === "invalid_argument" &&
-        isDeepEqual(error.details, { field: "key", reason: "format" }),
-    );
+    assert.doesNotMatch(generatedKey(case_), keyPattern);
   }
 
   const accepted = await fixture("fixtures/values-accepted.json");
@@ -140,8 +126,8 @@ export async function assertDomainFixtures(): Promise<void> {
       "normalized",
       "normalized_generator",
     ]);
-    const actual = parseRestrictedJson(generatedInput(case_));
-    assert.deepEqual(actual, generatedNormalized(case_), string(field(case_, "id")));
+    assert.doesNotThrow(() => JSON.parse(generatedInput(case_)));
+    assert.notEqual(generatedNormalized(case_), undefined, string(field(case_, "id")));
   }
 
   const rejected = await fixture("fixtures/values-rejected.json");
@@ -155,26 +141,10 @@ export async function assertDomainFixtures(): Promise<void> {
       "category",
       "details",
     ]);
-    assert.throws(
-      () => parseRestrictedJson(generatedInput(case_)),
-      (error: unknown) =>
-        error instanceof KvError &&
-        error.exitCode === integer(field(case_, "exit")) &&
-        error.category === string(field(case_, "category")) &&
-        isDeepEqual(error.details, field(case_, "details")),
-      string(field(case_, "id")),
-    );
+    assert.equal(integer(field(case_, "exit")) >= 2, true);
+    assert.notEqual(string(field(case_, "category")), "");
+    record(field(case_, "details"));
   }
-
-  assert.deepEqual(parseRestrictedJson("0e-999999999999999999999"), 0);
-  assert.deepEqual(parseRestrictedJson('{"x":1.5,"x":1}'), { x: 1 });
-  assert.throws(
-    () => parseRestrictedJson('"\\uD800" trailing'),
-    (error: unknown) =>
-      error instanceof KvError &&
-      error.category === "invalid_json" &&
-      isDeepEqual(error.details, { reason: "syntax" }),
-  );
 }
 
 export async function runDomainCliFixtures(): Promise<void> {
@@ -582,7 +552,7 @@ async function runMultiprocessScenario(
         running.set(
           cliId,
           startProcess(
-            solutionEntry(),
+            selectedEntry(),
             substituteArguments(field(definition, "args"), paths),
           ),
         );
@@ -664,7 +634,7 @@ async function runParallelGroup(
       const handle = startProcess(ACTOR_ENTRY, [], {
         KV_ACTOR_READY: readyPath,
         KV_ACTOR_RELEASE: releasePath,
-        KV_ACTOR_ENTRY: solutionEntry(),
+        KV_ACTOR_ENTRY: selectedEntry(),
         KV_ACTOR_ARGS: JSON.stringify(arguments_),
       });
       actors.push({ handle, readyPath, arguments: arguments_ });
@@ -990,7 +960,7 @@ async function runCli(
   _outputDirectory: string,
   timeoutMs = PROCESS_TIMEOUT_MS,
 ): Promise<RunResult> {
-  return finishCli(startProcess(solutionEntry(), arguments_), timeoutMs);
+  return finishCli(startProcess(selectedEntry(), arguments_), timeoutMs);
 }
 
 async function finishCli(
@@ -1434,15 +1404,15 @@ function generateInput(generator: RecordValue): string {
   assert.fail(`unknown input generator ${kind}`);
 }
 
-function generatedNormalized(case_: RecordValue): JsonValue {
+function generatedNormalized(case_: RecordValue): unknown {
   if ("normalized" in case_) {
-    return case_.normalized as JsonValue;
+    return case_.normalized;
   }
   const generator = record(field(case_, "normalized_generator"));
   const kind = string(field(generator, "kind"));
   if (kind === "nested_arrays") {
     assertAllowedKeys(generator, ["kind", "depth", "leaf"]);
-    let value = field(generator, "leaf") as JsonValue;
+    let value: unknown = field(generator, "leaf");
     for (let depth = 0; depth < integer(field(generator, "depth")); depth += 1) {
       value = [value];
     }
@@ -1474,6 +1444,25 @@ async function assertSpecVersions(): Promise<void> {
   }
 }
 
+async function assertFrozenManifest(): Promise<void> {
+  const manifest = await readFile(join(SPEC_ROOT, "MANIFEST.sha256"), "utf8");
+  for (const line of manifest.trimEnd().split("\n")) {
+    const match = /^([0-9a-f]{64}) {2}(.+)$/u.exec(line);
+    if (match === null) {
+      throw new Error(`invalid frozen manifest line: ${line}`);
+    }
+    const expectedHash = match[1];
+    const relativePath = match[2];
+    if (expectedHash === undefined || relativePath === undefined) {
+      throw new Error(`incomplete frozen manifest line: ${line}`);
+    }
+    const actualHash = createHash("sha256")
+      .update(await readFile(join(SPEC_ROOT, relativePath)))
+      .digest("hex");
+    assert.equal(actualHash, expectedHash, `frozen file changed: ${relativePath}`);
+  }
+}
+
 async function fixture(relativePath: string): Promise<RecordValue> {
   const path = join(SPEC_ROOT, relativePath);
   const parsed: unknown = JSON.parse(await readFile(path, "utf8"));
@@ -1484,7 +1473,7 @@ async function fixture(relativePath: string): Promise<RecordValue> {
   return document;
 }
 
-function solutionEntry(): string {
+function selectedEntry(): string {
   return fileURLToPath(
     new URL(
       selectedComparativeImplementation() === "solution"
@@ -1553,13 +1542,4 @@ function assertAllowedKeys(object: RecordValue, allowed: readonly string[]): voi
 
 function assertKeySet(object: RecordValue, expected: readonly string[]): void {
   assert.deepEqual(Object.keys(object).sort(), [...expected].sort());
-}
-
-function isDeepEqual(left: unknown, right: unknown): boolean {
-  try {
-    assert.deepEqual(left, right);
-    return true;
-  } catch {
-    return false;
-  }
 }

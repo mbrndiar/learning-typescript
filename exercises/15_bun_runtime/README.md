@@ -16,15 +16,13 @@ APIs. No `node:child_process` or `node:fs` import is needed.
 
 ## ▶️ Exact commands
 
-The committed tests target the completed solution:
-
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  bun test exercises/15_bun_runtime/solution.test.ts
 bun test exercises/15_bun_runtime/solution.test.ts
 ```
 
-To test your starter implementation, temporarily change the import in
-`solution.test.ts` from `./solution.ts` to `./exercise.ts`, then run the same
-command.
+The first command selects your starter; the second selects the reference solution.
 
 ## 💡 Hints
 

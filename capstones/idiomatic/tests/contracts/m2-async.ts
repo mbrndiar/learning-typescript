@@ -1,20 +1,13 @@
-import {
-  BoundedAsyncQueue,
-  decodeNdjsonLines,
-  deferred,
-  EventRelay,
-  InMemoryEventLog,
-  parseRelayCli,
-  relayFailure,
-  runRelayCli,
-  type RuntimeCapabilities,
-  type StoredEvent,
-  type Subscriber,
-} from "../../solution/core/index.ts";
+import type {
+  IdiomaticCoreModule,
+  RuntimeCapabilities,
+  StoredEvent,
+  Subscriber,
+} from "./api.ts";
 import { collect, deepEqual, equal, rejects, validMetric } from "./testing.ts";
 
-export async function runM2AsyncContract(): Promise<void> {
-  const queue = new BoundedAsyncQueue<number>(2);
+export async function runM2AsyncContract(core: IdiomaticCoreModule): Promise<void> {
+  const queue = new core.BoundedAsyncQueue<number>(2);
   await queue.push(1);
   await queue.push(2);
   let thirdResolved = false;
@@ -37,7 +30,7 @@ export async function runM2AsyncContract(): Promise<void> {
     "queue must drain before closing",
   );
 
-  const returnedQueue = new BoundedAsyncQueue<number>(1);
+  const returnedQueue = new core.BoundedAsyncQueue<number>(1);
   const abandonedIterator = returnedQueue[Symbol.asyncIterator]();
   const abandonedRead = abandonedIterator.next();
   await abandonedIterator.return?.();
@@ -55,7 +48,7 @@ export async function runM2AsyncContract(): Promise<void> {
   );
   returnedQueue.close();
 
-  const gate = deferred<void>();
+  const gate = core.deferred<void>();
   const accepted: number[] = [];
   const subscriber: Subscriber = {
     async accept(event) {
@@ -65,7 +58,7 @@ export async function runM2AsyncContract(): Promise<void> {
       accepted.push(event.sequence);
     },
   };
-  const relay = new EventRelay(new InMemoryEventLog(), [subscriber], 1);
+  const relay = new core.EventRelay(new core.InMemoryEventLog(), [subscriber], 1);
   const submissions = [
     relay.submit(validMetric("one")),
     relay.submit(validMetric("two")),
@@ -82,8 +75,8 @@ export async function runM2AsyncContract(): Promise<void> {
   deepEqual(accepted, [1, 2, 3], "subscriber delivery must remain FIFO");
   await relay.close();
 
-  const shutdownGate = deferred<void>();
-  const drainingRelay = new EventRelay(new InMemoryEventLog(), [
+  const shutdownGate = core.deferred<void>();
+  const drainingRelay = new core.EventRelay(new core.InMemoryEventLog(), [
     { accept: () => shutdownGate.promise },
   ]);
   const drainingSubmission = drainingRelay.submit(validMetric("drain"));
@@ -105,11 +98,15 @@ export async function runM2AsyncContract(): Promise<void> {
   const failedSubscriber: Subscriber = {
     accept(event: StoredEvent) {
       return event.sequence === 1
-        ? Promise.reject(relayFailure("cancelled", "subscriber broke"))
+        ? Promise.reject(core.relayFailure("cancelled", "subscriber broke"))
         : Promise.resolve();
     },
   };
-  const failingRelay = new EventRelay(new InMemoryEventLog(), [failedSubscriber], 1);
+  const failingRelay = new core.EventRelay(
+    new core.InMemoryEventLog(),
+    [failedSubscriber],
+    1,
+  );
   await rejects(
     () => failingRelay.submit(validMetric("failure")),
     "subscriber_failed",
@@ -129,7 +126,7 @@ export async function runM2AsyncContract(): Promise<void> {
     yield encoded.slice(14);
   })();
   deepEqual(
-    await collect(decodeNdjsonLines(chunks)),
+    await collect(core.decodeNdjsonLines(chunks)),
     [
       { number: 1, text: '{"id":"café"}' },
       { number: 2, text: "" },
@@ -148,9 +145,8 @@ export async function runM2AsyncContract(): Promise<void> {
       inputCleaned = true;
     }
   })();
-  const decoded = decodeNdjsonLines(cancellableInput, inputController.signal)[
-    Symbol.asyncIterator
-  ]();
+  const decodedLines = core.decodeNdjsonLines(cancellableInput, inputController.signal);
+  const decoded = decodedLines[Symbol.asyncIterator]();
   deepEqual(
     await decoded.next(),
     { value: { number: 1, text: "first" }, done: false },
@@ -163,12 +159,12 @@ export async function runM2AsyncContract(): Promise<void> {
   const cancelled = new AbortController();
   cancelled.abort();
   await rejects(
-    () => new BoundedAsyncQueue<number>(1).push(1, cancelled.signal),
+    () => new core.BoundedAsyncQueue<number>(1).push(1, cancelled.signal),
     "cancelled",
     "aborted producers must fail deterministically",
   );
 
-  const cliLog = new InMemoryEventLog();
+  const cliLog = new core.InMemoryEventLog();
   const stdout: string[] = [];
   const stderr: string[] = [];
   const cliInput = [
@@ -194,7 +190,7 @@ export async function runM2AsyncContract(): Promise<void> {
     serve: () => Promise.reject(new Error("serve is not used by ingest")),
   };
   equal(
-    await runRelayCli(
+    await core.runRelayCli(
       ["ingest", "--log", "memory", "--input", "-", "--capacity", "10"],
       capabilities,
     ),
@@ -211,7 +207,7 @@ export async function runM2AsyncContract(): Promise<void> {
   await cliLog.close();
 
   deepEqual(
-    parseRelayCli(["ingest", "--log", "events.jsonl"]),
+    core.parseRelayCli(["ingest", "--log", "events.jsonl"]),
     {
       kind: "ingest",
       log: "events.jsonl",
@@ -221,7 +217,7 @@ export async function runM2AsyncContract(): Promise<void> {
     "ingest CLI defaults must be stable",
   );
   deepEqual(
-    parseRelayCli([
+    core.parseRelayCli([
       "replay",
       "--log",
       "events.jsonl",
@@ -242,7 +238,7 @@ export async function runM2AsyncContract(): Promise<void> {
     "replay CLI options must parse without positional ambiguity",
   );
   deepEqual(
-    parseRelayCli([
+    core.parseRelayCli([
       "serve",
       "--log",
       "events.jsonl",
@@ -270,14 +266,14 @@ export async function runM2AsyncContract(): Promise<void> {
   ]) {
     let failed = false;
     try {
-      parseRelayCli(arguments_);
+      core.parseRelayCli(arguments_);
     } catch {
       failed = true;
     }
     equal(failed, true, `invalid CLI must fail: ${arguments_.join(" ")}`);
   }
 
-  const replayLog = new InMemoryEventLog();
+  const replayLog = new core.InMemoryEventLog();
   await replayLog.append(validMetric("replay-one"));
   const replayOutput: string[] = [];
   let servedHealth = 0;
@@ -309,19 +305,19 @@ export async function runM2AsyncContract(): Promise<void> {
     },
   };
   equal(
-    await runRelayCli(["replay", "--log", "memory"], runtime),
+    await core.runRelayCli(["replay", "--log", "memory"], runtime),
     0,
     "CLI replay must succeed",
   );
   equal(replayOutput.length, 1, "CLI replay must emit stored events");
   equal(
-    await runRelayCli(["serve", "--log", "memory"], runtime),
+    await core.runRelayCli(["serve", "--log", "memory"], runtime),
     0,
     "CLI serve must delegate to the runtime",
   );
   equal(servedHealth, 200, "CLI serve must install the shared HTTP handler");
   equal(
-    await runRelayCli(["unknown"], runtime),
+    await core.runRelayCli(["unknown"], runtime),
     2,
     "CLI usage failures must map to exit 2",
   );

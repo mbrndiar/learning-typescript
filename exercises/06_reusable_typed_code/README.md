@@ -17,10 +17,12 @@ Build reusable typed code around a small note domain.
 The tests intentionally inject plain objects. Structural typing makes them
 compatible without inheritance or a framework.
 
-## ▶️ Run the reference tests
+## ▶️ Run the feedback
 
 ```bash
+EXERCISE_IMPLEMENTATION=exercise \
+  node --import=tsx --test exercises/06_reusable_typed_code/solution.test.ts
 node --import=tsx --test exercises/06_reusable_typed_code/solution.test.ts
 ```
 
-Temporarily import `exercise.ts` while implementing your version.
+The first command selects your starter; the second selects the reference solution.

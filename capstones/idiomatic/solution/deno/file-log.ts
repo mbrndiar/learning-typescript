@@ -1,8 +1,16 @@
-import { type LogStorage, VersionedEventLog } from "../core/index.ts";
+import { type LogStorage, relayFailure, VersionedEventLog } from "../core/index.ts";
 
 function parentDirectory(path: string): string {
   const index = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
   return index < 0 ? "." : path.slice(0, index) || "/";
+}
+
+function decodeLogText(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw relayFailure("log_corrupt", "event log is not valid UTF-8");
+  }
 }
 
 export class DenoLogStorage implements LogStorage {
@@ -10,7 +18,7 @@ export class DenoLogStorage implements LogStorage {
 
   async readText(): Promise<string | undefined> {
     try {
-      return await Deno.readTextFile(this.path);
+      return decodeLogText(await Deno.readFile(this.path));
     } catch (error: unknown) {
       if (error instanceof Deno.errors.NotFound) {
         return undefined;

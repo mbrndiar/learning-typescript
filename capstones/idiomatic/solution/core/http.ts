@@ -3,11 +3,11 @@ import type {
   RelayHttpHandler,
   RelayHttpRequest,
   RelayHttpResponse,
+  RelayHttpTarget,
   ReplayQuery,
 } from "./contracts.ts";
 import { parseEvent } from "./domain.ts";
 import { RelayFailure, relayFailure } from "./errors.ts";
-import type { EventRelay } from "./relay.ts";
 
 const jsonHeaders = {
   "content-type": "application/json; charset=utf-8",
@@ -169,7 +169,7 @@ function statusFor(error: RelayFailure): number {
   }
 }
 
-export function createRelayHttpHandler(relay: EventRelay): RelayHttpHandler {
+export function createRelayHttpHandler(relay: RelayHttpTarget): RelayHttpHandler {
   return async (request): Promise<RelayHttpResponse> => {
     try {
       const url = new URL(request.url, "http://127.0.0.1");

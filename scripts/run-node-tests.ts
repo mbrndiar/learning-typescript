@@ -23,7 +23,7 @@ async function collectTests(directory: string): Promise<string[]> {
     if (entry.isDirectory()) {
       tests.push(...(await collectTests(path)));
     } else if (
-      entry.name.endsWith(".test.ts") &&
+      (entry.name.endsWith(".test.ts") || entry.name.endsWith(".test.js")) &&
       entry.name !== "deno.test.ts" &&
       entry.name !== "bun.test.ts"
     ) {

@@ -98,6 +98,12 @@ export interface RelayHttpResponse {
   readonly body: string;
 }
 
+export interface RelayHttpTarget {
+  readonly accepting: boolean;
+  readonly eventLog: ClosableEventLog;
+  submit(event: IncomingEvent, signal?: AbortSignal): Promise<StoredEvent>;
+}
+
 export type RelayHttpHandler = (
   request: RelayHttpRequest,
 ) => Promise<RelayHttpResponse>;

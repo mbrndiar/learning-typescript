@@ -54,7 +54,16 @@ The coverage command selects the solution and enforces at least 85% lines, 85%
 functions, and 80% branches across the loaded comparative implementation and
 fixture harness.
 
-`CAPSTONE_IMPLEMENTATION` defaults to `starter`, so the normal starter smoke test
-remains green while milestone suites are skipped. Set it to `solution` for the
-completed reference. Learners should follow the staged notes in
-[`starter/README.md`](starter/README.md) without changing the shared fixtures.
+`CAPSTONE_IMPLEMENTATION` defaults to `solution` so aggregate validation checks
+the completed reference. Every M1–M5 suite runs the explicitly selected
+subprocess target rather than being skipped. M0 remains green while it checks
+import safety, metadata, and shared public boundaries. Select `starter` and run
+one milestone directly while implementing:
+
+```bash
+CAPSTONE_IMPLEMENTATION=starter node --import=tsx --test \
+  capstones/comparative/tests/node/m2-cli.test.ts
+```
+
+Learners should follow the staged notes in [`starter/README.md`](starter/README.md)
+without changing the shared fixtures.
