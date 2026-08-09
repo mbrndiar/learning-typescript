@@ -56,6 +56,19 @@ See [`docs/SETUP.md`](docs/SETUP.md) for installation, editor setup, and
 troubleshooting. If programming syntax is entirely new, begin with
 [`docs/BEGINNER_GUIDE.md`](docs/BEGINNER_GUIDE.md).
 
+Prefer an isolated, prepared toolchain? Initialize the submodule and start the
+course image instead of installing Node.js, Deno, and Bun locally:
+
+```bash
+git submodule update --init --recursive
+scripts/course-container
+```
+
+The native setup remains fully supported. VS Code users can alternatively use
+**Dev Containers: Reopen in Container**. See the
+[container setup](docs/SETUP.md#containerized-alternative) for image tags,
+cache behavior, and troubleshooting.
+
 ## ▶️ Active study loop
 
 Install the pinned development tools:

@@ -3,6 +3,42 @@
 Node.js is the only requirement at the start. Install Deno and Bun when you
 reach modules 14 and 15 so early lessons stay focused.
 
+## Containerized alternative
+
+This is an optional alternative to the native setup below. It requires Git and
+Docker, but does not require host installations of Node.js, Deno, or Bun.
+
+```bash
+git clone --recurse-submodules https://github.com/mbrndiar/learning-typescript.git
+cd learning-typescript
+scripts/course-container
+```
+
+The wrapper pulls `ghcr.io/mbrndiar/learning-typescript:latest`, mounts the
+checkout at `/workspace`, and runs as your host UID and GID. Pass any course
+command after the wrapper, for example:
+
+```bash
+scripts/course-container npm run check:node
+```
+
+For a reproducible course revision, set `COURSE_IMAGE` to a published
+`sha-<commit>` tag. VS Code users can run **Dev Containers: Reopen in
+Container** instead; `.devcontainer/devcontainer.json` uses the same image.
+
+Named Docker volumes retain dependencies, runtime caches, and Learning Mentor
+state on the current Docker host. They are not a cross-machine
+progress-transfer mechanism. The repository remains a normal bind mount, so
+edits appear immediately on the host. Initialize Learning Mentor after an
+ordinary clone with:
+
+```bash
+git submodule update --init --recursive
+```
+
+Continue with step 4 once the container shell opens. To return to the native
+path, exit the shell and follow steps 1–3; neither option replaces the other.
+
 ## 🟩 1. Install Node.js
 
 Install Node.js 24 LTS or Node.js 26 Current from <https://nodejs.org/> and

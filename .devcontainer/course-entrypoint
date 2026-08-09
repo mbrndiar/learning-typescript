@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+workspace=/workspace
+
+bootstrap_workspace() {
+    if [[ ! -f "${workspace}/package.json" ]]; then
+        return
+    fi
+
+    if [[ ! -f "${workspace}/.learning-mentor/skills/guided-learning/SKILL.md" ]]; then
+        printf '%s\n' \
+            'Learning Mentor is not initialized. From the host checkout, run:' \
+            '  git submodule update --init --recursive' >&2
+    fi
+
+    local cache_paths=(
+        "${workspace}/node_modules"
+        /home/node/.npm
+        /home/node/.cache/deno
+        /home/node/.bun/install/cache
+        /home/node/.local/share/learning-mentor
+    )
+    local cache_path
+    for cache_path in "${cache_paths[@]}"; do
+        if [[ ! -d "${cache_path}" ]] || [[ ! -w "${cache_path}" ]]; then
+            sudo -n mkdir -p "${cache_path}"
+            sudo -n chown -R "$(id -u):$(id -g)" "${cache_path}"
+        fi
+    done
+
+    local marker="${workspace}/node_modules/.course-container-lock.sha256"
+    local fingerprint
+    fingerprint="$(
+        cd "${workspace}"
+        sha256sum package.json package-lock.json bun.lock deno.json deno.lock \
+            | sha256sum \
+            | cut -d ' ' -f 1
+    )"
+
+    if [[ ! -f "${marker}" ]] || [[ "$(<"${marker}")" != "${fingerprint}" ]]; then
+        (
+            cd "${workspace}"
+            npm ci
+            bun install --frozen-lockfile --ignore-scripts
+        )
+        printf '%s\n' "${fingerprint}" > "${marker}"
+    fi
+}
+
+bootstrap_workspace
+
+if (( $# == 0 )); then
+    set -- bash
+fi
+
+exec "$@"

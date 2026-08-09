@@ -1,0 +1,392 @@
+{
+  "manifest_version": 1,
+  "schema_version": "1.0.0",
+  "course": {
+    "id": "learning-typescript",
+    "title": "Learning TypeScript",
+    "language": "typescript"
+  },
+  "objectives": [
+    {
+      "id": "module.javascript-programs-and-values",
+      "kind": "module",
+      "title": "JavaScript Programs and Values",
+      "order": 10,
+      "prerequisites": [],
+      "narrative": "lessons/01_javascript_programs_and_values/README.md",
+      "practice": "exercises/01_javascript_programs_and_values/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/01_javascript_programs_and_values/solution.test.js"
+      ],
+      "solution_paths": ["exercises/01_javascript_programs_and_values/solution.js"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the JavaScript Programs and Values practice."]
+    },
+    {
+      "id": "module.control-flow-and-functions",
+      "kind": "module",
+      "title": "Control Flow and Functions",
+      "order": 20,
+      "prerequisites": ["module.javascript-programs-and-values"],
+      "narrative": "lessons/02_control_flow_and_functions/README.md",
+      "practice": "exercises/02_control_flow_and_functions/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/02_control_flow_and_functions/solution.test.js"
+      ],
+      "solution_paths": ["exercises/02_control_flow_and_functions/solution.js"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Control Flow and Functions practice."]
+    },
+    {
+      "id": "module.collections-objects-and-modules",
+      "kind": "module",
+      "title": "Collections Objects and Modules",
+      "order": 30,
+      "prerequisites": ["module.control-flow-and-functions"],
+      "narrative": "lessons/03_collections_objects_and_modules/README.md",
+      "practice": "exercises/03_collections_objects_and_modules/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/03_collections_objects_and_modules/solution.test.js"
+      ],
+      "solution_paths": ["exercises/03_collections_objects_and_modules/solution.js"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Collections Objects and Modules practice."]
+    },
+    {
+      "id": "module.typescript-foundations",
+      "kind": "module",
+      "title": "TypeScript Foundations",
+      "order": 40,
+      "prerequisites": ["module.collections-objects-and-modules"],
+      "narrative": "lessons/04_typescript_foundations/README.md",
+      "practice": "exercises/04_typescript_foundations/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/04_typescript_foundations/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/04_typescript_foundations/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the TypeScript Foundations practice."]
+    },
+    {
+      "id": "module.modeling-valid-data",
+      "kind": "module",
+      "title": "Modeling Valid Data",
+      "order": 50,
+      "prerequisites": ["module.typescript-foundations"],
+      "narrative": "lessons/05_modeling_valid_data/README.md",
+      "practice": "exercises/05_modeling_valid_data/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/05_modeling_valid_data/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/05_modeling_valid_data/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Modeling Valid Data practice."]
+    },
+    {
+      "id": "module.reusable-typed-code",
+      "kind": "module",
+      "title": "Reusable Typed Code",
+      "order": 60,
+      "prerequisites": ["module.modeling-valid-data"],
+      "narrative": "lessons/06_reusable_typed_code/README.md",
+      "practice": "exercises/06_reusable_typed_code/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/06_reusable_typed_code/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/06_reusable_typed_code/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Reusable Typed Code practice."]
+    },
+    {
+      "id": "module.errors-files-json-and-packages",
+      "kind": "module",
+      "title": "Errors Files Json and Packages",
+      "order": 70,
+      "prerequisites": ["module.reusable-typed-code"],
+      "narrative": "lessons/07_errors_files_json_and_packages/README.md",
+      "practice": "exercises/07_errors_files_json_and_packages/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/07_errors_files_json_and_packages/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/07_errors_files_json_and_packages/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Errors Files Json and Packages practice."]
+    },
+    {
+      "id": "module.testing",
+      "kind": "module",
+      "title": "Testing",
+      "order": 80,
+      "prerequisites": ["module.errors-files-json-and-packages"],
+      "narrative": "lessons/08_testing/README.md",
+      "practice": "exercises/08_testing/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/08_testing/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/08_testing/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Testing practice."]
+    },
+    {
+      "id": "module.tooling-debugging-cli-observability",
+      "kind": "module",
+      "title": "Tooling Debugging Cli Observability",
+      "order": 90,
+      "prerequisites": ["module.testing"],
+      "narrative": "lessons/09_tooling_debugging_cli_observability/README.md",
+      "practice": "exercises/09_tooling_debugging_cli_observability/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/09_tooling_debugging_cli_observability/solution.test.ts"
+      ],
+      "solution_paths": [
+        "exercises/09_tooling_debugging_cli_observability/solution.ts"
+      ],
+      "solution_unlock_after": 1,
+      "outcomes": [
+        "Complete and explain the Tooling Debugging Cli Observability practice."
+      ]
+    },
+    {
+      "id": "module.async-and-concurrency",
+      "kind": "module",
+      "title": "Async and Concurrency",
+      "order": 100,
+      "prerequisites": ["module.tooling-debugging-cli-observability"],
+      "narrative": "lessons/10_async_and_concurrency/README.md",
+      "practice": "exercises/10_async_and_concurrency/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/10_async_and_concurrency/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/10_async_and_concurrency/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Async and Concurrency practice."]
+    },
+    {
+      "id": "module.sql-and-sqlite",
+      "kind": "module",
+      "title": "Sql and Sqlite",
+      "order": 110,
+      "prerequisites": ["module.async-and-concurrency"],
+      "narrative": "lessons/11_sql_and_sqlite/README.md",
+      "practice": "exercises/11_sql_and_sqlite/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/11_sql_and_sqlite/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/11_sql_and_sqlite/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Sql and Sqlite practice."]
+    },
+    {
+      "id": "module.rest-apis-and-http-clients",
+      "kind": "module",
+      "title": "Rest Apis and Http Clients",
+      "order": 120,
+      "prerequisites": ["module.sql-and-sqlite"],
+      "narrative": "lessons/12_rest_apis_and_http_clients/README.md",
+      "practice": "exercises/12_rest_apis_and_http_clients/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/12_rest_apis_and_http_clients/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/12_rest_apis_and_http_clients/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Rest Apis and Http Clients practice."]
+    },
+    {
+      "id": "module.nodejs-runtime",
+      "kind": "module",
+      "title": "Nodejs Runtime",
+      "order": 130,
+      "prerequisites": ["module.rest-apis-and-http-clients"],
+      "narrative": "lessons/13_nodejs_runtime/README.md",
+      "practice": "exercises/13_nodejs_runtime/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/13_nodejs_runtime/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/13_nodejs_runtime/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Nodejs Runtime practice."]
+    },
+    {
+      "id": "module.deno-runtime",
+      "kind": "module",
+      "title": "Deno Runtime",
+      "order": 140,
+      "prerequisites": ["module.nodejs-runtime"],
+      "narrative": "lessons/14_deno_runtime/README.md",
+      "practice": "exercises/14_deno_runtime/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/14_deno_runtime/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/14_deno_runtime/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Deno Runtime practice."]
+    },
+    {
+      "id": "module.bun-runtime",
+      "kind": "module",
+      "title": "Bun Runtime",
+      "order": 150,
+      "prerequisites": ["module.deno-runtime"],
+      "narrative": "lessons/15_bun_runtime/README.md",
+      "practice": "exercises/15_bun_runtime/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/15_bun_runtime/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/15_bun_runtime/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Bun Runtime practice."]
+    },
+    {
+      "id": "module.runtime-portability",
+      "kind": "module",
+      "title": "Runtime Portability",
+      "order": 160,
+      "prerequisites": ["module.bun-runtime"],
+      "narrative": "lessons/16_runtime_portability/README.md",
+      "practice": "exercises/16_runtime_portability/README.md",
+      "check": [
+        "env",
+        "EXERCISE_IMPLEMENTATION=exercise",
+        "node",
+        "--import=tsx",
+        "--test",
+        "exercises/16_runtime_portability/solution.test.ts"
+      ],
+      "solution_paths": ["exercises/16_runtime_portability/solution.ts"],
+      "solution_unlock_after": 1,
+      "outcomes": ["Complete and explain the Runtime Portability practice."]
+    },
+    {
+      "id": "project.tasks",
+      "kind": "project",
+      "title": "Tasks Project",
+      "order": 170,
+      "prerequisites": ["module.runtime-portability"],
+      "narrative": "projects/tasks/README.md",
+      "practice": "projects/tasks/starter",
+      "check": [
+        "env",
+        "TASKS_IMPLEMENTATION=starter",
+        "npm",
+        "run",
+        "check:tasks:node"
+      ],
+      "solution_paths": ["projects/tasks/solution"],
+      "solution_unlock_after": 2,
+      "outcomes": ["Implement and verify the applied tasks project."]
+    },
+    {
+      "id": "capstone.comparative",
+      "kind": "capstone",
+      "title": "Comparative Capstone",
+      "order": 180,
+      "prerequisites": ["project.tasks"],
+      "narrative": "capstones/comparative/README.md",
+      "practice": "capstones/comparative/starter",
+      "check": [
+        "env",
+        "CAPSTONE_IMPLEMENTATION=starter",
+        "npm",
+        "run",
+        "test:capstone:comparative"
+      ],
+      "solution_paths": ["capstones/comparative/solution"],
+      "solution_unlock_after": 3,
+      "outcomes": ["Complete the cross-language comparative capstone."]
+    },
+    {
+      "id": "capstone.idiomatic",
+      "kind": "capstone",
+      "title": "Idiomatic Capstone",
+      "order": 190,
+      "prerequisites": ["project.tasks"],
+      "narrative": "capstones/idiomatic/README.md",
+      "practice": "capstones/idiomatic/starter",
+      "check": [
+        "env",
+        "CAPSTONE_IMPLEMENTATION=starter",
+        "npm",
+        "run",
+        "test:capstone:idiomatic:node"
+      ],
+      "solution_paths": ["capstones/idiomatic/solution"],
+      "solution_unlock_after": 3,
+      "outcomes": ["Complete the ecosystem-idiomatic capstone."]
+    }
+  ]
+}

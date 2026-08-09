@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+node --version
+npm --version
+deno --version
+bun --version
+python3 --version
+test "$(id -u)" -ne 0
+
+python3 .agents/skills/typescript-learning-path/scripts/course_adapter.py validate
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+    -s .agents/skills/typescript-learning-path/tests -v
+
+node lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
+npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
+npm run check:node
+npm run check:deno
+npm run check:bun
+TASKS_IMPLEMENTATION=solution npm run check:tasks
+npm run portability
+deno run scripts/runtime-conformance.ts
+bun run scripts/runtime-conformance.ts
+npm run portability:tasks
+DENO_DIR= npm run test:tasks:interoperability

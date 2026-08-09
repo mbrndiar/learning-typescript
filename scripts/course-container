@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repository_root="$(git -C "$(dirname "${BASH_SOURCE[0]}")/.." rev-parse --show-toplevel)"
+image="${COURSE_IMAGE:-ghcr.io/mbrndiar/learning-typescript:latest}"
+host_uid="$(id -u)"
+host_gid="$(id -g)"
+
+volume_args=(
+    --volume learning-typescript-node-modules:/workspace/node_modules
+    --volume learning-typescript-npm:/home/node/.npm
+    --volume learning-typescript-deno:/home/node/.cache/deno
+    --volume learning-typescript-bun:/home/node/.bun/install/cache
+    --volume learning-mentor-state:/home/node/.local/share/learning-mentor
+)
+
+docker run --rm \
+    --user root \
+    --entrypoint /bin/sh \
+    --env "COURSE_UID=${host_uid}" \
+    --env "COURSE_GID=${host_gid}" \
+    "${volume_args[@]}" \
+    "${image}" \
+    -c 'chown -R "${COURSE_UID}:${COURSE_GID}" /home/node/.npm /home/node/.cache/deno /home/node/.bun/install/cache /home/node/.local/share/learning-mentor /workspace/node_modules'
+
+tty_args=()
+[[ -t 0 ]] && tty_args+=(--interactive)
+[[ -t 1 ]] && tty_args+=(--tty)
+
+command=(bash)
+if (( $# > 0 )); then
+    command=("$@")
+fi
+
+exec docker run --rm --init \
+    "${tty_args[@]}" \
+    --user "${host_uid}:${host_gid}" \
+    --env HOME=/home/node \
+    --volume "${repository_root}:/workspace" \
+    "${volume_args[@]}" \
+    --workdir /workspace \
+    "${image}" \
+    "${command[@]}"

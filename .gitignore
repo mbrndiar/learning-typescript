@@ -97,3 +97,6 @@ vite.config.ts.timestamp-*
 
 # Operating system files
 .DS_Store
+
+# Learning Mentor adapter cache
+__pycache__/

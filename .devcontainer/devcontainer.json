@@ -1,0 +1,37 @@
+{
+  "name": "Learning TypeScript",
+  "image": "ghcr.io/mbrndiar/learning-typescript:latest",
+  "remoteUser": "node",
+  "containerUser": "node",
+  "updateRemoteUserUID": true,
+  "overrideCommand": false,
+  "runArgs": ["--init"],
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "mounts": [
+    "source=learning-typescript-node-modules,target=/workspace/node_modules,type=volume",
+    "source=learning-typescript-npm,target=/home/node/.npm,type=volume",
+    "source=learning-typescript-deno,target=/home/node/.cache/deno,type=volume",
+    "source=learning-typescript-bun,target=/home/node/.bun/install/cache,type=volume",
+    "source=learning-mentor-state,target=/home/node/.local/share/learning-mentor,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": ["denoland.vscode-deno"],
+      "settings": {
+        "deno.enable": true,
+        "deno.enablePaths": [
+          "lessons/14_deno_runtime",
+          "exercises/14_deno_runtime",
+          "projects/tasks",
+          "capstones/idiomatic"
+        ]
+      }
+    }
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "12gb"
+  }
+}
