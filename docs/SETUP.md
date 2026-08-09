@@ -1,62 +1,93 @@
 # 🛠️ Setting Up JavaScript, TypeScript, and the Runtimes
 
-Node.js is the only requirement at the start. Install Deno and Bun when you
-reach modules 14 and 15 so early lessons stay focused.
+The course supports three tooling setups. They run the same source code and
+tests; choose one and keep using it throughout a work session.
 
-## Containerized alternative
+| Setup                                                                  | Install on the host         | Best for                                   |
+| ---------------------------------------------------------------------- | --------------------------- | ------------------------------------------ |
+| [Prebuilt container](#option-a-use-the-prebuilt-container-recommended) | Git and Docker              | Fastest, CI-validated start                |
+| [Locally built container](#option-b-build-the-container-locally)       | Git and Docker              | Inspecting and building the image yourself |
+| [Local toolchain](#option-c-install-the-tooling-locally)               | Git, Node.js, Deno, and Bun | Native editor and shell integration        |
 
-This is an optional alternative to the native setup below. It requires Git and
-Docker, but does not require host installations of Node.js, Deno, or Bun.
+## Clone the course
+
+All three options begin with the same recursive clone:
 
 ```bash
 git clone --recurse-submodules https://github.com/mbrndiar/learning-typescript.git
 cd learning-typescript
+```
+
+The submodule provides Learning Mentor. After an ordinary clone, initialize it
+with `git submodule update --init --recursive`. Run all documented commands from
+the repository root.
+
+## Option A: Use the prebuilt container (recommended)
+
+This option uses the multi-platform image validated by CI. No host Node.js,
+Deno, or Bun installation is required:
+
+```bash
 scripts/course-container
 ```
 
-The wrapper pulls `ghcr.io/mbrndiar/learning-typescript:latest`, mounts the
-checkout at `/workspace`, and runs as your host UID and GID. Pass any course
-command after the wrapper, for example:
+The checkout is mounted at `/workspace`, so edits remain on the host. You can
+also run one command without opening an interactive shell:
 
 ```bash
 scripts/course-container npm run check:node
 ```
 
-For a reproducible course revision, set `COURSE_IMAGE` to a published
-`sha-<commit>` tag. VS Code users can run **Dev Containers: Reopen in
-Container** instead; `.devcontainer/devcontainer.json` uses the same image.
+Docker downloads `ghcr.io/mbrndiar/learning-typescript:latest` when it is not
+available locally. Run
+`docker pull ghcr.io/mbrndiar/learning-typescript:latest` to refresh an existing
+copy. For a fixed revision, set `COURSE_IMAGE` to a published `sha-<commit>`
+tag.
 
-Named Docker volumes retain dependencies, runtime caches, and Learning Mentor
-state on the current Docker host. They are not a cross-machine
-progress-transfer mechanism. The repository remains a normal bind mount, so
-edits appear immediately on the host. Initialize Learning Mentor after an
-ordinary clone with:
+VS Code users can select **Dev Containers: Reopen in Container**;
+`.devcontainer/devcontainer.json` uses the same published image.
+
+## Option B: Build the container locally
+
+This option builds the toolchain from `.devcontainer/Dockerfile` for the host
+architecture, then opens a shell:
 
 ```bash
-git submodule update --init --recursive
+scripts/course-container --build
 ```
 
-Continue with step 4 once the container shell opens. To return to the native
-path, exit the shell and follow steps 1–3; neither option replaces the other.
+Build and run a single command with:
 
-## 🟩 1. Install Node.js
+```bash
+scripts/course-container --build npm run check:node
+```
+
+The default local tag is `learning-typescript-course:local`. Docker reuses
+cached layers on later builds. `COURSE_IMAGE=example:tag
+scripts/course-container --build` selects a different local tag; the command
+never pushes it.
+
+Both container options use named Docker volumes for `node_modules`, npm, Deno,
+Bun, and Learning Mentor state. These volumes remain on the current Docker host
+but do not transfer progress between machines. The repository itself is a
+normal bind mount.
+
+## Option C: Install the tooling locally
 
 Install Node.js 24 LTS or Node.js 26 Current from <https://nodejs.org/> and
-verify:
+install Deno 2.9.3 and Bun 1.3.14 from their official installation guides:
+
+- [Node.js](https://nodejs.org/)
+- [Deno](https://docs.deno.com/runtime/getting_started/installation/)
+- [Bun](https://bun.sh/docs/installation)
+
+Verify all runtimes, then install the pinned course dependencies:
 
 ```bash
 node --version
 npm --version
-```
-
-As of July 2026, Node.js 24 is LTS and Node.js 26 is Current. The course uses
-Node.js 24 as its minimum supported version.
-
-## 📁 2. Get the code
-
-```bash
-git clone https://github.com/mbrndiar/learning-typescript.git
-cd learning-typescript
+deno --version
+bun --version
 npm install
 ```
 
@@ -77,7 +108,7 @@ dependent tooling are stable together:
 - <https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/>
 - <https://typescript-eslint.io/users/dependency-versions/>
 
-## 🧑‍💻 3. Choose an editor
+## Choose an editor
 
 - Visual Studio Code with the built-in TypeScript language service
 - WebStorm
@@ -86,14 +117,14 @@ dependent tooling are stable together:
 Open the repository root so the editor finds `tsconfig.json`,
 `tsconfig.node.json`, `tsconfig.bun.json`, and `deno.json`.
 
-## ▶️ 4. Run the first lessons
+## Verify the selected setup
 
 ```bash
 node lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
 npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 ```
 
-Modules 1-13 require only Node.js:
+Run the complete Node.js feedback loop with:
 
 ```bash
 npm run typecheck:node
@@ -106,7 +137,7 @@ After modules 14-16, the compact Task REST API applied project uses all three
 runtimes. Start at [`projects/tasks/README.md`](../projects/tasks/README.md);
 complete it before choosing a capstone.
 
-## 🦕 5. Install Deno for module 14
+## Deno details
 
 Use an official package or installer from <https://docs.deno.com/runtime/getting_started/installation/>.
 The course validates Deno 2.9.3:
@@ -142,7 +173,7 @@ uses the standard Linux (`XDG_CACHE_HOME` or `HOME/.cache`), macOS
 `deno task test` lesson and capstone suites retain their original narrow
 permissions: no FFI, public GitHub access, or cache writes.
 
-## 🥟 6. Install Bun for module 15
+## Bun details
 
 Use an official package or installer from <https://bun.sh/docs/installation>.
 The course validates Bun 1.3.14:
@@ -160,7 +191,7 @@ course collector, the bundle/compile smoke test, and `bun audit`.
 Review lifecycle scripts before trusting a dependency. Bun blocks arbitrary
 dependency lifecycle scripts unless they are explicitly trusted.
 
-## 🧰 7. Understand the tool boundaries
+## Understand the tool boundaries
 
 | Tool                                                                        | Main responsibility                                       |
 | --------------------------------------------------------------------------- | --------------------------------------------------------- |
@@ -178,7 +209,7 @@ Execution and type checking are separate in Node.js and Bun. Deno type-checks
 through `deno check`; still keep runtime validation for JSON, environment,
 commands, files, and HTTP.
 
-## 🧩 8. Configuration and coverage boundaries
+## Configuration and coverage boundaries
 
 - `tsconfig.base.json` owns the strict options shared by the TypeScript compiler
   configurations.
@@ -202,7 +233,7 @@ Tasks shared/Node adapter gate enforce at least 85% lines, 85% functions, and
 Bun expose native coverage commands for runtime-focused investigation, but the
 repository-wide numeric gate is the Node coverage command.
 
-## ⌨️ 9. Essential commands
+## Essential commands
 
 ```bash
 # Node.js path

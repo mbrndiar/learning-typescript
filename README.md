@@ -1,179 +1,96 @@
-# 🟦 learning-typescript
+# 🟦 Learning TypeScript
 
-A complete, hands-on introduction to JavaScript, TypeScript, and server-side
-runtime programming for independent learners. The course begins with a short
-JavaScript foundation, then uses strict TypeScript with Node.js as the primary
-runtime. A four-module runtime track then explores Node.js, Deno, Bun, and
-cross-runtime migration in depth.
+A hands-on introduction to JavaScript, TypeScript, and server-side runtime
+programming. The course starts with JavaScript foundations, uses strict
+TypeScript with Node.js, and then explores Deno, Bun, and cross-runtime design.
+No previous JavaScript or TypeScript experience is required.
 
-The course is intended for self-directed beginners and experienced developers
-who are new to TypeScript. No prior JavaScript or TypeScript is required:
-Modules 1-3 teach the JavaScript prerequisites used later. Learners entirely new
-to programming should use the linked beginner guide alongside those modules.
+## What you will learn
 
-## 🎯 What you will learn
+- Write, run, debug, and test modern JavaScript and TypeScript.
+- Model valid data and validate untrusted values at application boundaries.
+- Work with files, processes, asynchronous code, SQL, HTTP, and structured logs.
+- Use native Node.js, Deno, and Bun tooling deliberately.
+- Build one domain behind multiple runtime adapters and prove portability.
 
-By the end of the course, you will be able to:
+## Get started
 
-- read, write, run, debug, and test modern JavaScript and TypeScript;
-- explain the difference between the language, the type checker, and a runtime;
-- choose safe numeric representations;
-- read, write, validate, and list content in application-owned files and directories;
-- normalize timestamps, format IANA time zones, and measure monotonic durations;
-- model data with strict types, unions, generics, classes, and composition;
-- validate untrusted values at command-line, file, JSON, and HTTP boundaries;
-- use npm, ES modules, processes, structured logs, and SQLite;
-- write deterministic tests with `node:test`, `Deno.test`, and `bun:test`;
-- reason about promises, the event loop, cancellation, streams, and workers;
-- build HTTP/JSON clients and servers with graceful shutdown;
-- use native permissions, file, process, HTTP, database, build, and compile APIs;
-- design one shared domain behind Node.js, Deno, and Bun adapters; and
-- prove portability through executable conformance checks.
+### 1. Clone the course
 
-## ✅ Initial requirements
+Git is required for every setup. The recursive clone also initializes Learning
+Mentor:
 
-- Ability to install software, open the repository in an editor, navigate files,
-  and run commands in a terminal. Programming syntax is taught rather than
-  required.
-- Node.js 24 LTS or Node.js 26 Current
-- npm (included with Node.js)
-- The installed course toolchain pins TypeScript 6.0.3, the stable compatibility
-  bridge used by the current ESLint integration while TypeScript 7 tooling
-  completes its compiler-API transition.
-
-Node.js is the only runtime required initially. Git is needed only if you clone
-the repository instead of downloading it. Install Deno 2.9.3 for module 14 and
-Bun 1.3.14 for module 15; modules 1-13 use Node.js alone.
-
-GitHub Actions validates the full course on Ubuntu x64. The documented runtimes
-also publish macOS and Windows builds, but this repository does not claim an
-automated OS matrix; platform-specific shell syntax, file modes, and executable
-names may differ. Commands that prefix an environment variable use POSIX shell
-syntax. In PowerShell, set the variable first with
-`$env:NAME = "value"`.
-
-See [`docs/SETUP.md`](docs/SETUP.md) for installation, editor setup, and
-troubleshooting. If programming syntax is entirely new, begin with
-[`docs/BEGINNER_GUIDE.md`](docs/BEGINNER_GUIDE.md).
-
-Prefer an isolated, prepared toolchain? Initialize the submodule and start the
-course image instead of installing Node.js, Deno, and Bun locally:
-
-```bash
-git submodule update --init --recursive
-scripts/course-container
+```sh
+git clone --recurse-submodules https://github.com/mbrndiar/learning-typescript.git
+cd learning-typescript
 ```
 
-The native setup remains fully supported. VS Code users can alternatively use
-**Dev Containers: Reopen in Container**. See the
-[container setup](docs/SETUP.md#containerized-alternative) for image tags,
-cache behavior, and troubleshooting.
+### 2. Choose one tooling setup
 
-## ▶️ Active study loop
+#### A. Use the prebuilt container — recommended
 
-Install the pinned development tools:
+Install Docker, then run the course in the image already built and validated by
+CI. You do not need Node.js, Deno, or Bun on the host:
 
-```bash
+```sh
+scripts/course-container node \
+  lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
+```
+
+#### B. Build the container locally
+
+Install Docker and build the image from this checkout. This takes longer the
+first time but does not depend on a published course image:
+
+```sh
+scripts/course-container --build node \
+  lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
+```
+
+Docker reuses its build cache on later runs. Re-run the same command whenever
+you want to rebuild the local image.
+
+#### C. Install the tooling locally
+
+Install Node.js 24 or 26, Deno 2.9.3, and Bun 1.3.14. Then install the pinned
+course dependencies and run the first lesson:
+
+```sh
+node --version
+deno --version
+bun --version
 npm install
-```
-
-Run a JavaScript lesson directly with Node:
-
-```bash
 node lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
 ```
 
-Run a TypeScript lesson through `tsx`:
+See the [setup guide](docs/SETUP.md) for complete installation steps, supported
+versions, VS Code Dev Containers, image tags, caches, and troubleshooting. If
+programming syntax is entirely new, also use the
+[beginner guide](docs/BEGINNER_GUIDE.md).
 
-```bash
+### 3. Continue with TypeScript
+
+Run a TypeScript lesson through the repository's pinned `tsx` dependency:
+
+```sh
 npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 ```
 
-For every module:
+Inside a container, run the same command after opening a shell with
+`scripts/course-container`, or prefix it with `scripts/course-container`.
+
+## Study loop
+
+For each module:
 
 1. Read its README and predict each example's output or failure.
-2. Run the examples, then change one small value and explain the difference.
+2. Run the examples, change one value, and explain the difference.
 3. Answer the review questions without looking back.
-4. Complete the matching exercise before reading its solution.
-5. Run the smallest relevant test and then the wider feedback loop.
+4. Complete the matching starter exercise.
+5. Run the smallest relevant test, then the wider feedback loop.
+6. Compare with the reference solution only after a serious attempt.
 
-## 🔁 Developer feedback loop
-
-```bash
-npm run format:check
-npm run lint
-npm run typecheck:node
-npm run course:node
-npm run test:node
-npm run coverage
-npm run links
-npm run audit:node
-npm run openapi:tasks
-npm run check:node
-
-# After installing Deno and Bun for modules 14-16
-npm run check:deno
-npm run check:bun
-npm run portability
-
-# After completing module 16
-TASKS_IMPLEMENTATION=solution npm run check:tasks
-npm run portability:tasks
-npm run test:tasks:interoperability
-```
-
-## 📐 Conventions
-
-- Modules 1-3 use JavaScript; modules 4-16 use TypeScript by default.
-- ES modules (`import` and `export`) are the default. CommonJS is covered only
-  for interoperability.
-- TypeScript is always checked in strict mode. Avoid `any` and unsafe type
-  assertions; narrow `unknown` values at boundaries.
-- Runtime validation and static typing solve different problems. JSON, command
-  arguments, environment variables, and HTTP bodies remain untrusted.
-- Examples prefer platform APIs and small explicit functions over frameworks.
-- `...` means omitted code unless the surrounding explanation says otherwise.
-
-## 🧠 Practice exercises
-
-Every module has a matching folder under [`exercises/`](exercises/README.md).
-Starter files contain TODOs and behavioral tests; `solution.ts` or
-`solution.js` contains one reference implementation.
-
-## 🏆 Capstones
-
-The course has two completed reference capstones with matching guided starters:
-
-- The Node-only [`comparative-kv` capstone](capstones/comparative/README.md)
-  implements the frozen cross-language
-  [`comparative-kv` specification](capstones/comparative/spec/SPEC.md) with
-  `node:sqlite`, restricted JSON normalization, global revisions, CAS,
-  migration, and real subprocess contention.
-- The idiomatic
-  [cross-runtime event relay](capstones/idiomatic/README.md) implements its
-  [TypeScript specification](capstones/idiomatic/SPEC.md) with a portable core
-  and native Node.js, Deno, and Bun adapters.
-
-See the [capstone index](capstones/README.md) for target selection, milestone
-commands, coverage, and conformance checks.
-
-## 🧩 Applied project before the capstones
-
-After module 16, build the compact
-[cross-runtime Task REST API](projects/tasks/README.md). It combines strict
-validation, HTTP/JSON, SQLite, Markdown persistence, native Node/Deno/Bun
-adapters, OpenAPI 3.1 validation, and runtime conformance without adding a
-framework. It is required preparation for the capstones, not a third capstone.
-
-## 🧭 Historical migration reference
-
-The current compact Task project lives at `projects/tasks/`. It is distinct
-from the earlier, removed connected application formerly at `project/`. The
-[migration guide](docs/PROJECT_MIGRATION.md) identifies the historical snapshot,
-explains why its data is not compatible with the new project or capstones, and
-keeps it as reference material rather than a third capstone.
-
-## 🗺️ Course outline
+## Course outline
 
 1. [JavaScript Programs and Values](lessons/01_javascript_programs_and_values/)
 2. [Control Flow and Functions](lessons/02_control_flow_and_functions/)
@@ -195,12 +112,27 @@ keeps it as reference material rather than a third capstone.
 Then complete the [Task REST API applied project](projects/tasks/README.md)
 before selecting a [capstone](capstones/README.md).
 
-## 🗒️ Cheat sheet and boundaries
+## Essential commands
 
-[`CHEATSHEET.md`](CHEATSHEET.md) is a compact syntax, type-system, runtime, and
-tooling reference. This course focuses on language and server-side foundations.
-Browser DOM programming, React/Vue/Angular, bundlers, full-stack frameworks, and
-cloud deployment are separate follow-on topics.
+```sh
+npm run check:node
+npm run check:deno
+npm run check:bun
+npm run portability
+TASKS_IMPLEMENTATION=solution npm run check:tasks
+npm run test:tasks:interoperability
+```
 
-Use [`docs/RUNTIME_PORTABILITY.md`](docs/RUNTIME_PORTABILITY.md) for the full
-runtime capability, migration, and selection guide.
+## Course resources
+
+- [Setup and troubleshooting](docs/SETUP.md)
+- [Beginner guide](docs/BEGINNER_GUIDE.md)
+- [Exercise index](exercises/README.md)
+- [Applied project](projects/tasks/README.md)
+- [Capstone guide](capstones/README.md)
+- [Runtime portability guide](docs/RUNTIME_PORTABILITY.md)
+- [Cheat sheet](CHEATSHEET.md)
+
+Starter files contain guided TODOs and behavioral tests. Reference solutions
+demonstrate one clear approach; different code is valid when it satisfies the
+documented contract.

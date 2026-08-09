@@ -2,9 +2,46 @@
 set -euo pipefail
 
 repository_root="$(git -C "$(dirname "${BASH_SOURCE[0]}")/.." rev-parse --show-toplevel)"
-image="${COURSE_IMAGE:-ghcr.io/mbrndiar/learning-typescript:latest}"
 host_uid="$(id -u)"
 host_gid="$(id -g)"
+
+usage() {
+    cat <<'EOF'
+Usage: scripts/course-container [--build] [command [args...]]
+
+Run the course in the published container, or build the container locally first.
+
+Options:
+  --build     Build .devcontainer/Dockerfile for this checkout, then run it
+  -h, --help  Show this help
+
+Environment:
+  COURSE_IMAGE  Override the image name or local build tag
+EOF
+}
+
+build_local=false
+case "${1:-}" in
+    --build)
+        build_local=true
+        shift
+        ;;
+    -h | --help)
+        usage
+        exit 0
+        ;;
+esac
+
+if [[ "${build_local}" == true ]]; then
+    image="${COURSE_IMAGE:-learning-typescript-course:local}"
+    docker build \
+        --file "${repository_root}/.devcontainer/Dockerfile" \
+        --tag "${image}" \
+        --build-arg "VCS_REF=$(git -C "${repository_root}" rev-parse HEAD)" \
+        "${repository_root}"
+else
+    image="${COURSE_IMAGE:-ghcr.io/mbrndiar/learning-typescript:latest}"
+fi
 
 volume_args=(
     --volume learning-typescript-node-modules:/workspace/node_modules
