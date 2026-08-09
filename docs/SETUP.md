@@ -20,7 +20,8 @@ cd learning-typescript
 
 The submodule provides Learning Mentor. After an ordinary clone, initialize it
 with `git submodule update --init --recursive`. Run all documented commands from
-the repository root.
+the repository root. The mentor is optional; see its
+[setup and usage guide](LEARNING_MENTOR.md).
 
 ## Option A: Use the prebuilt container (recommended)
 
@@ -70,7 +71,9 @@ never pushes it.
 Both container options use named Docker volumes for `node_modules`, npm, Deno,
 Bun, and Learning Mentor state. These volumes remain on the current Docker host
 but do not transfer progress between machines. The repository itself is a
-normal bind mount.
+normal bind mount. State location depends on where the mentor client runs; the
+[Learning Mentor guide](LEARNING_MENTOR.md#progress-and-privacy) explains the
+host and container cases.
 
 ## Option C: Install the tooling locally
 
@@ -123,6 +126,10 @@ Open the repository root so the editor finds `tsconfig.json`,
 node lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
 npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 ```
+
+The first dependency installation or typed lesson may print download and
+tool-startup output before the application output. Later runs reuse the
+installed packages and runtime caches.
 
 Run the complete Node.js feedback loop with:
 

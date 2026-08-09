@@ -53,6 +53,11 @@ npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 npm run lesson -- lessons/04_typescript_foundations/02_unknown_and_function_types.ts
 ```
 
+`npm run lesson` invokes the repository's pinned `tsx` runner. The `--` forwards
+the following file path to that script. See the
+[course README](../../README.md#3-continue-with-typescript) for the full command
+breakdown.
+
 ## ⚠️ Common mistakes
 
 - Annotating every local value instead of allowing clear inference.

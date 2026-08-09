@@ -63,6 +63,11 @@ npm install
 node lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
 ```
 
+`node` is the runtime and the remaining path is the JavaScript file it executes.
+When present, `scripts/course-container` runs that same command inside the
+selected course image. The first `npm install` may download dependencies and
+print substantial setup output; later runs reuse the installed packages.
+
 See the [setup guide](docs/SETUP.md) for complete installation steps, supported
 versions, VS Code Dev Containers, image tags, caches, and troubleshooting. If
 programming syntax is entirely new, also use the
@@ -75,6 +80,10 @@ Run a TypeScript lesson through the repository's pinned `tsx` dependency:
 ```sh
 npm run lesson -- lessons/04_typescript_foundations/01_migrating_javascript.ts
 ```
+
+`npm run lesson` invokes the repository's pinned `lesson` script, which uses
+`tsx` to execute full TypeScript syntax. The `--` forwards the following file
+path to that script rather than treating it as an npm option.
 
 Inside a container, run the same command after opening a shell with
 `scripts/course-container`, or prefix it with `scripts/course-container`.
@@ -114,18 +123,31 @@ before selecting a [capstone](capstones/README.md).
 
 ## Essential commands
 
-```sh
-npm run check:node
-npm run check:deno
-npm run check:bun
-npm run portability
-TASKS_IMPLEMENTATION=solution npm run check:tasks
-npm run test:tasks:interoperability
-```
+| Command                                             | Meaning                                                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `npm run check:node`                                | Run formatting, lint, types, links, lessons, tests, coverage, OpenAPI validation, and audit for Node.js |
+| `npm run check:deno`                                | Run the complete Deno-native course check                                                               |
+| `npm run check:bun`                                 | Run the complete Bun-native course check                                                                |
+| `npm run portability`                               | Compare the idiomatic solution behavior across Node.js, Deno, and Bun                                   |
+| `TASKS_IMPLEMENTATION=solution npm run check:tasks` | Select and validate the complete Tasks solution on all three runtimes                                   |
+| `npm run test:tasks:interoperability`               | Exercise the cross-runtime Tasks client/server matrix                                                   |
+
+An assignment such as `TASKS_IMPLEMENTATION=solution` sets an environment
+variable for that one command. It selects the implementation without editing
+imports or source files.
+
+## Optional Learning Mentor
+
+The repository includes an optional Learning Mentor for GitHub Copilot CLI,
+OpenAI Codex, and Claude Code. It follows course prerequisites, schedules
+reviews, protects locked solutions, and records evidence without taking
+ownership of your work. See the [Learning Mentor guide](docs/LEARNING_MENTOR.md)
+for setup, launch commands, state storage, and container boundaries.
 
 ## Course resources
 
 - [Setup and troubleshooting](docs/SETUP.md)
+- [Learning Mentor](docs/LEARNING_MENTOR.md)
 - [Beginner guide](docs/BEGINNER_GUIDE.md)
 - [Exercise index](exercises/README.md)
 - [Applied project](projects/tasks/README.md)
