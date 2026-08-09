@@ -100,3 +100,7 @@ vite.config.ts.timestamp-*
 
 # Learning Mentor adapter cache
 __pycache__/
+
+# Local mise overrides
+mise.local.toml
+mise.local.lock

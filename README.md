@@ -52,8 +52,18 @@ you want to rebuild the local image.
 
 #### C. Install the tooling locally
 
-Install Node.js 24 or 26, Deno 2.9.3, and Bun 1.3.14. Then install the pinned
-course dependencies and run the first lesson:
+The recommended native path uses the repository's locked mise toolchain. Mise
+installs the runtimes; npm still installs the course dependencies:
+
+```sh
+mise install
+mise exec -- npm install
+mise exec -- node \
+  lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
+```
+
+For the manual path, install Node.js 24 or 26, Deno 2.9.3, and Bun 1.3.14.
+Then install the same pinned dependencies and run the lesson directly:
 
 ```sh
 node --version
@@ -68,9 +78,9 @@ When present, `scripts/course-container` runs that same command inside the
 selected course image. The first `npm install` may download dependencies and
 print substantial setup output; later runs reuse the installed packages.
 
-See the [setup guide](docs/SETUP.md) for complete installation steps, supported
-versions, VS Code Dev Containers, image tags, caches, and troubleshooting. If
-programming syntax is entirely new, also use the
+See the [setup guide](docs/SETUP.md) for installing mise, complete manual
+installation steps, supported versions, VS Code Dev Containers, image tags,
+caches, and troubleshooting. If programming syntax is entirely new, also use the
 [beginner guide](docs/BEGINNER_GUIDE.md).
 
 ### 3. Continue with TypeScript

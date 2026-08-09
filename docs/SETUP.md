@@ -3,11 +3,11 @@
 The course supports three tooling setups. They run the same source code and
 tests; choose one and keep using it throughout a work session.
 
-| Setup                                                                  | Install on the host         | Best for                                   |
-| ---------------------------------------------------------------------- | --------------------------- | ------------------------------------------ |
-| [Prebuilt container](#option-a-use-the-prebuilt-container-recommended) | Git and Docker              | Fastest, CI-validated start                |
-| [Locally built container](#option-b-build-the-container-locally)       | Git and Docker              | Inspecting and building the image yourself |
-| [Local toolchain](#option-c-install-the-tooling-locally)               | Git, Node.js, Deno, and Bun | Native editor and shell integration        |
+| Setup                                                                  | Install on the host                    | Best for                                   |
+| ---------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------ |
+| [Prebuilt container](#option-a-use-the-prebuilt-container-recommended) | Git and Docker                         | Fastest, CI-validated start                |
+| [Locally built container](#option-b-build-the-container-locally)       | Git and Docker                         | Inspecting and building the image yourself |
+| [Local toolchain](#option-c-install-the-tooling-locally)               | Git and mise, or Git plus the runtimes | Native editor and shell integration        |
 
 ## Clone the course
 
@@ -76,6 +76,35 @@ normal bind mount. State location depends on where the mentor client runs; the
 host and container cases.
 
 ## Option C: Install the tooling locally
+
+### Recommended: install with mise
+
+Install [`mise`](https://mise.jdx.dev/installing-mise.html), then run from the
+repository root:
+
+```bash
+mise install
+mise exec -- node --version
+mise exec -- deno --version
+mise exec -- bun --version
+mise exec -- npm install
+```
+
+`mise.toml` declares Node.js 24, Deno 2.9.3, Bun 1.3.14, and Python 3.11 for
+optional Learning Mentor tooling. `mise.lock` selects the exact versions
+validated for this course. Shell activation makes them available directly;
+without it, prefix course commands with `mise exec --`.
+
+The lock is intentionally not auto-updated whenever a patch appears. Maintainers
+refresh it with `mise lock --bump`, inspect the resolution, and run the complete
+course validation before committing it. Put personal overrides in the ignored
+`mise.local.toml`, not in the shared config.
+
+Mise installs runtimes, not Git or the dependencies in `package-lock.json`.
+Keep the explicit `npm install` step above; use `npm ci` when reproducing CI
+from an unchanged lockfile.
+
+### Manual installation
 
 Install Node.js 24 LTS or Node.js 26 Current from <https://nodejs.org/> and
 install Deno 2.9.3 and Bun 1.3.14 from their official installation guides:

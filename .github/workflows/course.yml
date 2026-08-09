@@ -1,14 +1,11 @@
-name: Check course
+name: Validate course
 
 env:
   CAPSTONE_IMPLEMENTATION: solution
   TASKS_IMPLEMENTATION: solution
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
