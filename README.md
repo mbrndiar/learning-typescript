@@ -1,4 +1,4 @@
-# 🟦 Learning TypeScript
+# <img src="docs/assets/typescript-logo.svg" alt="TypeScript logo" height="32"> Learning TypeScript
 
 A hands-on introduction to JavaScript, TypeScript, and server-side runtime
 programming. The course starts with JavaScript foundations, uses strict
@@ -57,8 +57,8 @@ installs the runtimes; npm still installs the course dependencies:
 
 ```sh
 mise install
-mise exec -- npm install
-mise exec -- node \
+npm install
+node \
   lessons/01_javascript_programs_and_values/01_programs_and_primitives.js
 ```
 
@@ -131,20 +131,20 @@ For each module:
 Then complete the [Task REST API applied project](projects/tasks/README.md)
 before selecting a [capstone](capstones/README.md).
 
-## Essential commands
+## Development checks
 
-| Command                                             | Meaning                                                                                                 |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `npm run check:node`                                | Run formatting, lint, types, links, lessons, tests, coverage, OpenAPI validation, and audit for Node.js |
-| `npm run check:deno`                                | Run the complete Deno-native course check                                                               |
-| `npm run check:bun`                                 | Run the complete Bun-native course check                                                                |
-| `npm run portability`                               | Compare the idiomatic solution behavior across Node.js, Deno, and Bun                                   |
-| `TASKS_IMPLEMENTATION=solution npm run check:tasks` | Select and validate the complete Tasks solution on all three runtimes                                   |
-| `npm run test:tasks:interoperability`               | Exercise the cross-runtime Tasks client/server matrix                                                   |
+Run the lesson or focused test connected to your change. The complete Node.js,
+Deno, Bun, coverage, portability, project, and interoperability commands are in
+[the setup guide](docs/SETUP.md#essential-commands).
 
-An assignment such as `TASKS_IMPLEMENTATION=solution` sets an environment
-variable for that one command. It selects the implementation without editing
-imports or source files.
+## How JavaScript and TypeScript code run and ship
+
+JavaScript runs directly in a runtime such as Node.js, Deno, or Bun. TypeScript
+must first be stripped or compiled to JavaScript, or be executed by a runtime or
+loader that performs that transformation. Deployment therefore needs the
+chosen runtime plus application dependencies; browsers provide their own
+JavaScript runtime. A server-side container can package the runtime, compiled
+output or source, dependencies, and OS-level tools together.
 
 ## Optional Learning Mentor
 
@@ -152,7 +152,8 @@ The repository includes an optional Learning Mentor for GitHub Copilot CLI,
 OpenAI Codex, and Claude Code. It follows course prerequisites, schedules
 reviews, protects locked solutions, and records evidence without taking
 ownership of your work. See the [Learning Mentor guide](docs/LEARNING_MENTOR.md)
-for setup, launch commands, state storage, and container boundaries.
+for setup, launch commands, state storage, container boundaries, and transfer
+between machines.
 
 ## Course resources
 

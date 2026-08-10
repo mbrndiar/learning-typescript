@@ -79,21 +79,23 @@ host and container cases.
 
 ### Recommended: install with mise
 
-Install [`mise`](https://mise.jdx.dev/installing-mise.html), then run from the
+Install [`mise`](https://mise.jdx.dev/installing-mise.html),
+[activate it in your shell](https://mise.jdx.dev/getting-started.html#activate-mise), then run from the
 repository root:
 
 ```bash
 mise install
-mise exec -- node --version
-mise exec -- deno --version
-mise exec -- bun --version
-mise exec -- npm install
+node --version
+deno --version
+bun --version
+npm install
 ```
 
 `mise.toml` declares Node.js 24, Deno 2.9.3, Bun 1.3.14, and Python 3.11 for
 optional Learning Mentor tooling. `mise.lock` selects the exact versions
 validated for this course. Shell activation makes them available directly;
-without it, prefix course commands with `mise exec --`.
+use `mise exec -- COMMAND` only as a fallback in an unactivated shell or in
+automation.
 
 The lock is intentionally not auto-updated whenever a patch appears. Maintainers
 refresh it with `mise lock --bump`, inspect the resolution, and run the complete

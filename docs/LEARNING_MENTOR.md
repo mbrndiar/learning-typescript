@@ -106,11 +106,43 @@ Running a host client while using `scripts/course-container` for course commands
 still uses the host database. The named Docker volume is used only by a mentor
 process running inside that container environment.
 
-State is local to that host or Docker volume and is not currently transferred
-between machines. After `HEAD` changes, the mentor validates and initializes
-the new course version before reading or recording progress. Stable objective
-IDs carry mastery and review history forward; attempts remain evidence on their
-original commit, and solution unlocks are commit-specific.
+After `HEAD` changes, the mentor validates and initializes the new course
+version before reading or recording progress. Stable objective IDs carry
+mastery and review history forward; attempts remain evidence on their original
+commit, and solution unlocks are commit-specific.
+
+### Transfer progress between machines
+
+Close Mentor sessions and create a private snapshot in the ignored transfer
+directory. For a host-side Mentor, run:
+
+```bash
+mkdir -p .learning-mentor-transfer
+python3 .agents/skills/guided-learning/scripts/learning_state.py backup \
+  --output .learning-mentor-transfer/state.sqlite3
+```
+
+If the Mentor runs in the course container, run the same helper through the
+wrapper so it reads the `learning-mentor-state` volume:
+
+```bash
+mkdir -p .learning-mentor-transfer
+scripts/course-container python3 \
+  .agents/skills/guided-learning/scripts/learning_state.py backup \
+  --output .learning-mentor-transfer/state.sqlite3
+```
+
+Transfer the file securely. On the destination, use the matching host command
+or prefix this command with `scripts/course-container` for container state:
+
+```bash
+python3 .agents/skills/guided-learning/scripts/learning_state.py restore \
+  --input .learning-mentor-transfer/state.sqlite3 --replace
+```
+
+Restore replaces all local Mentor state rather than merging it and first
+creates a timestamped recovery database when state exists. Never commit the
+snapshot; delete it after verification.
 
 ## Solution locks and learner ownership
 
